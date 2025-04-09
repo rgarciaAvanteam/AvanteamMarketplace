@@ -1,0 +1,29 @@
+{
+  "profiles": {
+    "AvanteamMarketplace.LocalInstaller": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "Custom/MarketPlace/api/status",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:5001;https://localhost:5002"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "Custom/MarketPlace/api/status",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:35432",
+      "sslPort": 44335
+    }
+  }
+}

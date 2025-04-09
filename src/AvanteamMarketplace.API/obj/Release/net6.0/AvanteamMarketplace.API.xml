@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AvanteamMarketplace.API</name>
+    </assembly>
+    <members>
+        <member name="T:AvanteamMarketplace.API.Controllers.ComponentsManagementController">
+            <summary>
+            Contrôleur pour l'API d'administration du Marketplace
+            </summary>
+            <remarks>
+            Ce contrôleur fournit les endpoints réservés aux administrateurs pour gérer le Marketplace :
+            - Créer, modifier et supprimer des composants
+            - Téléverser des packages de composants
+            - Gérer les clés API
+            - Synchroniser avec GitHub
+            
+            **IMPORTANT** : Tous les endpoints nécessitent une clé API avec des droits d'administration.
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.DeleteComponent(System.Int32)">
+            <summary>
+            Supprime un composant du Marketplace
+            </summary>
+            <param name="componentId">ID du composant à supprimer</param>
+            <returns>Statut de la suppression</returns>
+            <response code="204">Composant supprimé avec succès</response>
+            <response code="400">Si le composant est installé sur des plateformes clientes</response>
+            <response code="404">Si le composant n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentIcon(System.Int32)">
+            <summary>
+            Récupère l'icône d'un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Fichier image SVG de l'icône</returns>
+            <response code="200">Retourne l'icône</response>
+            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
+            <response code="404">Si le composant ou l'icône n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String)">
+            <summary>
+            Téléverse un package de composant (fichier ZIP)
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="packageFile">Fichier de package au format ZIP</param>
+            <param name="version">Version du package (ex: 1.0.0) - si non spécifiée, utilise la version du manifest.json</param>
+            <returns>Informations sur le package téléversé</returns>
+            <response code="200">Téléversement réussi</response>
+            <response code="400">Si le fichier est manquant ou invalide</response>
+            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
+            <response code="404">Si le composant n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+            <remarks>
+            Le package ZIP doit contenir au minimum :
+            - Un répertoire src/ contenant les fichiers du composant
+            - OU les fichiers du composant directement à la racine
+            
+            Structure recommandée :
+            ```
+            component-name/
+              ├── manifest.json   # Métadonnées du composant
+              ├── README.md       # Documentation
+              ├── install.ps1     # Script d'installation personnalisé (optionnel)
+              └── src/            # Fichiers source du composant
+            ```
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SynchronizeFromGitHub(System.String)">
+            <summary>
+            Synchronise les composants depuis un dépôt GitHub
+            </summary>
+            <param name="repository">URL du dépôt GitHub à synchroniser (ex: https://github.com/avanteam/component-HishikawaDiagram)</param>
+            <returns>Résultat de la synchronisation avec les composants créés, mis à jour et en échec</returns>
+            <response code="200">Synchronisation réussie</response>
+            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+            <remarks>
+            Cet endpoint permet d'importer ou de mettre à jour des composants à partir d'un dépôt GitHub.
+            Le dépôt doit contenir un fichier manifest.json à la racine qui décrit le composant.
+            
+            Format du manifest.json attendu :
+            ```json
+            {
+              "name": "IshikawaDiagram",
+              "displayName": "Diagramme Ishikawa",
+              "version": "1.0.0",
+              "author": "Avanteam",
+              "description": "Description du composant",
+              "category": "Analyse",
+              "minPlatformVersion": "23.0.0",
+              "recommendedPlatformVersion": "23.0.0",
+              "repository": "https://github.com/avanteam/component-repository",
+              "tags": ["analyse", "qualité"]
+            }
+            ```
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateApiKey(AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel)">
+            <summary>
+            Crée une nouvelle clé API
+            </summary>
+            <param name="model">Informations pour la création de la clé API</param>
+            <returns>La nouvelle clé API générée</returns>
+            <response code="200">Création réussie, retourne la clé API générée</response>
+            <response code="400">Si le modèle est invalide</response>
+            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+            <remarks>
+            Les clés API sont utilisées pour authentifier les requêtes au Marketplace.
+            
+            Il existe deux types de clés API :
+            - Clés client : utilisées par Process Studio pour accéder aux composants
+            - Clés administrateur : utilisées pour gérer le Marketplace (créer/modifier/supprimer des composants)
+            
+            Exemple de requête :
+            ```json
+            {
+              "clientId": "process-studio-client-001",
+              "isAdmin": true
+            }
+            ```
+            
+            **IMPORTANT** : Sauvegardez la clé API générée, elle ne sera plus jamais affichée après cette opération.
+            </remarks>
+        </member>
+        <member name="T:AvanteamMarketplace.API.Controllers.LocalInstallerController">
+            <summary>
+            Contrôleur pour l'installation locale de composants dans Process Studio
+            </summary>
+            <remarks>
+            Ce contrôleur doit être copié dans l'application Process Studio.
+            Il fournit un endpoint local pour installer les composants du marketplace.
+            Le chemin de l'API est /Custom/MarketPlace/api/install
+            </remarks>
+        </member>
+        <member name="T:AvanteamMarketplace.API.Controllers.MarketplaceController">
+            <summary>
+            Contrôleur pour l'API client du Marketplace Avanteam
+            </summary>
+            <remarks>
+            Ce contrôleur fournit l'ensemble des endpoints permettant aux applications clientes 
+            (Process Studio) d'interagir avec le Marketplace, notamment pour :
+            - Obtenir la liste des composants compatibles
+            - Télécharger des composants
+            - Installer des composants
+            - Signaler l'installation d'un composant
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetCompatibleComponents(System.String,System.String)">
+            <summary>
+            Récupère les composants compatibles avec la version de la plateforme du client
+            </summary>
+            <param name="clientId">Identifiant unique du client Process Studio (généralement le GUID d'installation)</param>
+            <param name="version">Version de la plateforme Process Studio du client (format X.Y.Z)</param>
+            <returns>Liste des composants compatibles avec la version spécifiée</returns>
+            <response code="200">Retourne la liste des composants compatibles</response>
+            <response code="400">Si la version n'est pas spécifiée</response>
+            <response code="401">Si l'authentification a échoué</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetUpdatedComponents(System.String,System.String)">
+            <summary>
+            Récupère les mises à jour disponibles pour les composants du client
+            </summary>
+            <param name="clientId">Identifiant unique du client Process Studio</param>
+            <param name="version">Version de la plateforme Process Studio du client</param>
+            <returns>Liste des composants avec des mises à jour disponibles</returns>
+            <response code="200">Retourne la liste des mises à jour disponibles</response>
+            <response code="400">Si la version n'est pas spécifiée</response>
+            <response code="401">Si l'authentification a échoué</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+            <remarks>
+            Cet endpoint compare les versions installées par le client avec les dernières versions
+            disponibles dans le Marketplace et retourne uniquement les composants ayant des mises à jour.
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetComponentIcon(System.Int32)">
+            <summary>
+            Récupère l'icône d'un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Fichier image SVG de l'icône du composant</returns>
+            <response code="200">Retourne l'icône du composant</response>
+            <response code="404">Si le composant ou l'icône n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetIconByTag(System.String)">
+            <summary>
+            Récupère l'icône d'un composant par son tag
+            </summary>
+            <param name="tag">Tag du composant</param>
+            <returns>Fichier image SVG de l'icône</returns>
+            <response code="200">Retourne l'icône associée au tag</response>
+            <response code="404">Si l'icône n'existe pas pour ce tag</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.DownloadComponent(System.Int32,System.String,System.String,System.Boolean)">
+            <summary>
+            Télécharge un composant du marketplace
+            </summary>
+            <param name="componentId">ID du composant à télécharger</param>
+            <param name="clientId">Identifiant unique du client Process Studio</param>
+            <param name="version">Version spécifique du composant à télécharger (optionnel, sinon la dernière version est utilisée)</param>
+            <returns>Fichier ZIP du composant ou URL de téléchargement</returns>
+            <response code="200">Téléchargement réussi - retourne soit le fichier, soit une URL</response>
+            <response code="400">Si l'identifiant client n'est pas spécifié</response>
+            <response code="401">Si l'authentification a échoué</response>
+            <response code="404">Si le composant ou la version n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+            <remarks>
+            Cet endpoint peut retourner :
+            - Un fichier physique directement (Content-Type: application/zip)
+            - Ou un objet JSON avec une URL de téléchargement : { "DownloadUrl": "..." }
+            
+            Le comportement dépend de la configuration du composant.
+            Les téléchargements sont enregistrés pour les statistiques.
+            </remarks>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.InstallComponent(System.Int32,System.String,System.String,AvanteamMarketplace.Core.ViewModels.InstallationResultViewModel)">
+            <summary>
+            Installe ou met à jour un composant pour un client
+            </summary>
+            <param name="componentId">ID du composant à installer</param>
+            <param name="clientId">Identifiant du client</param>
+            <param name="version">Version à installer (optionnel)</param>
+            <param name="installRequest">Données d'installation (optionnel)</param>
+            <returns>Succès ou échec de l'installation</returns>
+            <response code="200">Installation réussie</response>
+            <response code="400">Si l'identifiant client n'est pas spécifié</response>
+            <response code="404">Si le composant n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.UninstallComponent(System.Int32,System.String)">
+            <summary>
+            Désinstalle un composant pour un client
+            </summary>
+            <param name="componentId">ID du composant à désinstaller</param>
+            <param name="clientId">Identifiant du client</param>
+            <returns>Succès ou échec de la désinstallation</returns>
+            <response code="200">Désinstallation réussie</response>
+            <response code="400">Si l'identifiant client n'est pas spécifié</response>
+            <response code="404">Si le composant n'est pas installé ou n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.ExecuteInstallComponent(System.Int32,System.String,System.String)">
+            <summary>
+            Exécute l'installation automatique d'un composant sur le serveur Process Studio
+            </summary>
+            <param name="componentId">ID du composant à installer</param>
+            <param name="clientId">Identifiant du client</param>
+            <param name="version">Version du composant (optionnel)</param>
+            <returns>Résultat de l'installation</returns>
+            <response code="200">Installation exécutée avec succès</response>
+            <response code="400">Si l'identifiant client n'est pas spécifié</response>
+            <response code="404">Si le composant n'existe pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetInstallationLogs(System.String)">
+            <summary>
+            Récupère les logs d'une installation
+            </summary>
+            <param name="installId">ID de l'installation</param>
+            <returns>Contenu des logs d'installation</returns>
+            <response code="200">Logs récupérés avec succès</response>
+            <response code="404">Si les logs n'existent pas</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.GetInstallScript">
+            <summary>
+            Télécharge le script d'installation client pour l'exécution locale
+            </summary>
+            <remarks>
+            Ce endpoint permet de télécharger un script PowerShell qui servira de
+            lanceur pour l'installation locale du composant sur la machine cliente.
+            </remarks>
+            <response code="200">Retourne le script PowerShell</response>
+            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="T:AvanteamMarketplace.API.DirectLoginController">
+            <summary>
+            Contrôleur simple pour l'authentification directe
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.API.DirectLoginController.CheckAdminKey(System.String)">
+            <summary>
+            Vérifie la validité d'une clé d'administration
+            </summary>
+            <param name="key">Clé d'administration à vérifier</param>
+            <returns>True si la clé est valide</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.DirectLoginController.LoginPage">
+            <summary>
+            Génère une page HTML de connexion simple
+            </summary>
+        </member>
+    </members>
+</doc>

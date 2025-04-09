@@ -1,0 +1,50 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.API", "src\AvanteamMarketplace.API\AvanteamMarketplace.API.csproj", "{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.Core", "src\AvanteamMarketplace.Core\AvanteamMarketplace.Core.csproj", "{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.Infrastructure", "src\AvanteamMarketplace.Infrastructure\AvanteamMarketplace.Infrastructure.csproj", "{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvanteamMarketplace.LocalInstaller", "src\AvanteamMarketplace.LocalInstaller\AvanteamMarketplace.LocalInstaller.csproj", "{E4EAA308-7AD4-4D33-8224-4234A66C110C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1} = {EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}
+		{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44} = {EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}
+		{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B} = {EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}
+		{E4EAA308-7AD4-4D33-8224-4234A66C110C} = {EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62C65F7F-9D9E-4A72-8C6E-C5E2D5C2BBB2}
+	EndGlobalSection
+EndGlobal

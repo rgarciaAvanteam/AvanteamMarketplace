@@ -1,0 +1,77 @@
+{
+  "Version": 1,
+  "Hash": "8+iHRBVchi7wmSP/yubMTpbRodIAOZjkwhijMLqynQY=",
+  "Source": "AvanteamMarketplace.API",
+  "BasePath": "_content/AvanteamMarketplace.API",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "AvanteamMarketplace.API/wwwroot",
+      "Source": "AvanteamMarketplace.API",
+      "ContentRoot": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/",
+      "BasePath": "_content/AvanteamMarketplace.API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/css/admin.css",
+      "SourceId": "AvanteamMarketplace.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/",
+      "BasePath": "_content/AvanteamMarketplace.API",
+      "RelativePath": "css/admin.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/css/admin.css"
+    },
+    {
+      "Identity": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin.js",
+      "SourceId": "AvanteamMarketplace.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/",
+      "BasePath": "_content/AvanteamMarketplace.API",
+      "RelativePath": "js/admin.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/js/admin.js"
+    },
+    {
+      "Identity": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/simple-login.html",
+      "SourceId": "AvanteamMarketplace.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/",
+      "BasePath": "_content/AvanteamMarketplace.API",
+      "RelativePath": "simple-login.html",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/simple-login.html"
+    }
+  ]
+}

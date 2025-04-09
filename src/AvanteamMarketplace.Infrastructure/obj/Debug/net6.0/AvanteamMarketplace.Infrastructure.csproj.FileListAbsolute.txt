@@ -1,0 +1,16 @@
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.csproj.AssemblyReference.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.AssemblyInfoInputs.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.AssemblyInfo.cs
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.csproj.CoreCompileInputs.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Infrastructure.deps.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Infrastructure.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Infrastructure.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Core.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.csproj.CopyComplete
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/refint/AvanteamMarketplace.Infrastructure.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/AvanteamMarketplace.Infrastructure.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Debug/net6.0/ref/AvanteamMarketplace.Infrastructure.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Debug/net6.0/AvanteamMarketplace.Core.xml

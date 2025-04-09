@@ -1,0 +1,7 @@
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/AvanteamMarketplace.Core.deps.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/AvanteamMarketplace.Core.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/Microsoft.AspNetCore.Http.Abstractions.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/Microsoft.AspNetCore.Http.Features.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/Microsoft.Extensions.Primitives.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/publish/AvanteamMarketplace.Core.xml

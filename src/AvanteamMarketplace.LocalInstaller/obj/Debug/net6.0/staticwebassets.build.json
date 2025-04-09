@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "X2QvCB9QjMJYvFs+XdE1MiG2Sw+IRUtxvMzgGhTSjiI=",
+  "Source": "AvanteamMarketplace.LocalInstaller",
+  "BasePath": "_content/AvanteamMarketplace.LocalInstaller",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,32 @@
+Voici comment tester manuellement le processus d'installation :
+
+1. Ouvrez PowerShell
+
+2. IMPORTANT: Par défaut, le script va installer le composant à la racine de votre site web.
+   - Si vous voulez MODIFIER votre site web réel, laissez $useRealRoot = $true (ligne 121)
+   - Si vous voulez faire un test SUR UN ENVIRONNEMENT ISOLÉ, modifiez $useRealRoot = $false 
+
+3. Exécutez le script de test avec la commande suivante :
+   
+   cd "I:\AVANTEAM\POC\TRIAL INNATEPHARMA\Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace\scripts"
+   .\run-test-installation.ps1
+
+4. Ce script va :
+   - Créer un package de test avec script personnalisé
+   - Détecter automatiquement la racine de votre site web (app/)
+   - Installer le contenu du dossier src/ dans Components/test-component/
+   - Exécuter le script personnalisé qui crée un fichier supplémentaire
+   - Vérifier les fichiers installés
+   - Créer des logs dans scripts\Logs\
+
+5. Les fichiers seront installés dans :
+   "I:\AVANTEAM\POC\TRIAL INNATEPHARMA\Avanteam Process Suite\PStudio.Net.Web\app\Components\test-component\"
+
+6. Pour tester avec votre propre composant :
+   .\install-component.ps1 -ComponentPackageUrl "file:///C:/Chemin/vers/moncomposant.zip" -ComponentId "mon-composant" -Version "1.0.0" -ProcessStudioRoot "I:\AVANTEAM\POC\TRIAL INNATEPHARMA\Avanteam Process Suite\PStudio.Net.Web\app"
+
+NOTE IMPORTANTE:
+L'interface web NE PEUT PAS exécuter directement le script PowerShell.
+Elle simule seulement l'installation avec des logs factices.
+
+Une solution complète nécessiterait d'ajouter un point d'API qui exécute le script PowerShell.

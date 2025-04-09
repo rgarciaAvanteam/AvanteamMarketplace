@@ -1,0 +1,318 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AvanteamMarketplace.Core</name>
+    </assembly>
+    <members>
+        <member name="T:AvanteamMarketplace.Core.Models.ApiKey">
+            <summary>
+            Représente une clé API pour l'authentification au marketplace
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.ClientInstallation">
+            <summary>
+            Représente une installation client
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.Component">
+            <summary>
+            Représente un composant dans le marketplace
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.ComponentDependency">
+            <summary>
+            Représente une dépendance entre composants
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.ComponentDownload">
+            <summary>
+            Représente un téléchargement de composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.ComponentTag">
+            <summary>
+            Représente un tag associé à un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.ComponentVersion">
+            <summary>
+            Représente une version d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Models.InstalledComponent">
+            <summary>
+            Représente un composant installé sur un client
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.IComponentPackageService">
+            <summary>
+            Interface pour la gestion des packages de composants
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentPackageService.ProcessComponentPackageAsync(System.Int32,System.String,System.String)">
+            <summary>
+            Traite un package de composant téléchargé
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentPackageService.ValidateComponentPackageAsync(System.String)">
+            <summary>
+            Valide un package de composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentPackageService.GenerateComponentPackageAsync(System.String,System.String,System.String)">
+            <summary>
+            Génère un package de composant à partir d'un répertoire source
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.ComponentPackageResult">
+            <summary>
+            Résultat du traitement d'un package de composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.ComponentPackageValidationResult">
+            <summary>
+            Résultat de la validation d'un package de composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.IGitHubIntegrationService">
+            <summary>
+            Interface pour l'intégration avec GitHub
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IGitHubIntegrationService.SynchronizeComponentsFromGitHubAsync(System.String)">
+            <summary>
+            Synchronise les composants à partir d'un dépôt GitHub
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IGitHubIntegrationService.GetReadmeContentAsync(System.String)">
+            <summary>
+            Récupère le contenu README d'un dépôt GitHub
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IGitHubIntegrationService.GetManifestContentAsync(System.String)">
+            <summary>
+            Récupère le fichier manifest.json d'un dépôt GitHub
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IGitHubIntegrationService.DownloadComponentFromGitHubAsync(System.String,System.String)">
+            <summary>
+            Télécharge un composant à partir d'un dépôt GitHub
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.GitHubSyncResult">
+            <summary>
+            Résultat de la synchronisation avec GitHub
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.IMarketplaceService">
+            <summary>
+            Interface pour le service du marketplace
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetCompatibleComponentsAsync(System.String,System.String)">
+            <summary>
+            Récupère les composants compatibles avec la version de la plateforme spécifiée
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetUpdatesForClientAsync(System.String,System.String)">
+            <summary>
+            Récupère les mises à jour disponibles pour un client
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetFutureComponentsAsync(System.String,System.String)">
+            <summary>
+            Récupère les composants futurs (non compatibles avec la version actuelle)
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentDetailAsync(System.Int32)">
+            <summary>
+            Récupère les détails d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentReadmeAsync(System.Int32)">
+            <summary>
+            Récupère le contenu README d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentDownloadInfoAsync(System.Int32,System.String)">
+            <summary>
+            Récupère les informations de téléchargement d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.LogComponentDownloadAsync(System.Int32,System.String,System.String)">
+            <summary>
+            Enregistre un téléchargement de composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.LogComponentInstallationAsync(System.Int32,System.String,System.String)">
+            <summary>
+            Enregistre l'installation d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentsForAdminAsync">
+            <summary>
+            Récupère la liste des composants pour l'administration
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentAdminDetailAsync(System.Int32)">
+            <summary>
+            Récupère les détails d'un composant pour l'administration
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.CreateComponentAsync(AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel)">
+            <summary>
+            Crée un nouveau composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.UpdateComponentAsync(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentUpdateViewModel)">
+            <summary>
+            Met à jour un composant existant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.DeleteComponentAsync(System.Int32)">
+            <summary>
+            Supprime un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetApiKeysAsync">
+            <summary>
+            Récupère la liste des clés API
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.CreateApiKeyAsync(AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel)">
+            <summary>
+            Crée une nouvelle clé API
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.DeleteApiKeyAsync(System.Int32)">
+            <summary>
+            Supprime une clé API
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.ComponentDownloadInfo">
+            <summary>
+            Informations de téléchargement d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector">
+            <summary>
+            Interface pour la détection de la version de Process Studio
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector.IsComponentVersionCompatible(System.String,System.String)">
+            <summary>
+            Vérifie si une version de composant est compatible avec une version de plateforme
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector.IsPlatformVersionSufficient(System.String,System.String)">
+            <summary>
+            Vérifie si une version de plateforme est suffisante pour un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector.IsPlatformVersionRecommended(System.String,System.String)">
+            <summary>
+            Vérifie si une version de plateforme est recommandée pour un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector.CompareVersions(System.String,System.String)">
+            <summary>
+            Compare deux versions et retourne -1, 0 ou 1 selon que v1 est inférieure, égale ou supérieure à v2
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ApiKeyViewModel">
+            <summary>
+            ViewModel pour l'affichage des clés API
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel">
+            <summary>
+            ViewModel pour la création d'une clé API
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentAdminDetailViewModel">
+            <summary>
+            ViewModel pour les détails d'administration d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel">
+            <summary>
+            ViewModel pour la création d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentDependencyViewModel">
+            <summary>
+            ViewModel pour une dépendance de composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentDetailViewModel">
+            <summary>
+            ViewModel pour les détails d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentsAdminViewModel">
+            <summary>
+            ViewModel pour l'administration des composants
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentsAdminViewModel.Components">
+            <summary>
+            Liste de tous les composants
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentsAdminViewModel.Statistics">
+            <summary>
+            Statistiques générales
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentAdminViewModel">
+            <summary>
+            ViewModel pour un composant dans l'interface d'administration
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.AdminStatisticsViewModel">
+            <summary>
+            ViewModel pour les statistiques d'administration
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentsViewModel">
+            <summary>
+            ViewModel pour l'affichage des composants dans l'interface utilisateur
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentsViewModel.Components">
+            <summary>
+            Liste des composants
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentsViewModel.PlatformInfo">
+            <summary>
+            Informations sur la plateforme
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentViewModel">
+            <summary>
+            ViewModel pour un composant dans l'interface utilisateur
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.PlatformInfoViewModel">
+            <summary>
+            ViewModel pour les informations de la plateforme
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentUpdateViewModel">
+            <summary>
+            ViewModel pour la mise à jour d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.DependencyViewModel">
+            <summary>
+            ViewModel pour les dépendances d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.VersionViewModel">
+            <summary>
+            ViewModel pour les versions d'un composant
+            </summary>
+        </member>
+    </members>
+</doc>

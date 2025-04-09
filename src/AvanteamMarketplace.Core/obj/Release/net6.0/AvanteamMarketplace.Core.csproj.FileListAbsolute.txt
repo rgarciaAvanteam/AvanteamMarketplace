@@ -1,0 +1,14 @@
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/AvanteamMarketplace.Core.deps.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/AvanteamMarketplace.Core.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.csproj.AssemblyReference.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.GeneratedMSBuildEditorConfig.editorconfig
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.AssemblyInfoInputs.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.AssemblyInfo.cs
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.csproj.CoreCompileInputs.cache
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/refint/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/ref/AvanteamMarketplace.Core.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/bin/Release/net6.0/AvanteamMarketplace.Core.xml
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/obj/Release/net6.0/AvanteamMarketplace.Core.xml

@@ -1,0 +1,10 @@
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/AvanteamMarketplace.LocalInstaller
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/web.config
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/appsettings.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/AvanteamMarketplace.LocalInstaller.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/AvanteamMarketplace.LocalInstaller.deps.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/AvanteamMarketplace.LocalInstaller.runtimeconfig.json
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/AvanteamMarketplace.LocalInstaller.pdb
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/Microsoft.DotNet.PlatformAbstractions.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/Microsoft.Extensions.DependencyModel.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/bin/Release/net6.0/publish-new/Newtonsoft.Json.dll

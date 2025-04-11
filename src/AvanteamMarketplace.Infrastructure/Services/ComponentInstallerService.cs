@@ -160,6 +160,136 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 };
             }
         }
+
+        /// <summary>
+        /// Exécute le script PowerShell pour désinstaller un composant
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="processStudioRoot">Répertoire racine de Process Studio (optionnel)</param>
+        /// <param name="force">Forcer la désinstallation même s'il y a des dépendances</param>
+        /// <returns>Résultat de la désinstallation</returns>
+        public async Task<InstallationResultViewModel> UninstallComponentAsync(int componentId, string processStudioRoot = null, bool force = false)
+        {
+            try
+            {
+                // Utiliser le répertoire racine spécifié ou celui par défaut
+                var rootPath = !string.IsNullOrEmpty(processStudioRoot) ? processStudioRoot : _processStudioRoot;
+                
+                // Construire le chemin du script PowerShell
+                var uninstallScriptPath = Path.Combine(_scriptsDirectory, "uninstall-component.ps1");
+                
+                if (!File.Exists(uninstallScriptPath))
+                {
+                    _logger.LogError($"Script de désinstallation non trouvé: {uninstallScriptPath}");
+                    return new InstallationResultViewModel
+                    {
+                        Success = false,
+                        Error = $"Script de désinstallation non trouvé: {uninstallScriptPath}"
+                    };
+                }
+                
+                _logger.LogInformation($"Début de la désinstallation du composant {componentId} avec le script {uninstallScriptPath}");
+                
+                // Générer un ID de désinstallation unique
+                var uninstallId = $"uninstall-{Guid.NewGuid():N}";
+                
+                // Préparer les arguments pour le script PowerShell
+                var arguments = $"-ExecutionPolicy Bypass -NoProfile -File \"{uninstallScriptPath}\" -ComponentId \"{componentId}\" -ProcessStudioRoot \"{rootPath}\"";
+                
+                // Ajouter l'option force si nécessaire
+                if (force)
+                {
+                    arguments += " -Force";
+                }
+                
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                
+                var output = new StringBuilder();
+                var error = new StringBuilder();
+                var backupPath = "";
+                
+                using (var process = new Process())
+                {
+                    process.StartInfo = startInfo;
+                    
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (e.Data != null)
+                        {
+                            output.AppendLine(e.Data);
+                            _logger.LogInformation($"[PS] {e.Data}");
+                            
+                            // Extraire le chemin de sauvegarde si disponible
+                            if (e.Data.Contains("Sauvegarde créée dans:") || e.Data.Contains("Une sauvegarde a été créée dans:"))
+                            {
+                                var parts = e.Data.Split(":");
+                                if (parts.Length > 1)
+                                {
+                                    backupPath = parts[parts.Length - 1].Trim();
+                                }
+                            }
+                        }
+                    };
+                    
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data != null)
+                        {
+                            error.AppendLine(e.Data);
+                            _logger.LogError($"[PS-ERR] {e.Data}");
+                        }
+                    };
+                    
+                    _logger.LogInformation($"Lancement du processus PowerShell avec arguments: {startInfo.Arguments}");
+                    
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                    
+                    await process.WaitForExitAsync();
+                    
+                    _logger.LogInformation($"Processus PowerShell terminé avec code: {process.ExitCode}");
+                    
+                    if (process.ExitCode != 0 || error.Length > 0)
+                    {
+                        _logger.LogError($"Erreur lors de la désinstallation: {error}");
+                        return new InstallationResultViewModel
+                        {
+                            Success = false,
+                            Error = error.ToString(),
+                            ComponentId = componentId.ToString(),
+                            InstallId = uninstallId
+                        };
+                    }
+                    
+                    return new InstallationResultViewModel
+                    {
+                        Success = true,
+                        ComponentId = componentId.ToString(),
+                        InstallId = uninstallId,
+                        DestinationPath = backupPath
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Exception lors de la désinstallation du composant {componentId}");
+                return new InstallationResultViewModel
+                {
+                    Success = false,
+                    Error = ex.ToString(),
+                    ComponentId = componentId.ToString()
+                };
+            }
+        }
         
         /// <summary>
         /// Récupère les logs d'installation en temps réel

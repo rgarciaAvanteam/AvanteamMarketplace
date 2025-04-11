@@ -1,6 +1,7 @@
 #
 # Script d'installation pour les composants Avanteam Marketplace
 # Ce script télécharge et installe les packages de composants pour Process Studio
+# Version améliorée qui prend en compte le targetPath du manifest
 #
 
 param(
@@ -17,7 +18,10 @@ param(
     [string]$ProcessStudioRoot = "C:\Program Files\Avanteam\ProcessStudio",
     
     [Parameter(Mandatory=$false)]
-    [switch]$Force = $false
+    [switch]$Force = $false,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$CustomTargetPath = ""
 )
 
 # Configuration
@@ -36,9 +40,7 @@ function Write-Log {
     )
     
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logMessage = "[$Level] $Message"
-    
-    Write-Host $logMessage
+    $logMessage = "[$timestamp] [$Level] $Message"
     
     # Ajouter des couleurs pour la console
     switch ($Level) {
@@ -65,10 +67,48 @@ function Ensure-Directory {
             Write-Log "Répertoire créé: $Path" -Level "INFO"
         }
         catch {
-            Write-Log "Impossible de créer le répertoire: $Path - $($_.Exception.Message)" -Level "ERROR"
+            # Manipuler le message d'erreur pour éviter les problèmes avec les caractères spéciaux
+            $errorMsg = $_.Exception.Message -replace ":", "-"
+            Write-Log "Impossible de créer le répertoire: $Path - $errorMsg" -Level "ERROR"
             throw
         }
     }
+}
+
+# Fonction pour résoudre un chemin relatif en chemin absolu
+function Resolve-Path-WithoutChecking {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Path,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$BasePath
+    )
+    
+    # Traitement des chemins relatifs
+    if ($Path.StartsWith("./") -or $Path.StartsWith("../") -or -not $Path.Contains(":")) {
+        return [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($BasePath, $Path))
+    }
+    
+    # Chemin absolu
+    return $Path
+}
+
+# Fonction pour sécuriser les messages d'erreur (éviter les problèmes avec des caractères spéciaux)
+function Get-SafeErrorMessage {
+    param([System.Management.Automation.ErrorRecord]$ErrorRecord)
+    
+    if ($null -eq $ErrorRecord) { return "Erreur inconnue" }
+    
+    $errorMsg = $ErrorRecord.Exception.Message
+    if ([string]::IsNullOrEmpty($errorMsg)) { return "Erreur sans message" }
+    
+    # Remplacer les caractères problématiques dans les messages d'erreur
+    $errorMsg = $errorMsg -replace ":", "-"
+    $errorMsg = $errorMsg -replace ";", ","
+    $errorMsg = $errorMsg -replace "\$", "_"
+    
+    return $errorMsg
 }
 
 try {
@@ -115,7 +155,8 @@ try {
         Write-Log "Téléchargement réussi: $packagePath" -Level "SUCCESS"
     }
     catch {
-        Write-Log "Erreur de téléchargement: $($_.Exception.Message)" -Level "ERROR"
+        $errorMsg = Get-SafeErrorMessage $_
+        Write-Log "Erreur de téléchargement: $errorMsg" -Level "ERROR"
         exit 1
     }
     
@@ -135,115 +176,304 @@ try {
         Write-Log "Extraction réussie" -Level "SUCCESS"
     }
     catch {
-        Write-Log "Erreur d'extraction: $($_.Exception.Message)" -Level "ERROR"
+        $errorMsg = Get-SafeErrorMessage $_
+        Write-Log "Erreur d'extraction: $errorMsg" -Level "ERROR"
         exit 1
     }
     
-    # Déterminer le dossier source dans l'archive
-    $srcDir = $null
+    # Rechercher la racine du composant dans l'archive extraite
+    $componentRoot = $extractDir
     
-    # Chercher un dossier src, sinon prendre le dossier racine
-    if (Test-Path -Path "$extractDir\src") {
-        $srcDir = "$extractDir\src"
-    }
-    elseif (Test-Path -Path "$extractDir\*\src") {
-        $srcDir = (Get-ChildItem -Path "$extractDir\*\src" -Directory)[0].FullName
+    # Rechercher le manifest.json pour obtenir des informations sur le composant
+    $manifestPath = $null
+    $manifestFiles = Get-ChildItem -Path $extractDir -Filter "manifest.json" -Recurse -ErrorAction SilentlyContinue
+    
+    if ($manifestFiles -and $manifestFiles.Count -gt 0) {
+        $manifestPath = $manifestFiles[0].FullName
+        Write-Log "Fichier manifest trouvé: $manifestPath" -Level "INFO"
+        
+        # Définir la racine du composant comme le dossier contenant le manifest
+        $componentRoot = Split-Path -Parent $manifestPath
+        Write-Log "Racine du composant déterminée: $componentRoot" -Level "INFO"
     }
     else {
-        # Chercher un dossier avec le nom du composant
-        $possibleFolders = @(
-            "$extractDir\component-$ComponentId",
-            "$extractDir\component-HishikawaDiagram*",
-            "$extractDir\*ishikawa*",
-            "$extractDir\*Ishikawa*"
-        )
-        
-        foreach ($folder in $possibleFolders) {
-            $matchingFolders = Get-ChildItem -Path $folder -Directory -ErrorAction SilentlyContinue
-            if ($matchingFolders -and $matchingFolders.Count -gt 0) {
-                if (Test-Path -Path "$($matchingFolders[0].FullName)\src") {
-                    $srcDir = "$($matchingFolders[0].FullName)\src"
-                    break
+        Write-Log "Aucun fichier manifest.json trouvé. Utilisation du répertoire extrait comme racine du composant." -Level "WARNING"
+    }
+    
+    # Lire le manifest pour obtenir des informations sur le composant
+    $targetPath = $null
+    $customInstallActions = @()
+    
+    if ($manifestPath -and (Test-Path -Path $manifestPath -PathType Leaf)) {
+        try {
+            $manifest = Get-Content -Path $manifestPath -Raw | ConvertFrom-Json
+            
+            # Vérifier le nom du composant
+            if ($manifest.name) {
+                Write-Log "Nom du composant extrait du manifest: $($manifest.name)" -Level "INFO"
+            }
+            
+            # Extraire le targetPath qui est obligatoire
+            if ($manifest.installation -and $manifest.installation.targetPath) {
+                $targetPath = $manifest.installation.targetPath
+                Write-Log "Chemin d'installation trouvé dans le manifest: $targetPath" -Level "INFO"
+            }
+            else {
+                Write-Log "ERREUR: targetPath obligatoire non trouvé dans le manifest!" -Level "ERROR"
+                # Si pas de targetPath, abandonner l'installation
+                if (-not [string]::IsNullOrEmpty($CustomTargetPath)) {
+                    Write-Log "Utilisation du chemin personnalisé spécifié en paramètre comme solution de secours" -Level "WARNING"
                 }
                 else {
-                    $srcDir = $matchingFolders[0].FullName
-                    break
+                    Write-Log "Aucun chemin d'installation défini. L'installation ne peut pas continuer." -Level "ERROR"
+                    exit 1
                 }
             }
+            
+            # Extraire les actions d'installation personnalisées s'il en existe
+            if ($manifest.installation -and $manifest.installation.customActions) {
+                $customInstallActions = $manifest.installation.customActions
+                Write-Log "Actions d'installation personnalisées trouvées: $($customInstallActions -join ', ')" -Level "INFO"
+            }
         }
-        
-        # Si toujours pas trouvé, prendre le premier dossier dans l'archive
-        if (-not $srcDir) {
-            $firstLevel = Get-ChildItem -Path $extractDir -Directory
-            if ($firstLevel.Count -gt 0) {
-                if (Test-Path -Path "$($firstLevel[0].FullName)\src") {
-                    $srcDir = "$($firstLevel[0].FullName)\src"
-                }
-                else {
-                    $srcDir = $firstLevel[0].FullName
+        catch {
+            Write-Log "Erreur lors de la lecture du manifest: $(Get-SafeErrorMessage $_)" -Level "WARNING"
+            if (-not [string]::IsNullOrEmpty($CustomTargetPath)) {
+                Write-Log "Utilisation du chemin personnalisé spécifié en paramètre comme solution de secours" -Level "WARNING"
+            }
+            else {
+                Write-Log "Impossible de lire le manifest et aucun chemin d'installation défini. L'installation ne peut pas continuer." -Level "ERROR"
+                exit 1
+            }
+        }
+    }
+    else {
+        Write-Log "Aucun fichier manifest trouvé!" -Level "ERROR"
+        if (-not [string]::IsNullOrEmpty($CustomTargetPath)) {
+            Write-Log "Utilisation du chemin personnalisé spécifié en paramètre comme solution de secours" -Level "WARNING"
+        }
+        else {
+            Write-Log "Aucun manifest et aucun chemin d'installation défini. L'installation ne peut pas continuer." -Level "ERROR"
+            exit 1
+        }
+    }
+    
+    # Si un chemin personnalisé est spécifié en paramètre, l'utiliser en priorité
+    if (-not [string]::IsNullOrEmpty($CustomTargetPath)) {
+        $targetPath = $CustomTargetPath
+        Write-Log "Utilisation du chemin d'installation personnalisé spécifié en paramètre: $targetPath" -Level "INFO"
+    }
+    
+    # Déterminer les dossiers de destination
+    # CORRECTION: Répertoire d'enregistrement dans Custom\MarketPlace\Components\[ComponentId]
+    # sans le "app" en double, car ProcessStudioRoot contient déjà le chemin jusqu'à l'app
+    $componentRegistryDir = [System.IO.Path]::Combine($ProcessStudioRoot, "Custom", "MarketPlace", "Components", $ComponentId)
+    Ensure-Directory -Path $componentRegistryDir
+    Write-Log "Répertoire d'enregistrement du composant: $componentRegistryDir" -Level "INFO"
+    
+    # Déterminer le dossier d'installation cible
+    # targetPath est obligatoire et doit être défini à ce stade
+    if ([string]::IsNullOrEmpty($targetPath)) {
+        Write-Log "ERREUR CRITIQUE: targetPath non défini alors qu'il est obligatoire!" -Level "ERROR"
+        exit 1
+    }
+    
+    # Convertir le chemin relatif en chemin absolu
+    $componentInstallDir = Resolve-Path-WithoutChecking -Path $targetPath -BasePath $ProcessStudioRoot
+    Write-Log "Répertoire d'installation cible (selon targetPath): $componentInstallDir" -Level "INFO"
+    
+    # S'assurer que le répertoire d'installation existe
+    Ensure-Directory -Path $componentInstallDir
+    
+    # Vérifier si le composant est déjà installé
+    $replacingExisting = $false
+    if ((Test-Path -Path $componentInstallDir) -and (Get-ChildItem -Path $componentInstallDir -Recurse -File).Count -gt 0) {
+        $replacingExisting = $true
+        if (-not $Force) {
+            Write-Log "Le composant est déjà installé dans: $componentInstallDir. Utilisez -Force pour remplacer." -Level "WARNING"
+            
+            # Demander confirmation si interactif
+            if ([Environment]::UserInteractive) {
+                $confirmation = Read-Host "Voulez-vous remplacer ce composant ? (o/n)"
+                if ($confirmation -ne "o") {
+                    Write-Log "Installation annulée par l'utilisateur" -Level "INFO"
+                    exit 0
                 }
             }
             else {
-                $srcDir = $extractDir
+                Write-Log "Installation automatique: remplacement du composant existant" -Level "INFO"
             }
-        }
-    }
-    
-    Write-Log "Dossier source déterminé: $srcDir" -Level "INFO"
-    
-    # Vérifier qu'il y a des fichiers dans le dossier source
-    $sourceFiles = Get-ChildItem -Path $srcDir -Recurse -File
-    if ($sourceFiles.Count -eq 0) {
-        Write-Log "Aucun fichier trouvé dans le dossier source: $srcDir" -Level "ERROR"
-        exit 1
-    }
-    
-    # Déterminer le dossier de destination
-    $componentDir = [System.IO.Path]::Combine($ProcessStudioRoot, "Components", $ComponentId)
-    Ensure-Directory -Path $componentDir
-    
-    Write-Log "Chemin de destination complet: $componentDir" -Level "INFO"
-    
-    # Vérifier si le composant est déjà installé
-    if ((Test-Path -Path $componentDir) -and (Get-ChildItem -Path $componentDir -Recurse -File).Count -gt 0 -and -not $Force) {
-        Write-Log "Le composant est déjà installé dans: $componentDir. Utilisez -Force pour remplacer." -Level "WARNING"
-        
-        # Demander confirmation si interactif
-        if ([Environment]::UserInteractive) {
-            $confirmation = Read-Host "Voulez-vous remplacer ce composant ? (o/n)"
-            if ($confirmation -ne "o") {
-                Write-Log "Installation annulée par l'utilisateur" -Level "INFO"
-                exit 0
-            }
-        }
-        else {
-            Write-Log "Installation automatique: remplacement du composant existant" -Level "INFO"
         }
     }
     
     # Nettoyer le dossier de destination si force ou confirmation
-    if ((Test-Path -Path $componentDir) -and ((Get-ChildItem -Path $componentDir -Recurse -File).Count -gt 0) -and ($Force -or [Environment]::UserInteractive)) {
-        Write-Log "Nettoyage du dossier de destination: $componentDir" -Level "INFO"
-        Remove-Item -Path "$componentDir\*" -Recurse -Force
+    if ($replacingExisting -and ($Force -or [Environment]::UserInteractive)) {
+        Write-Log "Nettoyage du dossier d'installation: $componentInstallDir" -Level "INFO"
+        Remove-Item -Path "$componentInstallDir\*" -Recurse -Force
     }
     
-    # Copier les fichiers
-    Write-Log "Copie des fichiers vers: $componentDir" -Level "INFO"
-    try {
-        Copy-Item -Path "$srcDir\*" -Destination $componentDir -Recurse -Force
-        Write-Log "Copie réussie" -Level "SUCCESS"
+    # Installer les fichiers du composant
+    Write-Log "Installation des fichiers du composant..." -Level "INFO"
+    
+    # 1. Sauvegarde du manifest dans le répertoire d'enregistrement
+    if ($manifestPath) {
+        Write-Log "Copie du manifest vers: $componentRegistryDir" -Level "INFO"
+        try {
+            Copy-Item -Path $manifestPath -Destination $componentRegistryDir -Force
+        }
+        catch {
+            Write-Log "Erreur lors de la copie du manifest: $(Get-SafeErrorMessage $_)" -Level "ERROR"
+        }
     }
-    catch {
-        Write-Log "Erreur lors de la copie des fichiers: $($_.Exception.Message)" -Level "ERROR"
-        exit 1
+    
+    # 2. Identifier les fichiers importants à la racine du composant (README.md, install.ps1, etc.)
+    # CORRECTION: Assurons-nous de bien trouver tous les fichiers importants, même avec casse différente
+    $rootFiles = @()
+    
+    # README.md et README.html (insensible à la casse)
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "README.md" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "README.html" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "ReadMe.md" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "ReadMe.html" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "Readme.md" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "Readme.html" -ErrorAction SilentlyContinue
+    
+    # Scripts d'installation et de désinstallation
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "install.ps1" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "install.bat" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "uninstall.ps1" -ErrorAction SilentlyContinue
+    $rootFiles += Get-ChildItem -Path $componentRoot -Filter "uninstall.bat" -ErrorAction SilentlyContinue
+    
+    Write-Log "Fichiers importants trouvés: $($rootFiles.Count)" -Level "INFO"
+    foreach ($file in $rootFiles) {
+        Write-Log "  - $($file.Name)" -Level "INFO"
+    }
+    
+    # Copier les fichiers importants à la fois dans le répertoire d'enregistrement et le répertoire d'installation
+    foreach ($file in $rootFiles) {
+        # Copier dans le répertoire d'enregistrement
+        Write-Log "Copie de $($file.Name) vers le répertoire d'enregistrement" -Level "INFO"
+        try {
+            Copy-Item -Path $file.FullName -Destination $componentRegistryDir -Force
+        }
+        catch {
+            Write-Log "Erreur lors de la copie de $($file.Name) vers le répertoire d'enregistrement: $(Get-SafeErrorMessage $_)" -Level "WARNING"
+        }
+        
+        # Toujours copier aussi dans le répertoire d'installation principale, qui est le plus important
+        Write-Log "Copie de $($file.Name) vers le répertoire d'installation" -Level "INFO"
+        try {
+            Copy-Item -Path $file.FullName -Destination $componentInstallDir -Force
+        }
+        catch {
+            Write-Log "Erreur lors de la copie de $($file.Name) vers le répertoire d'installation: $(Get-SafeErrorMessage $_)" -Level "WARNING"
+        }
+    }
+    
+    # 3. Copier le répertoire src
+    $srcDir = [System.IO.Path]::Combine($componentRoot, "src")
+    if (Test-Path -Path $srcDir -PathType Container) {
+        Write-Log "Copie du répertoire 'src' vers le répertoire d'installation: $componentInstallDir" -Level "INFO"
+        try {
+            Copy-Item -Path "$srcDir\*" -Destination $componentInstallDir -Recurse -Force
+            Write-Log "Copie du répertoire 'src' réussie" -Level "SUCCESS"
+        }
+        catch {
+            Write-Log "Erreur lors de la copie du répertoire 'src': $(Get-SafeErrorMessage $_)" -Level "ERROR"
+            exit 1
+        }
+    }
+    else {
+        # Si pas de dossier src, chercher d'autres structures possibles
+        Write-Log "Aucun répertoire 'src' trouvé dans la racine du composant. Recherche d'autres structures..." -Level "INFO"
+        
+        # Chercher les dossiers à copier dans l'ordre de priorité
+        $potentialSrcDirs = @(
+            # Chercher un dossier src dans les sous-dossiers
+            (Get-ChildItem -Path "$componentRoot\*\src" -Directory -ErrorAction SilentlyContinue),
+            # Chercher un dossier avec le nom proche du composant
+            (Get-ChildItem -Path "$componentRoot\component-$ComponentId*" -Directory -ErrorAction SilentlyContinue),
+            (Get-ChildItem -Path "$componentRoot\*$ComponentId*" -Directory -ErrorAction SilentlyContinue)
+        )
+        
+        $foundSrcDir = $false
+        foreach ($dirCollection in $potentialSrcDirs) {
+            if ($dirCollection -and $dirCollection.Count -gt 0) {
+                $selectedDir = $dirCollection[0].FullName
+                Write-Log "Dossier source alternatif trouvé: $selectedDir" -Level "INFO"
+                
+                try {
+                    Write-Log "Copie du contenu vers le répertoire d'installation: $componentInstallDir" -Level "INFO"
+                    Copy-Item -Path "$selectedDir\*" -Destination $componentInstallDir -Recurse -Force
+                    Write-Log "Copie réussie" -Level "SUCCESS"
+                    $foundSrcDir = $true
+                    break
+                }
+                catch {
+                    $errorMsg = Get-SafeErrorMessage $_
+                    Write-Log "Erreur lors de la copie depuis le dossier source: $errorMsg" -Level "WARNING"
+                    # Continuer avec le prochain dossier potentiel
+                }
+            }
+        }
+        
+        # Si aucun dossier source n'a été trouvé et copié, copier tout le contenu du dossier racine
+        if (-not $foundSrcDir) {
+            Write-Log "Aucune structure standard trouvée. Copie de tout le contenu du dossier racine." -Level "WARNING"
+            try {
+                # Exclure le fichier manifest.json qui a déjà été copié
+                Get-ChildItem -Path $componentRoot -Exclude "manifest.json" | 
+                ForEach-Object {
+                    if (($_ -is [System.IO.DirectoryInfo]) -or ($rootFiles -notcontains $_)) {
+                        Copy-Item -Path $_.FullName -Destination $componentInstallDir -Recurse -Force
+                    }
+                }
+                Write-Log "Copie du contenu racine réussie" -Level "SUCCESS"
+            }
+            catch {
+                Write-Log "Erreur lors de la copie du contenu racine: $(Get-SafeErrorMessage $_)" -Level "ERROR"
+                exit 1
+            }
+        }
+    }
+    
+    # Créer un fichier de référence dans le répertoire d'enregistrement si le répertoire d'installation est différent
+    if ($componentInstallDir -ne $componentRegistryDir) {
+        $referenceFilePath = [System.IO.Path]::Combine($componentRegistryDir, "installation-location.txt")
+        Write-Log "Création du fichier de référence vers l'emplacement d'installation: $referenceFilePath" -Level "INFO"
+        
+        try {
+            "# Ce fichier est généré automatiquement par le script d'installation" | Out-File -FilePath $referenceFilePath -Encoding utf8
+            "# Il indique l'emplacement réel d'installation du composant" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "# Utilisé par le script de désinstallation pour localiser tous les fichiers du composant" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "INSTALL_DIR=$componentInstallDir" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "TARGET_PATH=$targetPath" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "COMPONENT_ID=$ComponentId" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+            "INSTALLATION_DATE=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath $referenceFilePath -Encoding utf8 -Append
+        }
+        catch {
+            Write-Log "Erreur lors de la création du fichier de référence: $(Get-SafeErrorMessage $_)" -Level "WARNING"
+        }
     }
     
     # Exécuter le script d'installation post-déploiement si disponible
-    $postInstallScript = [System.IO.Path]::Combine($componentDir, "install.ps1")
+    $postInstallScript = [System.IO.Path]::Combine($componentInstallDir, "install.ps1")
     if (Test-Path -Path $postInstallScript -PathType Leaf) {
         Write-Log "Exécution du script post-installation: $postInstallScript" -Level "INFO"
         try {
-            & $postInstallScript -ComponentId $ComponentId -Version $Version -DestinationPath $componentDir -ProcessStudioRoot $ProcessStudioRoot
+            # CORRECTION: Sauvegarder l'emplacement actuel
+            $originalLocation = Get-Location
+            
+            # CORRECTION: Se déplacer dans le répertoire d'installation avant d'exécuter le script
+            Set-Location -Path $componentInstallDir
+            Write-Log "Changement de répertoire vers: $componentInstallDir" -Level "INFO"
+            
+            # CORRECTION: Exécuter le script depuis le répertoire d'installation pour que les chemins relatifs fonctionnent
+            # Ne pas passer le paramètre DestinationPath puisque les scripts d'installation ne l'attendent pas
+            
+            Write-Log "Lancement du script avec les paramètres: -ComponentId $ComponentId -Version $Version -ProcessStudioRoot $ProcessStudioRoot" -Level "INFO"
+            & $postInstallScript -ComponentId $ComponentId -Version $Version -ProcessStudioRoot $ProcessStudioRoot
             
             if ($LASTEXITCODE -ne 0) {
                 Write-Log "Le script post-installation a échoué avec le code: $LASTEXITCODE" -Level "ERROR"
@@ -252,9 +482,15 @@ try {
             else {
                 Write-Log "Script post-installation exécuté avec succès" -Level "SUCCESS"
             }
+            
+            # CORRECTION: Revenir à l'emplacement original
+            Set-Location -Path $originalLocation
+            Write-Log "Retour au répertoire original: $originalLocation" -Level "INFO"
         }
         catch {
-            Write-Log "Erreur lors de l'exécution du script post-installation: $($_.Exception.Message)" -Level "ERROR"
+            Write-Log "Erreur lors de l'exécution du script post-installation: $(Get-SafeErrorMessage $_)" -Level "ERROR"
+            # Tenter de revenir à l'emplacement original en cas d'erreur
+            try { Set-Location -Path $originalLocation } catch { }
             # Ne pas faire échouer l'installation complètement
         }
     }
@@ -265,15 +501,19 @@ try {
         Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
     }
     catch {
-        Write-Log "Avertissement: Impossible de nettoyer les fichiers temporaires: $($_.Exception.Message)" -Level "WARNING"
+        Write-Log "Avertissement: Impossible de nettoyer les fichiers temporaires: $(Get-SafeErrorMessage $_)" -Level "WARNING"
     }
     
     # Installation terminée
     Write-Log "Installation du composant $ComponentId v$Version terminée avec succès!" -Level "SUCCESS"
+    Write-Log "Emplacement d'enregistrement: $componentRegistryDir" -Level "INFO"
+    Write-Log "Emplacement d'installation: $componentInstallDir" -Level "INFO"
     exit 0
 }
 catch {
-    Write-Log "Erreur non gérée: $($_.Exception.Message)" -Level "ERROR"
-    Write-Log "Détails: $($_.Exception.StackTrace)" -Level "ERROR"
+    $errorMsg = Get-SafeErrorMessage $_
+    $stackTrace = ($_.ScriptStackTrace -replace ":", "-") -replace "\$", "_"
+    Write-Log "Erreur non gérée: $errorMsg" -Level "ERROR"
+    Write-Log "Détails du script: $stackTrace" -Level "ERROR"
     exit 1
 }

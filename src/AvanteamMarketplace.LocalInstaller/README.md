@@ -1,6 +1,6 @@
-# Avanteam Marketplace - API locale d'installation
+# Avanteam Marketplace - API locale d'installation et désinstallation
 
-Cette API locale permet l'installation automatisée des composants du Marketplace Avanteam sur les serveurs Process Studio.
+Cette API locale permet l'installation et la désinstallation automatisées des composants du Marketplace Avanteam sur les serveurs Process Studio.
 
 ## Compilation et publication
 
@@ -76,6 +76,9 @@ const localApiUrl = '/MarketPlaceInstaller/';
 
 - `GET /status`: Retourne l'état de l'API
 - `POST /install`: Installe un composant à partir d'une URL de package
+- `POST /uninstall`: Désinstalle un composant par son ID
+
+### Installation
 
 Exemple de requête d'installation:
 ```json
@@ -85,6 +88,23 @@ Exemple de requête d'installation:
   "packageUrl": "https://marketplace.avanteam.com/packages/component-123-1.0.0.zip"
 }
 ```
+
+### Désinstallation
+
+Exemple de requête de désinstallation:
+```json
+{
+  "componentId": 123,
+  "force": false
+}
+```
+
+Options pour la désinstallation:
+- `componentId`: (Obligatoire) ID du composant à désinstaller
+- `force`: (Optionnel) Forcer la désinstallation même en cas de dépendances ou d'erreurs
+- `uninstallId`: (Optionnel) ID unique pour cette opération de désinstallation
+
+Avant la suppression, le système crée automatiquement une sauvegarde du composant dans le dossier `Backups/Components`.
 
 ## Logs
 

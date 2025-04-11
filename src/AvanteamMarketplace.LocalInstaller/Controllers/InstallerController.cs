@@ -77,7 +77,8 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                 RootPath = _rootPath,
                 ScriptsPath = _scriptsPath,
                 LogsPath = _logsPath,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now,
+                Features = new[] { "install", "uninstall" }
             });
         }
 
@@ -387,6 +388,211 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
             }
         }
         
+        [HttpPost("uninstall")]
+        public async Task<IActionResult> UninstallComponent([FromBody] UninstallRequest request)
+        {
+            try
+            {
+                _logger.LogInformation($"Demande de désinstallation reçue pour le composant {request.ComponentId}");
+                
+                // Générer un ID de désinstallation unique si non fourni
+                var uninstallId = !string.IsNullOrEmpty(request.UninstallId) 
+                    ? request.UninstallId 
+                    : $"uninstall-{Guid.NewGuid():N}";
+                
+                // Créer le fichier de log pour cette désinstallation
+                var logFilePath = Path.Combine(_logsPath, $"uninstall-{request.ComponentId}-{uninstallId}.log");
+                
+                // Vérifier que le script de désinstallation existe
+                var uninstallScriptPath = Path.Combine(_scriptsPath, "uninstall-component.ps1");
+                if (!System.IO.File.Exists(uninstallScriptPath))
+                {
+                    var errorMessage = $"Script de désinstallation non trouvé: {uninstallScriptPath}";
+                    _logger.LogError(errorMessage);
+                    
+                    // Écrire dans le log de désinstallation spécifique
+                    AppendToLog(logFilePath, "ERROR", errorMessage);
+                    
+                    return NotFound(new
+                    {
+                        success = false,
+                        error = errorMessage,
+                        logs = new List<LogEntry>
+                        {
+                            new LogEntry { Level = "ERROR", Message = errorMessage }
+                        }
+                    });
+                }
+                
+                // Préparer les arguments pour le script PowerShell
+                var arguments = $"-ExecutionPolicy Bypass -NoProfile -File \"{uninstallScriptPath}\" " +
+                               $"-ComponentId \"{request.ComponentId}\" " +
+                               $"-ProcessStudioRoot \"{_rootPath}\"";
+                
+                // Ajouter le paramètre Force si nécessaire
+                if (request.Force)
+                {
+                    arguments += " -Force";
+                }
+                
+                _logger.LogInformation($"Lancement de PowerShell avec arguments: {arguments}");
+                AppendToLog(logFilePath, "INFO", $"Lancement de la désinstallation du composant {request.ComponentId}");
+                AppendToLog(logFilePath, "INFO", $"Répertoire racine: {_rootPath}");
+                
+                // Configurer le processus PowerShell
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                
+                var output = new List<LogEntry>();
+                var error = new StringBuilder();
+                var backupPath = "";
+                
+                // Exécuter le script PowerShell
+                using (var process = new Process())
+                {
+                    process.StartInfo = startInfo;
+                    
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (e.Data != null)
+                        {
+                            _logger.LogInformation($"[PS] {e.Data}");
+                            
+                            // Ajouter aux logs avec détection du niveau
+                            var logLevel = "INFO";
+                            if (e.Data.Contains("[ERROR]") || e.Data.Contains("ERREUR"))
+                            {
+                                logLevel = "ERROR";
+                            }
+                            else if (e.Data.Contains("[WARNING]") || e.Data.Contains("AVERTISSEMENT"))
+                            {
+                                logLevel = "WARNING";
+                            }
+                            else if (e.Data.Contains("[SUCCESS]"))
+                            {
+                                logLevel = "SUCCESS";
+                            }
+                            
+                            // Ajouter à la liste des logs pour la réponse
+                            output.Add(new LogEntry { Level = logLevel, Message = e.Data });
+                            
+                            // Écrire dans le fichier de log
+                            AppendToLog(logFilePath, logLevel, e.Data);
+                            
+                            // Extraire des informations importantes
+                            if (e.Data.Contains("Création d'une sauvegarde dans:"))
+                            {
+                                var parts = e.Data.Split("Création d'une sauvegarde dans:");
+                                if (parts.Length > 1)
+                                {
+                                    backupPath = parts[1].Trim();
+                                }
+                            }
+                        }
+                    };
+                    
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data != null)
+                        {
+                            _logger.LogError($"[PS-ERR] {e.Data}");
+                            error.AppendLine(e.Data);
+                            
+                            // Ajouter à la liste des logs pour la réponse
+                            output.Add(new LogEntry { Level = "ERROR", Message = e.Data });
+                            
+                            // Écrire dans le fichier de log
+                            AppendToLog(logFilePath, "ERROR", e.Data);
+                        }
+                    };
+                    
+                    _logger.LogInformation("Démarrage du processus PowerShell");
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                    
+                    // Attendre la fin du processus (avec timeout de 5 minutes)
+                    var cancellationToken = new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token;
+                    var processCompletionTask = process.WaitForExitAsync(cancellationToken);
+                    
+                    try
+                    {
+                        await processCompletionTask;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Si le processus n'a pas terminé dans le temps imparti, le tuer
+                        try
+                        {
+                            process.Kill();
+                            var timeoutError = "La désinstallation a été annulée car elle a dépassé le délai maximal (5 minutes)";
+                            _logger.LogError(timeoutError);
+                            AppendToLog(logFilePath, "ERROR", timeoutError);
+                            output.Add(new LogEntry { Level = "ERROR", Message = timeoutError });
+                            error.AppendLine(timeoutError);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Erreur lors de la tentative d'arrêt du processus après timeout");
+                        }
+                    }
+                    
+                    var success = process.ExitCode == 0 && error.Length == 0;
+                    
+                    _logger.LogInformation($"Désinstallation terminée avec code: {process.ExitCode}, Succès: {success}");
+                    AppendToLog(logFilePath, success ? "SUCCESS" : "ERROR", $"Désinstallation terminée avec code: {process.ExitCode}, Succès: {success}");
+                    
+                    if (success)
+                    {
+                        AppendToLog(logFilePath, "SUCCESS", "Désinstallation réussie!");
+                    }
+                    else
+                    {
+                        AppendToLog(logFilePath, "ERROR", $"Échec de la désinstallation: {error}");
+                    }
+                    
+                    // Préparer la réponse
+                    var result = new UninstallResponse
+                    {
+                        Success = success,
+                        ComponentId = request.ComponentId,
+                        UninstallId = uninstallId,
+                        Logs = output,
+                        BackupPath = backupPath,
+                        LogFile = logFilePath
+                    };
+                    
+                    if (!success)
+                    {
+                        result.Error = error.Length > 0 ? error.ToString() : "Une erreur est survenue lors de la désinstallation";
+                    }
+                    
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Exception lors de la désinstallation du composant {request.ComponentId}");
+                
+                return StatusCode(500, new
+                {
+                    success = false,
+                    error = $"Erreur serveur: {ex.Message}",
+                    logs = new List<LogEntry>
+                    {
+                        new LogEntry { Level = "ERROR", Message = $"Exception: {ex.Message}" }
+                    }
+                });
+            }
+        }
+        
         private void EnsureDirectoryExists(string directory)
         {
             if (!Directory.Exists(directory))
@@ -449,6 +655,42 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         
         [JsonProperty("destinationPath")]
         public string DestinationPath { get; set; }
+        
+        [JsonProperty("error")]
+        public string Error { get; set; }
+        
+        [JsonProperty("logs")]
+        public List<LogEntry> Logs { get; set; } = new List<LogEntry>();
+        
+        [JsonProperty("logFile")]
+        public string LogFile { get; set; }
+    }
+    
+    public class UninstallRequest
+    {
+        [JsonProperty("componentId")]
+        public int ComponentId { get; set; }
+        
+        [JsonProperty("force")]
+        public bool Force { get; set; }
+        
+        [JsonProperty("uninstallId")]
+        public string UninstallId { get; set; }
+    }
+    
+    public class UninstallResponse
+    {
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+        
+        [JsonProperty("componentId")]
+        public int ComponentId { get; set; }
+        
+        [JsonProperty("uninstallId")]
+        public string UninstallId { get; set; }
+        
+        [JsonProperty("backupPath")]
+        public string BackupPath { get; set; }
         
         [JsonProperty("error")]
         public string Error { get; set; }

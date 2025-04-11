@@ -28,3 +28,4 @@
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/obj/Release/net6.0/AvanteamMarketplace.LocalInstaller.pdb
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/obj/Release/net6.0/AvanteamMarketplace.LocalInstaller.genruntimeconfig.cache
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/obj/Release/net6.0/ref/AvanteamMarketplace.LocalInstaller.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.LocalInstaller/obj/Release/net6.0/AvanteamMarketplace.LocalInstaller.sourcelink.json

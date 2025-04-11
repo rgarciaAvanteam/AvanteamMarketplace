@@ -1,0 +1,10 @@
+/mnt/c/Avanteam/dev/DevRG/publish-clean/AvanteamMarketplace.LocalInstaller
+/mnt/c/Avanteam/dev/DevRG/publish-clean/web.config
+/mnt/c/Avanteam/dev/DevRG/publish-clean/appsettings.json
+/mnt/c/Avanteam/dev/DevRG/publish-clean/AvanteamMarketplace.LocalInstaller.dll
+/mnt/c/Avanteam/dev/DevRG/publish-clean/AvanteamMarketplace.LocalInstaller.deps.json
+/mnt/c/Avanteam/dev/DevRG/publish-clean/AvanteamMarketplace.LocalInstaller.runtimeconfig.json
+/mnt/c/Avanteam/dev/DevRG/publish-clean/AvanteamMarketplace.LocalInstaller.pdb
+/mnt/c/Avanteam/dev/DevRG/publish-clean/Microsoft.DotNet.PlatformAbstractions.dll
+/mnt/c/Avanteam/dev/DevRG/publish-clean/Microsoft.Extensions.DependencyModel.dll
+/mnt/c/Avanteam/dev/DevRG/publish-clean/Newtonsoft.Json.dll

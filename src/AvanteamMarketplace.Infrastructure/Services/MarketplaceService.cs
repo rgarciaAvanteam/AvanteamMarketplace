@@ -18,15 +18,18 @@ namespace AvanteamMarketplace.Infrastructure.Services
     {
         private readonly MarketplaceDbContext _context;
         private readonly IProcessStudioVersionDetector _versionDetector;
+        private readonly IComponentPackageService _packageService;
         private readonly ILogger<MarketplaceService> _logger;
         
         public MarketplaceService(
             MarketplaceDbContext context,
             IProcessStudioVersionDetector versionDetector,
+            IComponentPackageService packageService,
             ILogger<MarketplaceService> logger)
         {
             _context = context;
             _versionDetector = versionDetector;
+            _packageService = packageService;
             _logger = logger;
         }
         
@@ -77,7 +80,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     // Vérifier si le composant est installé par ce client
                     var installInfo = installedComponents.FirstOrDefault(ic => ic.ComponentId == component.ComponentId);
                     bool isInstalled = installInfo != null;
-                    bool hasUpdate = isInstalled && _versionDetector.CompareVersions(component.Version, installInfo.Version) > 0;
+                    bool hasUpdate = isInstalled && installInfo != null && _versionDetector.CompareVersions(component.Version, installInfo.Version) > 0;
                     
                     // Si on a détecté une mise à jour, incrementer le compteur
                     if (hasUpdate)
@@ -391,6 +394,9 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     return null;
                 }
                 
+                string downloadUrl = null;
+                string componentVersion = component.Version;
+                
                 // Si une version spécifique est demandée
                 if (!string.IsNullOrEmpty(version))
                 {
@@ -400,21 +406,61 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     
                     if (versionInfo != null)
                     {
-                        return new ComponentDownloadInfo
+                        downloadUrl = versionInfo.PackageUrl;
+                        componentVersion = versionInfo.Version;
+                    }
+                }
+                else
+                {
+                    // Utiliser la version actuelle du composant
+                    downloadUrl = component.PackageUrl;
+                }
+                
+                // Vérifier si l'URL de téléchargement est un placeholder
+                if (string.IsNullOrEmpty(downloadUrl) || 
+                    downloadUrl.Contains("avanteam-online.com/no-package") || 
+                    downloadUrl.Equals("https://avanteam-online.com/placeholder"))
+                {
+                    // Si le composant a une URL de dépôt GitHub, construire une URL de téléchargement automatique
+                    if (!string.IsNullOrEmpty(component.RepositoryUrl) && 
+                        (component.RepositoryUrl.Contains("github.com") || component.RepositoryUrl.Contains("gitlab")))
+                    {
+                        _logger.LogInformation($"URL de package placeholder détectée pour le composant {componentId}, utilisation du dépôt GitHub: {component.RepositoryUrl}");
+                        
+                        // Construire une URL GitHub pour télécharger la branche main/master en tant que ZIP
+                        string repoUrl = NormalizeRepositoryUrl(component.RepositoryUrl);
+                        
+                        if (repoUrl.Contains("github.com"))
                         {
-                            Version = versionInfo.Version,
-                            DownloadUrl = versionInfo.PackageUrl,
-                            FilePath = null // Pourrait être implémenté pour les fichiers locaux
-                        };
+                            // Format GitHub
+                            string[] parts = repoUrl.Split(new[] { "github.com:", "github.com/" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                string repoPath = parts[parts.Length - 1];
+                                downloadUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
+                                _logger.LogInformation($"URL de téléchargement GitHub générée: {downloadUrl}");
+                            }
+                        }
+                        else if (repoUrl.Contains("gitlab"))
+                        {
+                            // Format GitLab
+                            string[] parts = repoUrl.Split(new[] { "gitlab.com:", "gitlab.com/" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                string repoPath = parts[parts.Length - 1];
+                                downloadUrl = $"https://gitlab.com/{repoPath}/-/archive/main/{repoPath}-main.zip";
+                                _logger.LogInformation($"URL de téléchargement GitLab générée: {downloadUrl}");
+                            }
+                        }
                     }
                 }
                 
-                // Sinon, retourner la version actuelle
                 return new ComponentDownloadInfo
                 {
-                    Version = component.Version,
-                    DownloadUrl = component.PackageUrl,
-                    FilePath = null // Pourrait être implémenté pour les fichiers locaux
+                    Version = componentVersion,
+                    DownloadUrl = downloadUrl,
+                    FilePath = null, // Pourrait être implémenté pour les fichiers locaux
+                    RepositoryUrl = component.RepositoryUrl // Ajout de l'URL du dépôt pour information
                 };
             }
             catch (Exception ex)
@@ -752,6 +798,44 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 throw new ArgumentException($"Un composant avec le nom {model.Name} existe déjà");
             }
             
+            // Déterminer une valeur appropriée pour PackageUrl
+            string packageUrl = model.PackageUrl;
+            
+            // Si PackageUrl est vide ou null et qu'un RepositoryUrl est fourni, essayer de générer une URL
+            if (string.IsNullOrEmpty(packageUrl) && !string.IsNullOrEmpty(model.RepositoryUrl))
+            {
+                string repoUrl = NormalizeRepositoryUrl(model.RepositoryUrl);
+                
+                if (repoUrl.Contains("github.com"))
+                {
+                    // Format GitHub
+                    string[] parts = repoUrl.Split(new[] { "github.com:", "github.com/" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 0)
+                    {
+                        string repoPath = parts[parts.Length - 1];
+                        packageUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
+                        _logger.LogInformation($"URL de téléchargement GitHub générée pour le nouveau composant: {packageUrl}");
+                    }
+                }
+                else if (repoUrl.Contains("gitlab"))
+                {
+                    // Format GitLab
+                    string[] parts = repoUrl.Split(new[] { "gitlab.com:", "gitlab.com/" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length > 0)
+                    {
+                        string repoPath = parts[parts.Length - 1];
+                        packageUrl = $"https://gitlab.com/{repoPath}/-/archive/main/{repoPath}-main.zip";
+                        _logger.LogInformation($"URL de téléchargement GitLab générée pour le nouveau composant: {packageUrl}");
+                    }
+                }
+            }
+            
+            // Si toujours vide, utiliser une chaîne vide plutôt qu'une URL "no-package"
+            if (string.IsNullOrEmpty(packageUrl))
+            {
+                packageUrl = string.Empty;
+            }
+            
             var component = new Component
             {
                 Name = model.Name,
@@ -765,7 +849,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 RepositoryUrl = model.RepositoryUrl,
                 RequiresRestart = model.RequiresRestart,
                 TargetPath = model.TargetPath,
-                PackageUrl = model.PackageUrl,
+                PackageUrl = packageUrl, // Utiliser la valeur calculée
                 ReadmeContent = model.ReadmeContent,
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
@@ -987,7 +1071,17 @@ namespace AvanteamMarketplace.Infrastructure.Services
             // Enregistrer la suppression du composant
             await _context.SaveChangesAsync();
             
-            _logger.LogInformation($"Composant {componentId} supprimé avec succès");
+            // Supprimer les fichiers de package et l'icône associés au composant
+            // Collecter toutes les versions du composant à supprimer
+            var versions = new List<string> { component.Version };
+            if (component.Versions != null)
+            {
+                versions.AddRange(component.Versions.Select(v => v.Version).Distinct());
+            }
+            
+            // Appeler le service de package pour supprimer les fichiers
+            int filesDeleted = await _packageService.DeleteComponentPackageFilesAsync(component.Name, versions);
+            _logger.LogInformation($"Composant {componentId} supprimé avec succès de la base de données et {filesDeleted} fichier(s) associé(s) supprimé(s)");
             
             return true;
         }
@@ -1107,6 +1201,54 @@ namespace AvanteamMarketplace.Infrastructure.Services
             .Replace("/", "_")
             .Replace("=", "")
             .Substring(0, 32);
+    }
+    
+    /// <summary>
+    /// Vérifie si un composant existe avec l'URL de dépôt GitHub spécifiée
+    /// </summary>
+    public async Task<Component> GetComponentByRepositoryUrlAsync(string repositoryUrl)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(repositoryUrl))
+                return null;
+            
+            // Normaliser l'URL pour la comparaison (supprimer les slashes finaux, etc.)
+            repositoryUrl = NormalizeRepositoryUrl(repositoryUrl);
+            
+            // Rechercher un composant avec cette URL de dépôt
+            return await _context.Components
+                .FirstOrDefaultAsync(c => NormalizeRepositoryUrl(c.RepositoryUrl) == repositoryUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la recherche du composant par URL de dépôt: {repositoryUrl}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Normalise une URL de dépôt GitHub pour la comparaison
+    /// </summary>
+    private string NormalizeRepositoryUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return string.Empty;
+        
+        // Supprimer le protocole (http://, https://)
+        url = url.Replace("https://", "").Replace("http://", "");
+        
+        // Supprimer les slashes finaux
+        url = url.TrimEnd('/');
+        
+        // Supprimer .git à la fin de l'URL
+        if (url.EndsWith(".git"))
+            url = url.Substring(0, url.Length - 4);
+        
+        // Normaliser github.com
+        url = url.Replace("github.com/", "github.com:");
+        
+        return url.ToLowerInvariant();
     }
     
     /// <summary>
@@ -1318,13 +1460,14 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 component.MinPlatformVersion = model.MinPlatformVersion;
                 component.UpdatedDate = DateTime.UtcNow;
                 
-                if (!string.IsNullOrEmpty(model.PackageUrl))
-                {
-                    component.PackageUrl = model.PackageUrl;
-                }
+                // Toujours mettre à jour PackageUrl du composant principal, même si vide
+                // Pour garantir la synchronisation entre les tables Component et ComponentVersion
+                component.PackageUrl = model.PackageUrl ?? component.PackageUrl;
                 
                 _context.Components.Update(component);
                 await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Composant principal {component.ComponentId} synchronisé avec sa version actuelle. PackageUrl défini à: {component.PackageUrl}");
             }
             
             return newVersion.VersionId;
@@ -1403,13 +1546,14 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 component.MinPlatformVersion = model.MinPlatformVersion;
                 component.UpdatedDate = DateTime.UtcNow;
                 
-                if (!string.IsNullOrEmpty(model.PackageUrl))
-                {
-                    component.PackageUrl = model.PackageUrl;
-                }
+                // Toujours mettre à jour PackageUrl du composant principal, même si vide
+                // Pour garantir la synchronisation entre les tables Component et ComponentVersion
+                component.PackageUrl = model.PackageUrl ?? component.PackageUrl;
                 
                 _context.Components.Update(component);
                 await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Composant principal {component.ComponentId} synchronisé avec sa version actuelle lors de la mise à jour. PackageUrl défini à: {component.PackageUrl}");
             }
             
             return true;
@@ -1510,13 +1654,13 @@ namespace AvanteamMarketplace.Infrastructure.Services
             component.MinPlatformVersion = newLatestVersion.MinPlatformVersion ?? component.MinPlatformVersion;
             component.UpdatedDate = DateTime.UtcNow;
             
-            if (!string.IsNullOrEmpty(newLatestVersion.PackageUrl))
-            {
-                component.PackageUrl = newLatestVersion.PackageUrl;
-            }
+            // Toujours synchroniser le PackageUrl entre la version et le composant principal
+            component.PackageUrl = newLatestVersion.PackageUrl ?? component.PackageUrl;
             
             _context.Components.Update(component);
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation($"Composant {componentId}: Version {versionId} définie comme version actuelle. PackageUrl synchronisé: {component.PackageUrl}");
             
             return true;
         }

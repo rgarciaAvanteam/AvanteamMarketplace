@@ -16,8 +16,8 @@ namespace AvanteamMarketplace.Infrastructure.Data
             // S'assurer que la base de données existe
             context.Database.EnsureCreated();
             
-            // Si des composants existent déjà, cela signifie que la base a déjà été initialisée
-            if (context.Components.Any())
+            // Si des données existent déjà, cela signifie que la base a déjà été initialisée
+            if (context.Components.Any() || context.ApiKeys.Any())
             {
                 return;
             }
@@ -34,18 +34,40 @@ namespace AvanteamMarketplace.Infrastructure.Data
         
         private static void CreateDefaultAdminApiKey(MarketplaceDbContext context)
         {
+            // Vérifier si une clé admin existe déjà (vérification supplémentaire)
+            if (context.ApiKeys.Any(k => k.ClientId == "admin" && k.IsAdmin))
+            {
+                Console.WriteLine("Une clé API admin existe déjà.");
+                return;
+            }
+            
             // Générer une clé admin par défaut
             using (var sha = SHA256.Create())
             {
                 byte[] hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes("AvanteamMarketplaceAdminKey"));
                 
-                var apiKey = new ApiKey
+                // Générer une clé unique
+                string key = Convert.ToBase64String(hashBytes)
+                    .Replace('+', '-')
+                    .Replace('/', '_')
+                    .Replace("=", "")
+                    .Substring(0, 32);
+                
+                // Vérification supplémentaire que la clé n'existe pas (éviter les erreurs de clé en double)
+                if (context.ApiKeys.Any(k => k.Key == key))
                 {
-                    Key = Convert.ToBase64String(hashBytes)
+                    // Générer une clé unique différente en ajoutant un timestamp
+                    byte[] alternateBytes = sha.ComputeHash(Encoding.UTF8.GetBytes($"AvanteamMarketplaceAdminKey{DateTime.UtcNow.Ticks}"));
+                    key = Convert.ToBase64String(alternateBytes)
                         .Replace('+', '-')
                         .Replace('/', '_')
                         .Replace("=", "")
-                        .Substring(0, 32),
+                        .Substring(0, 32);
+                }
+                
+                var apiKey = new ApiKey
+                {
+                    Key = key,
                     ClientId = "admin",
                     IsAdmin = true,
                     IsActive = true,

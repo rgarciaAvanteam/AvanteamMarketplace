@@ -139,6 +139,13 @@ namespace AvanteamMarketplace.Core.Services
         /// Supprime une clé API
         /// </summary>
         Task<bool> DeleteApiKeyAsync(int apiKeyId);
+        
+        /// <summary>
+        /// Vérifie si un composant existe avec l'URL de dépôt GitHub spécifiée
+        /// </summary>
+        /// <param name="repositoryUrl">URL du dépôt GitHub à vérifier</param>
+        /// <returns>Le composant trouvé ou null si aucun composant n'existe avec cette URL</returns>
+        Task<Component> GetComponentByRepositoryUrlAsync(string repositoryUrl);
     }
     
     /// <summary>
@@ -151,6 +158,7 @@ namespace AvanteamMarketplace.Core.Services
         public string? FilePath { get; set; }
         public string? ChecksumSha256 { get; set; }
         public long FileSize { get; set; }
+        public string? RepositoryUrl { get; set; }
     }
     
     /// <summary>

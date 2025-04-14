@@ -2841,45 +2841,35 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Richard Garcia\\.nuget\\packages\\": {},
-    "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages": {}
+    "/root/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
+      "projectUniqueName": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/AvanteamMarketplace.API.csproj",
       "projectName": "AvanteamMarketplace.API",
-      "projectPath": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
-      "packagesPath": "C:\\Users\\Richard Garcia\\.nuget\\packages\\",
-      "outputPath": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\obj\\",
+      "projectPath": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/AvanteamMarketplace.API.csproj",
+      "packagesPath": "/root/.nuget/packages/",
+      "outputPath": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/obj/",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files\\DevExpress 23.1\\Components\\Offline Packages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\Richard Garcia\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 23.1.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/root/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\DevExpress 23.1\\Components\\System\\Components\\Packages": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
-        "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.pkg.github.com/avanteam/index.json": {}
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net6.0": {
           "targetAlias": "net6.0",
           "projectReferences": {
-            "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj": {
-              "projectPath": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj"
+            "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/AvanteamMarketplace.Core.csproj": {
+              "projectPath": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Core/AvanteamMarketplace.Core.csproj"
             },
-            "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Infrastructure\\AvanteamMarketplace.Infrastructure.csproj": {
-              "projectPath": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Infrastructure\\AvanteamMarketplace.Infrastructure.csproj"
+            "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/AvanteamMarketplace.Infrastructure.csproj": {
+              "projectPath": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/AvanteamMarketplace.Infrastructure.csproj"
             }
           }
         }
@@ -2888,11 +2878,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -2933,6 +2918,20 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.linux-x64",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -2941,7 +2940,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.311\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.115/RuntimeIdentifierGraph.json"
       }
     }
   }

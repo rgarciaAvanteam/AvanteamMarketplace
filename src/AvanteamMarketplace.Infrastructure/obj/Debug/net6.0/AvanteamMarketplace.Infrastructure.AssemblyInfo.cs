@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AvanteamMarketplace.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3340386c7573768c85274ecbc7a43ef05fe7b442")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+86d21e78a17f66b1e4ba2a940a68c01ba86a1eb9")]
 [assembly: System.Reflection.AssemblyProductAttribute("AvanteamMarketplace.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AvanteamMarketplace.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -129,6 +129,15 @@
             <param name="isLatest">Définir comme version actuelle</param>
             <returns>ID de la version créée</returns>
         </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateVersionPackage(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Ajoute ou met à jour le package d'une version
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="versionId">ID de la version</param>
+            <param name="packageFile">Fichier du package</param>
+            <returns>Résultat de la mise à jour</returns>
+        </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponentVersion(System.Int32,System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
             <summary>
             Met à jour une version existante

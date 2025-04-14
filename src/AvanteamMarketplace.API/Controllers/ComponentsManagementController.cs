@@ -237,8 +237,55 @@ namespace AvanteamMarketplace.API.Controllers
                     }
 
                     // Traiter le package
-                    var result = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, version);
-                    return Ok(new { success = true, message = "Package téléversé avec succès", version = result });
+                    var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, version);
+                    
+                    if (!packageResult.Success)
+                    {
+                        return BadRequest(new { error = "Échec du traitement du package", details = packageResult.ErrorMessage });
+                    }
+                    
+                    // Récupérer les détails du composant pour obtenir toutes ses versions
+                    var componentDetails = await _marketplaceService.GetComponentAdminDetailAsync(componentId);
+                    if (componentDetails == null)
+                    {
+                        return NotFound(new { error = "Composant non trouvé" });
+                    }
+                    
+                    // Mettre à jour le composant principal avec l'URL générée
+                    var updateModel = new ComponentUpdateViewModel
+                    {
+                        PackageUrl = packageResult.PackageUrl
+                    };
+                    
+                    var success = await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
+                    if (!success)
+                    {
+                        return StatusCode(500, new { error = "Le package a été traité mais l'URL n'a pas pu être enregistrée dans la base de données" });
+                    }
+                    
+                    // Mettre à jour également toutes les versions marquées comme "latest"
+                    if (componentDetails != null && componentDetails.Versions != null)
+                    {
+                        foreach (var v in componentDetails.Versions.Where(v => v.IsLatest))
+                        {
+                            var versionUpdateModel = new ComponentVersionCreateViewModel
+                            {
+                                Version = v.VersionNumber,
+                                ChangeLog = v.ChangeLog ?? "",
+                                MinPlatformVersion = v.MinPlatformVersion ?? "",
+                                IsLatest = true,
+                                PackageUrl = packageResult.PackageUrl
+                            };
+                            
+                            await _marketplaceService.UpdateComponentVersionAsync(v.VersionId, versionUpdateModel);
+                        }
+                    }
+                    
+                    return Ok(new { 
+                        success = true, 
+                        message = "Package téléversé avec succès et URL mise à jour dans le composant et ses versions", 
+                        packageUrl = packageResult.PackageUrl 
+                    });
                 }
                 finally
                 {
@@ -488,19 +535,25 @@ namespace AvanteamMarketplace.API.Controllers
                         return BadRequest(new { error = "Le package n'est pas valide", details = validationResult.ErrorMessage });
                     }
 
-                    // Créer la version
+                    // Traiter le package d'abord pour obtenir l'URL
+                    var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, version);
+                    
+                    if (!packageResult.Success)
+                    {
+                        return BadRequest(new { error = "Échec du traitement du package", details = packageResult.ErrorMessage });
+                    }
+                    
+                    // Créer la version avec l'URL du package générée
                     var model = new ComponentVersionCreateViewModel
                     {
                         Version = version,
                         ChangeLog = changeLog ?? "",
                         MinPlatformVersion = minPlatformVersion ?? "",
-                        IsLatest = isLatest
+                        IsLatest = isLatest,
+                        PackageUrl = packageResult.PackageUrl // Assigner l'URL du package obtenue
                     };
-
-                    // Traiter le package et créer la version
-                    var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, version);
                     
-                    // Créer la version
+                    // Créer la version avec les informations complètes
                     var versionId = await _marketplaceService.CreateComponentVersionAsync(componentId, model);
 
                     return CreatedAtAction(nameof(GetComponentVersion), new { componentId, versionId }, new { versionId, version = packageResult });
@@ -518,6 +571,112 @@ namespace AvanteamMarketplace.API.Controllers
             {
                 _logger.LogError(ex, $"Erreur lors de la création d'une version avec package pour le composant {componentId}");
                 return StatusCode(500, new { error = "Une erreur est survenue lors de la création de la version avec package", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Ajoute ou met à jour le package d'une version
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="versionId">ID de la version</param>
+        /// <param name="packageFile">Fichier du package</param>
+        /// <returns>Résultat de la mise à jour</returns>
+        [HttpPost("components/{componentId}/versions/{versionId}/package")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> UpdateVersionPackage(
+            int componentId,
+            int versionId,
+            IFormFile packageFile)
+        {
+            try 
+            {
+                if (packageFile == null || packageFile.Length == 0)
+                {
+                    return BadRequest(new { error = "Aucun fichier n'a été téléversé" });
+                }
+
+                // Vérifier que le composant existe
+                var component = await _marketplaceService.GetComponentAdminDetailAsync(componentId);
+                if (component == null)
+                    return NotFound(new { error = "Composant non trouvé" });
+                
+                // Vérifier que la version existe
+                var version = await _marketplaceService.GetComponentVersionAsync(versionId);
+                if (version == null)
+                    return NotFound(new { error = "Version non trouvée" });
+                
+                // Chemin temporaire pour enregistrer le fichier
+                var tempFilePath = Path.GetTempFileName();
+                try
+                {
+                    using (var stream = new FileStream(tempFilePath, FileMode.Create))
+                    {
+                        await packageFile.CopyToAsync(stream);
+                    }
+
+                    // Valider le package
+                    var validationResult = await _packageService.ValidateComponentPackageAsync(tempFilePath);
+                    if (!validationResult.IsValid)
+                    {
+                        return BadRequest(new { error = "Le package n'est pas valide", details = validationResult.ErrorMessage });
+                    }
+
+                    // Traiter le package pour obtenir l'URL
+                    var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, version.VersionNumber);
+                    
+                    if (!packageResult.Success)
+                    {
+                        return BadRequest(new { error = "Échec du traitement du package", details = packageResult.ErrorMessage });
+                    }
+                    
+                    // Mettre à jour la version avec l'URL du package
+                    var model = new ComponentVersionCreateViewModel
+                    {
+                        Version = version.VersionNumber,
+                        ChangeLog = version.ChangeLog ?? "",
+                        MinPlatformVersion = version.MinPlatformVersion ?? "",
+                        IsLatest = version.IsLatest,
+                        PackageUrl = packageResult.PackageUrl // Mettre à jour avec l'URL générée
+                    };
+                    
+                    var success = await _marketplaceService.UpdateComponentVersionAsync(versionId, model);
+                    if (!success)
+                        return NotFound(new { error = "Version non trouvée ou impossible à mettre à jour" });
+                    
+                    // Mettre à jour aussi la version principale si c'est la version actuelle
+                    if (version.IsLatest)
+                    {
+                        // Mettre à jour le composant principal avec la nouvelle URL du package
+                        var updateModel = new ComponentUpdateViewModel
+                        {
+                            PackageUrl = packageResult.PackageUrl
+                        };
+                        
+                        await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
+                    }
+                    
+                    return Ok(new { 
+                        success = true,
+                        message = "Package mis à jour avec succès",
+                        packageUrl = packageResult.PackageUrl
+                    });
+                }
+                finally
+                {
+                    // Supprimer le fichier temporaire
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        System.IO.File.Delete(tempFilePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la mise à jour du package pour la version {versionId} du composant {componentId}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la mise à jour du package", details = ex.Message });
             }
         }
 
@@ -732,14 +891,14 @@ namespace AvanteamMarketplace.API.Controllers
                     return BadRequest(new { error = "L'URL du dépôt est requise" });
                 }
 
-                await _githubService.SynchronizeComponentsFromGitHubAsync(repository);
+                var syncResult = await _githubService.SynchronizeComponentsFromGitHubAsync(repository);
                 
-                // Simuler une réponse
+                // Formater la réponse en utilisant les champs de GitHubSyncResult
                 var result = new 
                 {
-                    newComponents = new List<string> { "component-1", "component-2" },
-                    updatedComponents = new List<string> { "component-3" },
-                    failedComponents = new List<string>()
+                    newComponents = syncResult.NewComponents,
+                    updatedComponents = syncResult.UpdatedComponents,
+                    failedComponents = syncResult.FailedComponents
                 };
 
                 return Ok(result);

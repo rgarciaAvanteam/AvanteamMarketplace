@@ -401,10 +401,8 @@ namespace AvanteamMarketplace.API.Controllers
                     packagePath = downloadResult.FilePath;
                     _logger.LogInformation($"Utilisation du chemin de fichier direct: {packagePath}");
                 }
-                // Sinon, essayer de trouver le fichier à partir de DownloadUrl s'il s'agit d'une URL locale
-                else if (!string.IsNullOrEmpty(downloadResult.DownloadUrl) && 
-                         !downloadResult.DownloadUrl.Contains("avanteam-online.com/no-package") && 
-                         !downloadResult.DownloadUrl.Equals("https://avanteam-online.com/placeholder"))
+                // Sinon, essayer de trouver le fichier à partir de DownloadUrl s'il s'agit d'une URL locale et valide
+                else if (!string.IsNullOrEmpty(downloadResult.DownloadUrl))
                 {
                     // Vérifier si c'est une URL relative au site (commençant par '/packages/')
                     string relativeUrl = downloadResult.DownloadUrl;

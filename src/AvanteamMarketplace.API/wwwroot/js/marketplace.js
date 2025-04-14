@@ -666,16 +666,16 @@ function installComponent(componentId, version) {
         
         console.log("URL de téléchargement obtenue:", data.downloadUrl);
         
-        // Vérifier si l'URL est la valeur factice "no-package"
-        if (data.downloadUrl.includes("avanteam-online.com/no-package")) {
-            // Pour le composant HishikawaDiagram (ID: 14), utiliser directement l'URL GitHub
-            if (componentId === 14) {
-                console.log("Utilisation de l'URL GitHub directe pour HishikawaDiagram");
-                data.downloadUrl = "https://github.com/avanteam/component-HishikawaDiagram/archive/refs/heads/main.zip";
-                addLogMessage(logContainer, `URL remplacée par le dépôt GitHub officiel...`);
-            } else {
-                addLogMessage(logContainer, `Attention: URL de package générique détectée.`, true);
-            }
+        // Vérifier si l'URL est valide et utilisable
+        if (!data.downloadUrl || 
+            data.downloadUrl.includes("avanteam-online.com/no-package") || 
+            data.downloadUrl.includes("avanteam-online.com/placeholder")) {
+            
+            addLogMessage(logContainer, `Attention: URL de package non valide détectée.`, true);
+            addLogMessage(logContainer, `Tentative d'utilisation d'une URL alternative...`, false);
+            
+            // Échec du téléchargement, montrer un message d'erreur
+            throw new Error("L'URL de téléchargement n'est pas valide. Veuillez contacter l'administrateur du système.");
         }
         
         // Lancer l'installation
@@ -832,11 +832,12 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
         // Préparer les données pour l'API locale
         let packageUrl = downloadUrl;
         
-        // Pour le composant HishikawaDiagram (ID: 14), vérifier que l'URL est valide
-        if (componentId === 14 && (!packageUrl || packageUrl.includes("avanteam-online.com/no-package"))) {
-            console.log("Utilisation de l'URL GitHub directe pour HishikawaDiagram");
-            packageUrl = "https://github.com/avanteam/component-HishikawaDiagram/archive/refs/heads/main.zip";
-            addLogMessage(logContainer, `URL remplacée par le dépôt GitHub officiel de HishikawaDiagram`, false);
+        // Vérifier que l'URL est valide
+        if (!packageUrl || packageUrl.includes("avanteam-online.com/no-package") || packageUrl.includes("avanteam-online.com/placeholder")) {
+            const errorMessage = `URL de package non valide: ${packageUrl || 'URL vide'}`;
+            console.error(errorMessage);
+            addLogMessage(logContainer, `Erreur: ${errorMessage}`, true);
+            throw new Error(errorMessage);
         }
         
         const installData = {

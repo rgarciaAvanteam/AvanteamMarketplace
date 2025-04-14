@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AvanteamMarketplace.Core.Services;
@@ -83,7 +85,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 // Construire l'URL d'accès au package (URL complète)
                 string packageUrl = $"{_baseUrl}/packages/{fileName}";
                 
-                _logger.LogInformation($"URL du package générée: {packageUrl}");
+                _logger.LogInformation($"URL du package générée: {packageUrl} pour le composant {componentId} (version: {version})");
                 
                 return new ComponentPackageResult
                 {
@@ -362,6 +364,76 @@ namespace AvanteamMarketplace.Infrastructure.Services
             {
                 // Ne pas faire échouer l'ensemble du processus si l'extraction de l'icône échoue
                 _logger.LogError(ex, $"Erreur lors de l'extraction de l'icône pour le composant {componentName}: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Supprime les fichiers de package d'un composant et de ses versions
+        /// </summary>
+        public async Task<int> DeleteComponentPackageFilesAsync(string componentName, IEnumerable<string> versions)
+        {
+            try
+            {
+                _logger.LogInformation($"Suppression des fichiers de package pour le composant {componentName}");
+                
+                int filesDeleted = 0;
+                
+                // Créer un ensemble de modèles de noms de fichier à rechercher
+                var filePatterns = new HashSet<string>();
+                
+                // Ajouter les modèles pour toutes les versions
+                foreach (var version in versions)
+                {
+                    filePatterns.Add($"{componentName}-{version}.zip");
+                }
+                
+                // Ajouter également un modèle pour le fichier sans version spécifique
+                filePatterns.Add($"{componentName}.zip");
+                
+                // Rechercher tous les fichiers correspondant aux modèles
+                foreach (var filePattern in filePatterns)
+                {
+                    var filePath = Path.Combine(_packagesDirectory, filePattern);
+                    
+                    // Rechercher des correspondances exactes
+                    if (File.Exists(filePath))
+                    {
+                        _logger.LogInformation($"Suppression du fichier de package: {filePath}");
+                        await Task.Run(() => File.Delete(filePath));
+                        filesDeleted++;
+                    }
+                }
+                
+                // Rechercher également des motifs similaires (au cas où le format du nom de fichier aurait été modifié)
+                var similarFiles = await Task.Run(() => Directory.GetFiles(_packagesDirectory, $"{componentName}*-*.zip"));
+                foreach (var similarFile in similarFiles)
+                {
+                    // Si le fichier contient le nom du composant et n'a pas déjà été supprimé
+                    if (File.Exists(similarFile) && Path.GetFileName(similarFile).StartsWith(componentName))
+                    {
+                        _logger.LogInformation($"Suppression du fichier de package similaire: {similarFile}");
+                        await Task.Run(() => File.Delete(similarFile));
+                        filesDeleted++;
+                    }
+                }
+                
+                // Supprimer également l'icône du composant si elle existe
+                var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", $"{componentName}.svg");
+                if (File.Exists(iconPath))
+                {
+                    _logger.LogInformation($"Suppression de l'icône du composant: {iconPath}");
+                    await Task.Run(() => File.Delete(iconPath));
+                    filesDeleted++;
+                }
+                
+                _logger.LogInformation($"Suppression terminée, {filesDeleted} fichier(s) supprimé(s) pour le composant {componentName}");
+                
+                return filesDeleted;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la suppression des fichiers de package pour le composant {componentName}: {ex.Message}");
+                return 0; // Retourner 0 au lieu de propager l'exception pour éviter d'interrompre le processus de suppression
             }
         }
     }

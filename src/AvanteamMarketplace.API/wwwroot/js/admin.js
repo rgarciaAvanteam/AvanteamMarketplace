@@ -353,15 +353,21 @@ function editVersion(versionId) {
 }
 
 function showVersionModal(versionId = null) {
+    console.log("Ouverture du modal version", versionId);
+    
     // Réinitialiser tout état antérieur
     // Très important pour éviter les problèmes de chargement de fichier
     if (window.fileResetTimeout) {
         clearTimeout(window.fileResetTimeout);
     }
     
+    // Nettoyer les affichages existants
+    $("#selectedVersionFileName").text("");
+    
     // Remplacer complètement l'élément input file pour éviter tout problème de sélection
     const fileInputContainer = $("#fileVersionPackage").parent();
     const oldFileInput = $("#fileVersionPackage");
+    
     // Sauvegarder tous les attributs
     const attributes = {
         id: oldFileInput.attr('id'),
@@ -382,12 +388,14 @@ function showVersionModal(versionId = null) {
     
     // Réinsérer le nouvel élément
     fileInputContainer.append(newFileInput);
+    console.log("Input file remplacé pour éviter les problèmes de sélection");
     
-    // Attendre un court instant pour que le DOM soit mis à jour
+    // Attendre un court instant pour que le DOM soit mis à jour avant de réinitialiser les gestionnaires
     setTimeout(() => {
         // Réattacher les gestionnaires d'événements
         initFileHandlers();
-    }, 100);
+        console.log("Gestionnaires de fichiers réinitialisés pour le modal version");
+    }, 200);
     
     // Mettre à jour la position de la modale pour être devant le panneau
     // Cela s'assure que la modale est affichée correctement même avec le panneau ouvert
@@ -630,13 +638,18 @@ function setLatestVersion(componentId, versionId) {
 }
 // Fonction pour initialiser les gestionnaires d'événements liés aux fichiers
 function initFileHandlers() {
+    console.log("Initialisation des gestionnaires de fichiers");
+    
     // Remettre à zéro tous les gestionnaires d'événements existants
     $(".file-select-button").off('click');
+    $("input[type='file']").off('change');
     
     // Assigner des nouveaux gestionnaires uniques pour chaque type d'input file
     initFileHandlerFor('fileVersionPackage', 'selectedVersionFileName');
     initFileHandlerFor('filePackage', 'selectedFileName');
     initFileHandlerFor('fileIcon', 'selectedIconName');
+    
+    console.log("Initialisation des gestionnaires de fichiers terminée");
 }
 
 function initFileHandlerFor(inputId, labelId) {
@@ -648,41 +661,123 @@ function initFileHandlerFor(inputId, labelId) {
     
     // Définir une fonction locale de gestionnaire pour ce fichier spécifique
     const handleFileChange = function(e) {
-        if (e.target.files && e.target.files.length > 0) {
-            const fileName = e.target.files[0].name;
-            // Mettre à jour le texte avec le nom du fichier sélectionné
-            const label = document.getElementById(labelId);
-            if (label) {
-                label.innerHTML = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>' + fileName;
-            }
+        // Empêcher le comportement par défaut et la propagation immédiatement
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log(`Changement détecté dans ${inputId}`, new Date().getTime());
+        
+        // Capturer l'input et les fichiers avant le timeout
+        const targetInput = e.target;
+        // Créer une copie "sécurisée" de la référence aux fichiers
+        let selectedFiles = [];
+        if (targetInput.files && targetInput.files.length > 0) {
+            selectedFiles = Array.from(targetInput.files);
         }
+        
+        // Utiliser un délai plus long pour s'assurer que tout est traité correctement
+        window.setTimeout(() => {
+            console.log(`Traitement des fichiers pour ${inputId}`, new Date().getTime());
+            
+            // Vérifier si nous avons des fichiers sélectionnés
+            if (selectedFiles.length > 0) {
+                const fileName = selectedFiles[0].name;
+                console.log(`Fichier sélectionné: ${fileName}`);
+                
+                // Mettre à jour le texte avec le nom du fichier sélectionné
+                const label = document.getElementById(labelId);
+                if (label) {
+                    // Validation spécifique pour les icônes (doit être SVG)
+                    if (inputId === "fileIcon") {
+                        const file = selectedFiles[0];
+                        if (!file.name.toLowerCase().endsWith('.svg') && file.type !== 'image/svg+xml') {
+                            label.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> Format invalide. Utilisez un fichier SVG.</span>';
+                            console.log(`Fichier icône invalide: ${file.name}, type: ${file.type}`);
+                        } else {
+                            label.innerHTML = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>' + fileName;
+                            console.log(`Fichier icône valide: ${fileName}`);
+                        }
+                    } else {
+                        label.innerHTML = '<i class="fas fa-check-circle" style="color: green; margin-right: 5px;"></i>' + fileName;
+                        console.log(`Label mis à jour: ${labelId}`);
+                    }
+                } else {
+                    console.error(`Label avec ID ${labelId} non trouvé`);
+                }
+                
+                // Vérifier si nous devons extraire une version du nom de fichier (pour le package)
+                if (inputId === "filePackage" && fileName) {
+                    const versionMatch = fileName.match(/[-_](\d+\.\d+\.\d+)[-_\.]|[^a-zA-Z0-9](\d+\.\d+\.\d+)$/);
+                    if (versionMatch && (versionMatch[1] || versionMatch[2])) {
+                        const version = versionMatch[1] || versionMatch[2];
+                        const versionInput = $("#txtPackageVersion");
+                        if (versionInput.length && versionInput.val() === "") {
+                            versionInput.val(version);
+                            console.log(`Version extraite et définie: ${version}`);
+                        }
+                    }
+                }
+                
+                // Maintenir le focus sur le bon modal
+                let modalSelector = "";
+                if (inputId === "filePackage") modalSelector = "#packageModal";
+                else if (inputId === "fileIcon") modalSelector = "#iconModal";
+                else if (inputId === "fileVersionPackage") modalSelector = "#versionModal";
+                
+                if (modalSelector) {
+                    $(modalSelector).focus();
+                    console.log(`Focus maintenu sur ${modalSelector}`);
+                }
+            } else {
+                console.log(`Aucun fichier sélectionné pour ${inputId}`);
+            }
+        }, 300); // Délai augmenté pour s'assurer que tout est traité correctement
+        
+        // Important de retourner false pour arrêter toute propagation
+        return false;
     };
     
     // Supprimer les anciens gestionnaires puis ajouter le nouveau
+    console.log(`Réinitialisation des gestionnaires pour ${inputId}`);
     fileInput.removeEventListener('change', handleFileChange);
     fileInput.addEventListener('change', handleFileChange);
     
     // Sélectionner tous les boutons qui pourraient déclencher ce champ de fichier
-    // À la fois les boutons dans le même conteneur et ceux avec une classe spécifique
     const allButtons = $(`#${inputId}`).closest('.custom-file-upload').find('.file-select-button');
     
     if (allButtons.length) {
         allButtons.each(function() {
             $(this).off('click').on('click', function(e) {
                 e.preventDefault();
-                // Déboguer l'événement de clic
-                console.log(`Clic sur bouton pour ${inputId}`);
-                // Approche directe plus fiable avec un délai pour s'assurer que tout est prêt
+                console.log(`Clic sur bouton pour ${inputId}`, new Date().getTime());
+                
+                // Stopper immédiatement l'événement
+                e.stopImmediatePropagation();
+                
+                // Attendre un court instant puis déclencher le clic sur l'input
                 setTimeout(() => {
                     const inputElement = document.getElementById(inputId);
                     if (inputElement) {
-                        inputElement.click();
+                        console.log(`Déclenchement du clic sur ${inputId}`);
+                        // Utiliser une combinaison de jQuery et DOM natif pour plus de fiabilité
+                        $(inputElement).trigger('click');
+                        // Comme sauvegarde, essayer également le clic natif
+                        setTimeout(() => {
+                            try {
+                                inputElement.click();
+                            } catch (err) {
+                                console.error(`Erreur lors du clic sur ${inputId}:`, err);
+                            }
+                        }, 50);
                     } else {
                         console.error(`Élément ${inputId} non trouvé lors du clic`);
                     }
-                }, 10);
+                }, 50);
+                
+                return false;
             });
         });
+        console.log(`${allButtons.length} bouton(s) configuré(s) pour ${inputId}`);
     } else {
         console.warn(`Aucun bouton trouvé pour ${inputId}`);
     }
@@ -691,8 +786,12 @@ function initFileHandlerFor(inputId, labelId) {
 $(document).ready(function() {
     // Les variables globales sont maintenant déclarées en haut du fichier
     
+    console.log("Document prêt - Initialisation de l'interface admin");
+    
     // Initialiser les gestionnaires de fichiers
-    initFileHandlers();
+    setTimeout(() => {
+        initFileHandlers();
+    }, 300); // Attendre que le DOM soit complètement chargé
     
     // Fonction utilitaire pour s'assurer qu'une URL est valide
     function ensureValidUrl(url) {
@@ -1195,11 +1294,75 @@ $(document).ready(function() {
                 headers: {
                     "Authorization": `Bearer ${adminToken}`
                 },
-                success: function() {
+                success: function(response) {
                     $("#componentModal").css("display", "none");
                     // Nettoyer les détails du composant stockés en mémoire
                     window.currentComponentDetails = null;
-                    loadComponents();
+                    
+                    // Extraire l'ID du composant créé
+                    let componentId = null;
+                    if (response && response.componentId) {
+                        componentId = response.componentId;
+                    } else if (typeof response === 'number') {
+                        componentId = response;
+                    }
+                    
+                    console.log("Composant créé avec l'ID:", componentId);
+                    
+                    // Si nous avons un ID de composant, créer automatiquement la première version
+                    if (componentId) {
+                        // Créer la première version avec les mêmes valeurs que le composant
+                        const versionData = {
+                            Version: newComponent.version,
+                            ChangeLog: "Version initiale",
+                            MinPlatformVersion: newComponent.minPlatformVersion || "",
+                            IsLatest: true
+                        };
+                        
+                        console.log("Création automatique de la première version:", versionData);
+                        
+                        // Créer la version
+                        $.ajax({
+                            url: `${apiBaseUrl}/management/components/${componentId}/versions`,
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(versionData),
+                            headers: {
+                                "Authorization": `Bearer ${adminToken}`
+                            },
+                            success: function(versionResponse) {
+                                console.log("Première version créée avec succès:", versionResponse);
+                                // Afficher une notification
+                                const successNotif = $(`<div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i> Composant créé avec succès avec une version initiale
+                                </div>`);
+                                $(".admin-header").after(successNotif);
+                                setTimeout(() => successNotif.fadeOut(500, function() { $(this).remove(); }), 5000);
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Erreur lors de la création de la version initiale:", error);
+                                // Afficher une notification d'erreur mais continuer
+                                const errorNotif = $(`<div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-circle"></i> Composant créé avec succès, mais erreur lors de la création de la version initiale
+                                </div>`);
+                                $(".admin-header").after(errorNotif);
+                                setTimeout(() => errorNotif.fadeOut(500, function() { $(this).remove(); }), 5000);
+                            },
+                            complete: function() {
+                                // Recharger la liste des composants dans tous les cas
+                                loadComponents();
+                            }
+                        });
+                    } else {
+                        // Si nous n'avons pas d'ID, simplement recharger les composants
+                        loadComponents();
+                        // Afficher une notification de succès standard
+                        const successNotif = $(`<div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Composant créé avec succès
+                        </div>`);
+                        $(".admin-header").after(successNotif);
+                        setTimeout(() => successNotif.fadeOut(500, function() { $(this).remove(); }), 5000);
+                    }
                 },
                 error: function(xhr, status, error) {
                     console.error("Erreur lors de l'ajout du composant:", error);
@@ -1240,9 +1403,14 @@ $(document).ready(function() {
         // Réinitialiser le formulaire
         $("#filePackage").val("");
         $("#txtPackageVersion").val("");
+        $("#selectedFileName").text("");
+        
+        // Réinitialiser les gestionnaires de fichiers
+        initFileHandlers();
         
         // Afficher le modal
         $("#packageModal").css("display", "block");
+        console.log("Modal package affiché pour le composant", componentId);
     }
     
     // Fermer le modal de package
@@ -1256,36 +1424,8 @@ $(document).ready(function() {
         $("#" + inputId).trigger("click");
     });
     
-    // Gérer l'affichage du nom de fichier sélectionné pour le package
-    // Gestion améliorée du sélecteur de fichier pour les packages
-    $("#filePackage").change(function(e) {
-        e.preventDefault(); // Empêcher la soumission automatique
-        e.stopPropagation(); // Empêcher la propagation de l'événement
-        
-        const fileInput = $(this)[0];
-        if (fileInput.files && fileInput.files.length > 0) {
-            $("#selectedFileName").html('<i class="fas fa-check-circle" style="color: #2c7d32;"></i> ' + fileInput.files[0].name);
-            
-            // Automatiquement extraire la version du nom de fichier si possible
-            const fileName = fileInput.files[0].name;
-            const versionMatch = fileName.match(/[-_](\d+\.\d+\.\d+)[-_\.]|[^a-zA-Z0-9](\d+\.\d+\.\d+)$/);
-            if (versionMatch && (versionMatch[1] || versionMatch[2])) {
-                const version = versionMatch[1] || versionMatch[2];
-                if ($("#txtPackageVersion").val() === "") {
-                    $("#txtPackageVersion").val(version);
-                }
-            }
-        } else {
-            $("#selectedFileName").text("");
-        }
-        
-        // Maintenir le focus sur le modal
-        setTimeout(() => {
-            $("#packageModal").focus();
-        }, 100);
-        
-        return false; // Empêcher tout comportement par défaut
-    });
+    // Nous utilisons désormais initFileHandlerFor pour gérer tous les sélecteurs de fichiers
+    // Cette fonction est appelée par initFileHandlers() lors de l'initialisation et à chaque ouverture de modal
     
     // Téléverser un package
     $("#btnUploadPackage").click(function(e) {
@@ -1387,6 +1527,10 @@ $(document).ready(function() {
         
         // Réinitialiser le formulaire
         $("#fileIcon").val("");
+        $("#selectedIconName").text("");
+        
+        // Réinitialiser les gestionnaires de fichiers
+        initFileHandlers();
         
         // Charger l'icône actuelle si elle existe
         let iconPreview = $("#iconPreview");
@@ -1459,33 +1603,8 @@ $(document).ready(function() {
         $("#iconModal").css("display", "none");
     });
     
-    // Gérer l'affichage du nom de fichier sélectionné pour l'icône
-    // Gestion améliorée du sélecteur de fichier pour les icônes
-    $("#fileIcon").change(function(e) {
-        e.preventDefault(); // Empêcher la soumission automatique
-        e.stopPropagation(); // Empêcher la propagation de l'événement
-        
-        const fileInput = $(this)[0];
-        if (fileInput.files && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            
-            // Vérification préalable du type de fichier
-            if (!file.name.toLowerCase().endsWith('.svg') && file.type !== 'image/svg+xml') {
-                $("#selectedIconName").html('<span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> Format invalide. Utilisez un fichier SVG.</span>');
-            } else {
-                $("#selectedIconName").html('<i class="fas fa-check-circle" style="color: #2c7d32;"></i> ' + file.name);
-            }
-        } else {
-            $("#selectedIconName").text("");
-        }
-        
-        // Maintenir le focus sur le modal
-        setTimeout(() => {
-            $("#iconModal").focus();
-        }, 100);
-        
-        return false; // Empêcher tout comportement par défaut
-    });
+    // Nous utilisons désormais initFileHandlerFor pour gérer tous les sélecteurs de fichiers
+    // Cette fonction est appelée par initFileHandlers() lors de l'initialisation et à chaque ouverture de modal
     
     // Téléverser une icône
     $("#btnUploadIcon").click(function() {

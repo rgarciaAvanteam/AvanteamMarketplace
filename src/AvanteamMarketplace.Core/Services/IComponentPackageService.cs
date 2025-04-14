@@ -21,6 +21,14 @@ namespace AvanteamMarketplace.Core.Services
         /// Génère un package de composant à partir d'un répertoire source
         /// </summary>
         Task<string> GenerateComponentPackageAsync(string sourcePath, string componentName, string version);
+        
+        /// <summary>
+        /// Supprime les fichiers de package d'un composant et de ses versions
+        /// </summary>
+        /// <param name="componentName">Nom du composant</param>
+        /// <param name="versions">Liste des versions à supprimer</param>
+        /// <returns>Nombre de fichiers supprimés</returns>
+        Task<int> DeleteComponentPackageFilesAsync(string componentName, IEnumerable<string> versions);
     }
     
     /// <summary>

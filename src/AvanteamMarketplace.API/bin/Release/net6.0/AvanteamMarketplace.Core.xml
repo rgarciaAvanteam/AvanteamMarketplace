@@ -59,6 +59,15 @@
             <param name="processStudioRoot">Répertoire racine de Process Studio</param>
             <returns>Résultat de l'installation</returns>
         </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentInstallerService.UninstallComponentAsync(System.Int32,System.String,System.Boolean)">
+            <summary>
+            Exécute le script PowerShell pour désinstaller un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="processStudioRoot">Répertoire racine de Process Studio (optionnel)</param>
+            <param name="force">Forcer la désinstallation même s'il y a des dépendances</param>
+            <returns>Résultat de la désinstallation</returns>
+        </member>
         <member name="M:AvanteamMarketplace.Core.Services.IComponentInstallerService.GetInstallationLogsAsync(System.String)">
             <summary>
             Récupère les logs d'installation en temps réel
@@ -179,6 +188,16 @@
             <param name="clientId">Identifiant du client</param>
             <returns>True si la désinstallation a réussi, sinon False</returns>
         </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.CheckForUpdateAsync(System.Int32,System.String,System.String,System.String)">
+            <summary>
+            Vérifie si une mise à jour est disponible pour un composant installé
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="clientId">Identifiant du client</param>
+            <param name="installedVersion">Version installée actuelle</param>
+            <param name="platformVersion">Version de Process Studio</param>
+            <returns>Informations sur la mise à jour disponible ou null si aucune mise à jour</returns>
+        </member>
         <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentsForAdminAsync">
             <summary>
             Récupère la liste des composants pour l'administration
@@ -204,6 +223,36 @@
             Supprime un composant
             </summary>
         </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentVersionsAsync(System.Int32)">
+            <summary>
+            Récupère la liste des versions d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentVersionAsync(System.Int32)">
+            <summary>
+            Récupère les détails d'une version spécifique
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.CreateComponentVersionAsync(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
+            <summary>
+            Crée une nouvelle version pour un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.UpdateComponentVersionAsync(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
+            <summary>
+            Met à jour une version existante
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetClientsByComponentVersionAsync(System.Int32,System.String)">
+            <summary>
+            Récupère les clients qui utilisent une version spécifique d'un composant
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.SetLatestVersionAsync(System.Int32,System.Int32)">
+            <summary>
+            Définit une version comme étant la dernière version du composant
+            </summary>
+        </member>
         <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetApiKeysAsync">
             <summary>
             Récupère la liste des clés API
@@ -222,6 +271,46 @@
         <member name="T:AvanteamMarketplace.Core.Services.ComponentDownloadInfo">
             <summary>
             Informations de téléchargement d'un composant
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.Services.ComponentUpdateInfo">
+            <summary>
+            Informations sur la mise à jour d'un composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.AvailableVersion">
+            <summary>
+            Numéro de version disponible pour la mise à jour
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.InstalledVersion">
+            <summary>
+            Version actuellement installée
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.MinPlatformVersion">
+            <summary>
+            Version minimale de Process Studio requise pour cette mise à jour
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.DownloadUrl">
+            <summary>
+            URL de téléchargement du package
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.ChangeLog">
+            <summary>
+            Notes de version / Changelog
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.RequiresRestart">
+            <summary>
+            Indique si la mise à jour nécessite un redémarrage de Process Studio
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.Services.ComponentUpdateInfo.IsCompatibleWithCurrentPlatform">
+            <summary>
+            Indique si la mise à jour est compatible avec la version actuelle de Process Studio
             </summary>
         </member>
         <member name="T:AvanteamMarketplace.Core.Services.IProcessStudioVersionDetector">
@@ -257,6 +346,56 @@
         <member name="T:AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel">
             <summary>
             ViewModel pour la création d'une clé API
+            </summary>
+        </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel">
+            <summary>
+            ViewModel représentant une installation client avec des informations sur la version installée
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.InstallationId">
+            <summary>
+            ID de l'installation
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.ClientIdentifier">
+            <summary>
+            Identifiant unique du client
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.ClientName">
+            <summary>
+            Nom ou description du client
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.PlatformVersion">
+            <summary>
+            Version de Process Studio utilisée par le client
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.InstalledVersion">
+            <summary>
+            Version installée du composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.InstallDate">
+            <summary>
+            Date d'installation initiale
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.LastUpdateDate">
+            <summary>
+            Date de dernière mise à jour
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.HasUpdateAvailable">
+            <summary>
+            Indique si le client a une mise à jour disponible pour ce composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ClientInstallationViewModel.IsActive">
+            <summary>
+            Indique si le client est actif (dernière connexion récente)
             </summary>
         </member>
         <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentAdminDetailViewModel">
@@ -334,6 +473,41 @@
             ViewModel pour la mise à jour d'un composant
             </summary>
         </member>
+        <member name="T:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel">
+            <summary>
+            ViewModel pour la création d'une nouvelle version d'un composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.Version">
+            <summary>
+            Numéro de version (format X.Y.Z)
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.ChangeLog">
+            <summary>
+            Notes de version / Changelog
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.MinPlatformVersion">
+            <summary>
+            Version minimale de la plateforme requise pour cette version
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.PackageUrl">
+            <summary>
+            URL du package (si différente de l'URL de base du composant)
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.PackageBase64">
+            <summary>
+            Contenu du package au format base64 (si fourni directement)
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel.IsLatest">
+            <summary>
+            Indique si cette version devrait être définie comme la dernière version
+            </summary>
+        </member>
         <member name="T:AvanteamMarketplace.Core.ViewModels.DependencyViewModel">
             <summary>
             ViewModel pour les dépendances d'un composant
@@ -387,6 +561,11 @@
         <member name="T:AvanteamMarketplace.Core.ViewModels.VersionViewModel">
             <summary>
             ViewModel pour les versions d'un composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.VersionViewModel.MinPlatformVersion">
+            <summary>
+            Version minimale de la plateforme requise pour cette version
             </summary>
         </member>
     </members>

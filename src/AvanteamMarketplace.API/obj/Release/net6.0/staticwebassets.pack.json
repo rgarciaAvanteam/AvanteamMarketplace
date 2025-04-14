@@ -5,8 +5,16 @@
       "PackagePath": "staticwebassets/css/admin.css"
     },
     {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/css/marketplace.css",
+      "PackagePath": "staticwebassets/css/marketplace.css"
+    },
+    {
       "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/images/default-component.svg",
       "PackagePath": "staticwebassets/images/default-component.svg"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/images/marketplace-logo.svg",
+      "PackagePath": "staticwebassets/images/marketplace-logo.svg"
     },
     {
       "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin.js",

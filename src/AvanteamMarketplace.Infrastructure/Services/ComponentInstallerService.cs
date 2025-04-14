@@ -50,7 +50,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
         /// <param name="packageUrl">URL du package à télécharger</param>
         /// <param name="processStudioRoot">Répertoire racine de Process Studio (optionnel)</param>
         /// <returns>Résultat de l'installation</returns>
-        public async Task<InstallationResultViewModel> InstallComponentAsync(int componentId, string version, string packageUrl, string processStudioRoot = null)
+        public async Task<InstallationResultViewModel> InstallComponentAsync(int componentId, string version, string packageUrl, string? processStudioRoot = null)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
         /// <param name="processStudioRoot">Répertoire racine de Process Studio (optionnel)</param>
         /// <param name="force">Forcer la désinstallation même s'il y a des dépendances</param>
         /// <returns>Résultat de la désinstallation</returns>
-        public async Task<InstallationResultViewModel> UninstallComponentAsync(int componentId, string processStudioRoot = null, bool force = false)
+        public async Task<InstallationResultViewModel> UninstallComponentAsync(int componentId, string? processStudioRoot = null, bool force = false)
         {
             try
             {

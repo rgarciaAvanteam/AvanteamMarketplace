@@ -252,6 +252,31 @@ Pour assurer la sécurité du déploiement:
    - En développement: User Secrets
    - En production: Variables d'environnement ou Azure Key Vault
 
+## Mises à jour récentes
+
+### Avril 2025 - Interface d'administration améliorée
+
+L'interface d'administration a été améliorée avec les fonctionnalités suivantes :
+
+1. **Correction des problèmes d'API** :
+   - Ajout de la propriété `MinPlatformVersion` au modèle `VersionViewModel`
+   - Mise à jour des mappages dans `MarketplaceService` pour inclure correctement cette propriété
+
+2. **Améliorations visuelles** :
+   - Styles CSS ajoutés pour les boutons d'action dans le tableau des versions
+   - Ajout d'un style pour le badge "Actuelle" indiquant la version active d'un composant
+   - Amélioration des contrastes et de la visibilité des éléments interactifs
+
+3. **Gestion des versions de composants** :
+   - Mise en œuvre de la fonctionnalité complète de modification des versions
+   - Correction de la fonction `editVersion` manquante
+   - Amélioration de la gestion des états des boutons pour éviter les problèmes d'interface
+
+4. **Stabilité et robustesse** :
+   - Meilleure gestion des erreurs dans la manipulation des fichiers
+   - Délai de sécurité ajouté pour garantir que le DOM est entièrement mis à jour
+   - Amélioration de la détection des propriétés dans les réponses API
+
 ## Résolution des problèmes courants
 
 ### Erreur HTTP 500.30 - ASP.NET Core app failed to start
@@ -340,6 +365,46 @@ Si vous rencontrez des erreurs de démarrage de l'application:
    - Mode inprocess dans web.config
    - Double backslash dans la chaîne de connexion pour les instances SQL
    - Paramètres TrustServerCertificate=True et Encrypt=False dans la chaîne de connexion
+
+### Erreur DirectoryNotFoundException avec chemins absolus
+
+Si vous rencontrez une erreur du type:
+```
+DirectoryNotFoundException: I:\mnt\c\Avanteam\dev\DevRG\AvanteamMarketplace\src\AvanteamMarketplace.API\wwwroot\
+Microsoft.Extensions.FileProviders.PhysicalFileProvider..ctor(string root, ExclusionFilters filters)
+```
+
+Ce problème est lié aux chemins absolus configurés pour votre environnement de développement qui n'existent pas sur le serveur de test. Voici les solutions:
+
+1. **Solution immédiate sans recompilation**:
+   - Créer les répertoires manquants sur le serveur:
+     ```powershell
+     mkdir -p I:\mnt\c\Avanteam\dev\DevRG\AvanteamMarketplace\src\AvanteamMarketplace.API\wwwroot
+     ```
+   - Ou créer un lien symbolique vers le dossier wwwroot déployé:
+     ```powershell
+     mklink /D "I:\mnt\c\Avanteam\dev\DevRG\AvanteamMarketplace\src\AvanteamMarketplace.API\wwwroot" "C:\inetpub\wwwroot\marketplace-dev\wwwroot"
+     ```
+
+2. **Modifier web.config pour utiliser des chemins relatifs**:
+   ```xml
+   <aspNetCore processPath="dotnet" arguments=".\AvanteamMarketplace.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess">
+     <environmentVariables>
+       <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+       <environmentVariable name="DOTNET_USE_POLLING_FILE_WATCHER" value="true" />
+     </environmentVariables>
+   </aspNetCore>
+   ```
+
+3. **Solution permanente - Désactiver StaticWebAssets ou utiliser des chemins relatifs**:
+   - Ajouter au fichier AvanteamMarketplace.API.csproj:
+     ```xml
+     <PropertyGroup>
+       <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+       <!-- Ou utiliser des chemins relatifs: -->
+       <UseRelativeStaticWebAssetPaths>true</UseRelativeStaticWebAssetPaths>
+     </PropertyGroup>
+     ```
 
 ### Problèmes d'affichage dans l'interface d'administration
 

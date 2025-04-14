@@ -8,6 +8,8 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <RazorCompileOnBuild>true</RazorCompileOnBuild>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <IncludeStaticWebAssetsInPublishFolder>false</IncludeStaticWebAssetsInPublishFolder>
+    <StaticWebAssetBasePath>/_</StaticWebAssetBasePath>
   </PropertyGroup>
 
   <ItemGroup>

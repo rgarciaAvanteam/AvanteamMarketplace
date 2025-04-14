@@ -10,10 +10,10 @@ namespace AvanteamMarketplace.API.Pages
     [IgnoreAntiforgeryToken]
     public class ErrorModel : PageModel
     {
-        public string RequestId { get; set; }
+        public string RequestId { get; set; } = string.Empty;
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
         
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
         public int StatusCode { get; set; }
         
         private readonly ILogger<ErrorModel> _logger;

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AvanteamMarketplace.LocalInstaller")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5c9642dcc4759beae1ca30081f2075221e4ba5bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3340386c7573768c85274ecbc7a43ef05fe7b442")]
 [assembly: System.Reflection.AssemblyProductAttribute("AvanteamMarketplace.LocalInstaller")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AvanteamMarketplace.LocalInstaller")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

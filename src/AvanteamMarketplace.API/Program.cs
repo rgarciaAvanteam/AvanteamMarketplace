@@ -10,6 +10,18 @@ using AvanteamMarketplace.API.Authentication;
 using System.Text.Json.Serialization;
 using System;
 using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
+
+// Correction du chemin wwwroot pour éviter DirectoryNotFoundException
+if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")))
+{
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "js"));
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css"));
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images"));
+    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "packages"));
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -216,7 +228,43 @@ app.UseSwaggerUI(c => {
 });
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// S'assurer que le répertoire wwwroot existe
+var wwwrootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+if (!Directory.Exists(wwwrootPath))
+{
+    app.Logger.LogInformation($"Création du répertoire wwwroot: {wwwrootPath}");
+    Directory.CreateDirectory(wwwrootPath);
+    
+    // Créer également les sous-répertoires nécessaires
+    Directory.CreateDirectory(Path.Combine(wwwrootPath, "js"));
+    Directory.CreateDirectory(Path.Combine(wwwrootPath, "css"));
+    Directory.CreateDirectory(Path.Combine(wwwrootPath, "images"));
+    Directory.CreateDirectory(Path.Combine(wwwrootPath, "packages"));
+}
+else
+{
+    app.Logger.LogInformation($"Le répertoire wwwroot existe: {wwwrootPath}");
+}
+
+// Ajouter des en-têtes de cache pour les fichiers statiques
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+    RequestPath = "",
+    OnPrepareResponse = ctx =>
+    {
+        // Désactiver le cache pour JS/CSS
+        if (ctx.File.Name.EndsWith(".js", StringComparison.OrdinalIgnoreCase) ||
+            ctx.File.Name.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+            ctx.Context.Response.Headers.Append("Expires", "0");
+        }
+    }
+});
+
 app.UseCors("AllowProcessStudioOrigins");
 
 // Activer la session pour l'administration
@@ -225,8 +273,11 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Mapper les routes avec une structure claire
+// 1. Les pages Razor
 app.MapRazorPages();
+// 2. Les contrôleurs d'API
+app.MapControllers();
 
 // Seed de la base de données si nécessaire
 using (var scope = app.Services.CreateScope())

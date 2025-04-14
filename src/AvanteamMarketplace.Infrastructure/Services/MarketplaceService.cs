@@ -1108,5 +1108,425 @@ namespace AvanteamMarketplace.Infrastructure.Services
             .Replace("=", "")
             .Substring(0, 32);
     }
+    
+    /// <summary>
+    /// Vérifie si une mise à jour est disponible pour un composant installé
+    /// </summary>
+    public async Task<ComponentUpdateInfo> CheckForUpdateAsync(int componentId, string clientId, string installedVersion, string platformVersion)
+    {
+        try
+        {
+            // Récupérer le composant et ses versions
+            var component = await _context.Components
+                .Include(c => c.Versions)
+                .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                
+            if (component == null)
+            {
+                return null;
+            }
+            
+            // Récupérer la dernière version compatible avec le client
+            var latestVersion = component.Versions
+                .Where(v => _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion, platformVersion))
+                .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault();
+                
+            // Si aucune version compatible n'est trouvée, retourner la version principale du composant
+            latestVersion ??= component.Versions.FirstOrDefault(v => v.IsLatest);
+            
+            // Si toujours pas de version, utiliser les données du composant lui-même
+            if (latestVersion == null)
+            {
+                // Vérifier si la version actuelle du composant est plus récente que la version installée
+                bool hasUpdate = _versionDetector.CompareVersions(component.Version, installedVersion) > 0;
+                
+                if (!hasUpdate)
+                {
+                    return null; // Aucune mise à jour disponible
+                }
+                
+                // Vérifier si le composant est compatible avec la version de la plateforme du client
+                bool isCompatible = _versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion);
+                
+                return new ComponentUpdateInfo
+                {
+                    AvailableVersion = component.Version,
+                    InstalledVersion = installedVersion,
+                    MinPlatformVersion = component.MinPlatformVersion,
+                    DownloadUrl = component.PackageUrl,
+                    ChangeLog = "Mise à jour disponible",
+                    RequiresRestart = component.RequiresRestart,
+                    IsCompatibleWithCurrentPlatform = isCompatible
+                };
+            }
+            
+            // Vérifier si la dernière version est plus récente que la version installée
+            bool hasNewerVersion = _versionDetector.CompareVersions(latestVersion.Version, installedVersion) > 0;
+            
+            if (!hasNewerVersion)
+            {
+                return null; // Aucune mise à jour disponible
+            }
+            
+            // Vérifier si la dernière version est compatible avec la version de la plateforme du client
+            bool isCompatibleWithPlatform = _versionDetector.IsPlatformVersionSufficient(
+                latestVersion.MinPlatformVersion ?? component.MinPlatformVersion, 
+                platformVersion);
+            
+            return new ComponentUpdateInfo
+            {
+                AvailableVersion = latestVersion.Version,
+                InstalledVersion = installedVersion,
+                MinPlatformVersion = latestVersion.MinPlatformVersion ?? component.MinPlatformVersion,
+                DownloadUrl = latestVersion.PackageUrl ?? component.PackageUrl,
+                ChangeLog = latestVersion.ChangeLog ?? latestVersion.ReleaseNotes ?? "Mise à jour disponible",
+                RequiresRestart = component.RequiresRestart,
+                IsCompatibleWithCurrentPlatform = isCompatibleWithPlatform
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la vérification des mises à jour pour le composant {componentId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Récupère la liste des versions d'un composant
+    /// </summary>
+    public async Task<List<VersionViewModel>> GetComponentVersionsAsync(int componentId)
+    {
+        try
+        {
+            var component = await _context.Components
+                .Include(c => c.Versions)
+                .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                
+            if (component == null)
+            {
+                return new List<VersionViewModel>();
+            }
+            
+            return component.Versions.Select(v => new VersionViewModel
+            {
+                VersionId = v.VersionId,
+                VersionNumber = v.Version,
+                ReleaseDate = v.ReleaseDate,
+                ChangeLog = v.ChangeLog ?? v.ReleaseNotes ?? "",
+                DownloadUrl = v.PackageUrl ?? "",
+                DownloadCount = _context.ComponentDownloads.Count(cd => cd.ComponentId == componentId && cd.Version == v.Version),
+                IsLatest = v.IsLatest,
+                MinPlatformVersion = v.MinPlatformVersion ?? ""
+            }).OrderByDescending(v => v.ReleaseDate).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la récupération des versions du composant {componentId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Récupère les détails d'une version spécifique
+    /// </summary>
+    public async Task<VersionViewModel> GetComponentVersionAsync(int versionId)
+    {
+        try
+        {
+            var version = await _context.ComponentVersions
+                .FirstOrDefaultAsync(v => v.VersionId == versionId);
+                
+            if (version == null)
+            {
+                return null;
+            }
+            
+            return new VersionViewModel
+            {
+                VersionId = version.VersionId,
+                VersionNumber = version.Version,
+                ReleaseDate = version.ReleaseDate,
+                ChangeLog = version.ChangeLog ?? version.ReleaseNotes ?? "",
+                DownloadUrl = version.PackageUrl ?? "",
+                DownloadCount = _context.ComponentDownloads.Count(cd => cd.ComponentId == version.ComponentId && cd.Version == version.Version),
+                IsLatest = version.IsLatest,
+                MinPlatformVersion = version.MinPlatformVersion ?? ""
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la récupération de la version {versionId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Crée une nouvelle version pour un composant
+    /// </summary>
+    public async Task<int> CreateComponentVersionAsync(int componentId, ComponentVersionCreateViewModel model)
+    {
+        try
+        {
+            var component = await _context.Components
+                .Include(c => c.Versions)
+                .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                
+            if (component == null)
+            {
+                throw new ArgumentException($"Composant {componentId} non trouvé");
+            }
+            
+            // Vérifier si la version existe déjà
+            if (component.Versions.Any(v => v.Version == model.Version))
+            {
+                throw new InvalidOperationException($"La version {model.Version} existe déjà pour ce composant");
+            }
+            
+            // Si la nouvelle version doit être définie comme la dernière, 
+            // réinitialiser toutes les autres versions
+            if (model.IsLatest)
+            {
+                foreach (var existingVersion in component.Versions)
+                {
+                    existingVersion.IsLatest = false;
+                }
+            }
+            
+            var newVersion = new ComponentVersion
+            {
+                ComponentId = componentId,
+                Version = model.Version,  // This is correct - the server model uses "Version" property
+                ReleaseDate = DateTime.UtcNow,
+                ChangeLog = model.ChangeLog,
+                MinPlatformVersion = model.MinPlatformVersion,
+                PackageUrl = model.PackageUrl,
+                IsLatest = model.IsLatest,
+                PublishedDate = DateTime.UtcNow
+            };
+            
+            // Log the version data for debugging purposes
+            _logger.LogInformation($"Creating new version for component {componentId} with Version={model.Version}, versionNumber={model.Version}");
+            
+            _context.ComponentVersions.Add(newVersion);
+            await _context.SaveChangesAsync();
+            
+            // Si c'est la dernière version, mettre à jour également le composant principal
+            if (model.IsLatest)
+            {
+                component.Version = model.Version;
+                component.MinPlatformVersion = model.MinPlatformVersion;
+                component.UpdatedDate = DateTime.UtcNow;
+                
+                if (!string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    component.PackageUrl = model.PackageUrl;
+                }
+                
+                _context.Components.Update(component);
+                await _context.SaveChangesAsync();
+            }
+            
+            return newVersion.VersionId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la création d'une nouvelle version pour le composant {componentId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Met à jour une version existante
+    /// </summary>
+    public async Task<bool> UpdateComponentVersionAsync(int versionId, ComponentVersionCreateViewModel model)
+    {
+        try
+        {
+            var version = await _context.ComponentVersions
+                .Include(v => v.Component)
+                .FirstOrDefaultAsync(v => v.VersionId == versionId);
+                
+            if (version == null)
+            {
+                return false;
+            }
+            
+            // Vérifier si le nouveau numéro de version n'est pas déjà utilisé par une autre version
+            if (model.Version != version.Version)
+            {
+                var existingVersion = await _context.ComponentVersions
+                    .FirstOrDefaultAsync(v => v.ComponentId == version.ComponentId && 
+                                         v.Version == model.Version &&
+                                         v.VersionId != versionId);
+                                         
+                if (existingVersion != null)
+                {
+                    throw new InvalidOperationException($"La version {model.Version} existe déjà pour ce composant");
+                }
+            }
+            
+            // Si cette version doit devenir la dernière, réinitialiser les autres versions
+            if (model.IsLatest && !version.IsLatest)
+            {
+                var otherVersions = await _context.ComponentVersions
+                    .Where(v => v.ComponentId == version.ComponentId && v.VersionId != versionId)
+                    .ToListAsync();
+                    
+                foreach (var otherVersion in otherVersions)
+                {
+                    otherVersion.IsLatest = false;
+                    _context.ComponentVersions.Update(otherVersion);
+                }
+            }
+            
+            // Mettre à jour les propriétés de la version
+            version.Version = model.Version;
+            version.ChangeLog = model.ChangeLog;
+            version.MinPlatformVersion = model.MinPlatformVersion;
+            
+            if (!string.IsNullOrEmpty(model.PackageUrl))
+            {
+                version.PackageUrl = model.PackageUrl;
+            }
+            
+            version.IsLatest = model.IsLatest;
+            
+            _context.ComponentVersions.Update(version);
+            await _context.SaveChangesAsync();
+            
+            // Si c'est la dernière version, mettre à jour également le composant principal
+            if (model.IsLatest)
+            {
+                var component = version.Component;
+                component.Version = model.Version;
+                component.MinPlatformVersion = model.MinPlatformVersion;
+                component.UpdatedDate = DateTime.UtcNow;
+                
+                if (!string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    component.PackageUrl = model.PackageUrl;
+                }
+                
+                _context.Components.Update(component);
+                await _context.SaveChangesAsync();
+            }
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la mise à jour de la version {versionId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Récupère les clients qui utilisent une version spécifique d'un composant
+    /// </summary>
+    public async Task<List<ClientInstallationViewModel>> GetClientsByComponentVersionAsync(int componentId, string version)
+    {
+        try
+        {
+            var installedComponents = await _context.InstalledComponents
+                .Include(ic => ic.Installation)
+                .Where(ic => ic.ComponentId == componentId && ic.Version == version && ic.IsActive)
+                .ToListAsync();
+                
+            var result = new List<ClientInstallationViewModel>();
+            
+            foreach (var ic in installedComponents)
+            {
+                var clientInfo = new ClientInstallationViewModel
+                {
+                    InstallationId = ic.InstallationId,
+                    ClientIdentifier = ic.Installation.ClientIdentifier,
+                    ClientName = ic.Installation.ClientIdentifier, // Utiliser l'identifiant comme nom
+                    PlatformVersion = ic.Installation.PlatformVersion ?? "Inconnue",
+                    InstalledVersion = ic.Version,
+                    InstallDate = ic.InstallDate,
+                    LastUpdateDate = ic.LastUpdateDate ?? DateTime.UtcNow,
+                    IsActive = true
+                };
+                
+                // Vérifier si une mise à jour est disponible
+                var component = await _context.Components
+                    .Include(c => c.Versions)
+                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                    
+                if (component != null)
+                {
+                    var latestVersion = component.Versions
+                        .Where(v => v.IsLatest)
+                        .Select(v => v.Version)
+                        .FirstOrDefault() ?? component.Version;
+                        
+                    clientInfo.HasUpdateAvailable = _versionDetector.CompareVersions(latestVersion, ic.Version) > 0;
+                }
+                
+                result.Add(clientInfo);
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la récupération des clients utilisant la version {version} du composant {componentId}: {ex.Message}");
+            throw;
+        }
+    }
+    
+    /// <summary>
+    /// Définit une version comme étant la dernière version du composant
+    /// </summary>
+    public async Task<bool> SetLatestVersionAsync(int componentId, int versionId)
+    {
+        try
+        {
+            var component = await _context.Components
+                .Include(c => c.Versions)
+                .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                
+            if (component == null)
+            {
+                return false;
+            }
+            
+            var newLatestVersion = component.Versions.FirstOrDefault(v => v.VersionId == versionId);
+            if (newLatestVersion == null)
+            {
+                return false;
+            }
+            
+            // Réinitialiser toutes les versions
+            foreach (var version in component.Versions)
+            {
+                version.IsLatest = (version.VersionId == versionId);
+                _context.ComponentVersions.Update(version);
+            }
+            
+            // Mettre à jour le composant principal
+            component.Version = newLatestVersion.Version;
+            component.MinPlatformVersion = newLatestVersion.MinPlatformVersion ?? component.MinPlatformVersion;
+            component.UpdatedDate = DateTime.UtcNow;
+            
+            if (!string.IsNullOrEmpty(newLatestVersion.PackageUrl))
+            {
+                component.PackageUrl = newLatestVersion.PackageUrl;
+            }
+            
+            _context.Components.Update(component);
+            await _context.SaveChangesAsync();
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la définition de la version {versionId} comme dernière version du composant {componentId}: {ex.Message}");
+            throw;
+        }
+
+        /// <summary>\n        /// Supprime une version spécifique d'un composant\n        /// </summary>\n        /// <param name="componentId">ID du composant</param>\n        /// <param name="versionId">ID de la version à supprimer</param>\n        /// <returns>True si la suppression a réussi, sinon False</returns>\n        public async Task<bool> DeleteComponentVersionAsync(int componentId, int versionId)\n        {\n            try\n            {\n                _logger.LogInformation($"Suppression de la version {versionId} pour le composant {componentId}");\n                \n                // Récupérer le composant avec ses versions\n                var component = await _context.Components\n                    .Include(c => c.Versions)\n                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);\n                    \n                if (component == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version pour un composant inexistant: {componentId}");\n                    return false;\n                }\n                \n                // Récupérer la version à supprimer\n                var version = component.Versions.FirstOrDefault(v => v.VersionId == versionId);\n                if (version == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version inexistante: {versionId} pour le composant {componentId}");\n                    return false;\n                }\n                \n                // Vérifier si c'est la seule version ou la version actuelle du composant\n                if (component.Versions.Count == 1)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la seule version d'un composant: {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la seule version d'un composant");\n                }\n                \n                // Vérifier si c'est la version actuelle/latest\n                if (version.IsLatest)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la version actuelle d'un composant: {versionId} pour le composant {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la version actuelle d'un composant. Veuillez définir une autre version comme actuelle avant de supprimer celle-ci.");\n                }\n                \n                // Vérifier si cette version est installée chez des clients\n                var clientsUsingVersion = await _context.InstalledComponents\n                    .Include(ic => ic.Installation)\n                    .Where(ic => ic.ComponentId == componentId && ic.Version == version.Version && ic.IsActive)\n                    .ToListAsync();\n                    \n                if (clientsUsingVersion.Any())\n                {\n                    var clientsList = string.Join(", ", clientsUsingVersion.Select(ic => ic.Installation.ClientIdentifier));\n                    _logger.LogWarning($"Impossible de supprimer une version utilisée par des clients: {version.Version} pour le composant {componentId}. Clients: {clientsList}");\n                    throw new InvalidOperationException(\n                        $"Impossible de supprimer cette version car elle est actuellement utilisée par {clientsUsingVersion.Count} client(s): {clientsList}");\n                }\n                \n                // Supprimer les téléchargements associés à cette version\n                var downloads = await _context.ComponentDownloads\n                    .Where(cd => cd.ComponentId == componentId && cd.Version == version.Version)\n                    .ToListAsync();\n                    \n                _context.ComponentDownloads.RemoveRange(downloads);\n                \n                // Supprimer la version\n                _context.ComponentVersions.Remove(version);\n                await _context.SaveChangesAsync();\n                \n                _logger.LogInformation($"Version {versionId} ({version.Version}) du composant {componentId} supprimée avec succès");\n                return true;\n            }\n            catch (Exception ex)\n            {\n                _logger.LogError(ex, $"Erreur lors de la suppression de la version {versionId} du composant {componentId}: {ex.Message}");\n                throw;\n            }\n        }
+    }
 }
 }

@@ -369,3 +369,4 @@
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/obj/Release/net6.0/AvanteamMarketplace.API.RazorAssemblyInfo.cs
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/obj/Release/net6.0/AvanteamMarketplace.API.xml
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/bin/Release/net6.0/Newtonsoft.Json.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/obj/Release/net6.0/AvanteamMarketplace.API.sourcelink.json

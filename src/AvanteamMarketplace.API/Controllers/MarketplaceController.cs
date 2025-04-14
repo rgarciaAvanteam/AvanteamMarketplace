@@ -186,6 +186,46 @@ namespace AvanteamMarketplace.API.Controllers
                 return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération des détails du composant" });
             }
         }
+        
+        /// <summary>
+        /// Vérifie si une mise à jour est disponible pour un composant installé
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="clientId">Identifiant du client</param>
+        /// <param name="installedVersion">Version actuellement installée</param>
+        /// <param name="platformVersion">Version de Process Studio du client</param>
+        /// <returns>Informations sur la mise à jour disponible</returns>
+        [HttpGet("components/{componentId}/update-check")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ComponentUpdateInfo>> CheckForUpdate(
+            int componentId, 
+            [FromQuery] string clientId, 
+            [FromQuery] string installedVersion, 
+            [FromQuery] string platformVersion)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(installedVersion) || string.IsNullOrEmpty(platformVersion))
+                {
+                    return BadRequest(new { error = "Les paramètres clientId, installedVersion et platformVersion sont obligatoires" });
+                }
+                
+                var updateInfo = await _marketplaceService.CheckForUpdateAsync(componentId, clientId, installedVersion, platformVersion);
+                
+                if (updateInfo == null)
+                {
+                    return NotFound(new { message = "Aucune mise à jour disponible" });
+                }
+                
+                return Ok(updateInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la vérification des mises à jour pour le composant {componentId}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la vérification des mises à jour" });
+            }
+        }
 
         [HttpGet("components/{componentId}/readme")]
         public async Task<ActionResult<string>> GetComponentReadme(int componentId)
@@ -478,7 +518,7 @@ namespace AvanteamMarketplace.API.Controllers
             int componentId, 
             [FromQuery] string clientId, 
             [FromQuery] string version,
-            [FromBody] InstallationResultViewModel installRequest = null)
+            [FromBody] InstallationResultViewModel? installRequest = null)
         {
             try
             {

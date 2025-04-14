@@ -25,7 +25,7 @@ namespace AvanteamMarketplace.Core.Services
         /// <param name="processStudioRoot">Répertoire racine de Process Studio (optionnel)</param>
         /// <param name="force">Forcer la désinstallation même s'il y a des dépendances</param>
         /// <returns>Résultat de la désinstallation</returns>
-        Task<InstallationResultViewModel> UninstallComponentAsync(int componentId, string processStudioRoot = null, bool force = false);
+        Task<InstallationResultViewModel> UninstallComponentAsync(int componentId, string? processStudioRoot = null, bool force = false);
         
         /// <summary>
         /// Récupère les logs d'installation en temps réel

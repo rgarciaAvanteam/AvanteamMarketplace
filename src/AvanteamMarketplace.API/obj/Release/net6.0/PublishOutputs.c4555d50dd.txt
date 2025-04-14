@@ -311,6 +311,7 @@
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Microsoft.IdentityModel.Tokens.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Microsoft.OpenApi.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Microsoft.Win32.SystemEvents.dll
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Newtonsoft.Json.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Swashbuckle.AspNetCore.Annotations.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Swashbuckle.AspNetCore.Swagger.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/publish-clean/Swashbuckle.AspNetCore.SwaggerGen.dll

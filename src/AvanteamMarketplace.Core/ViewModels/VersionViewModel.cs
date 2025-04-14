@@ -14,5 +14,10 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string DownloadUrl { get; set; } = string.Empty;
         public int DownloadCount { get; set; }
         public bool IsLatest { get; set; }
+        
+        /// <summary>
+        /// Version minimale de la plateforme requise pour cette version
+        /// </summary>
+        public string MinPlatformVersion { get; set; } = string.Empty;
     }
 }

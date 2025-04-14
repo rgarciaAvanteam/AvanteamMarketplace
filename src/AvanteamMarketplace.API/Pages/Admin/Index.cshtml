@@ -10,7 +10,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" href="~/css/marketplace.css" />
+    <link rel="stylesheet" href="~/css/marketplace.css?v=@DateTime.Now.Ticks" />
     <link rel="stylesheet" href="~/css/admin.css?v=@DateTime.Now.Ticks" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -77,6 +77,42 @@
                             <!-- Rempli dynamiquement par JavaScript -->
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Component Version Management -->
+                <div id="versionManagementPanel" class="version-panel">
+                    <div class="version-panel-header">
+                        <h3>Gestion des versions - <span id="versionComponentName"></span></h3>
+                        <a href="#" id="closeVersionPanel" class="close-version-panel">&times;</a>
+                    </div>
+                    <div class="version-panel-content">
+                        <div class="version-actions">
+                            <button id="btnAddVersion" class="btn btn-success">Ajouter une version</button>
+                        </div>
+                        <div class="versions-list">
+                            <table id="versionsTable" class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Version</th>
+                                        <th>Date de publication</th>
+                                        <th>Minimum PS</th>
+                                        <th>Téléchargements</th>
+                                        <th>Version actuelle</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rempli dynamiquement par JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="clients-usage-summary">
+                            <h4>Utilisation par les clients</h4>
+                            <div id="clientsUsageList">
+                                <!-- Rempli dynamiquement par JavaScript -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -286,6 +322,53 @@ component-name.zip
                 </div>
             </div>
             
+            <!-- Modal for version management -->
+            <div id="versionModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2 id="versionModalTitle">Ajouter une version</h2>
+                    
+                    <div class="form-group">
+                        <label for="txtVersionNumber">Numéro de version:</label>
+                        <input type="text" id="txtVersionNumber" class="form-control" placeholder="1.0.0" />
+                        <small>Format X.Y.Z (obligatoire)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="txtVersionChangelog">Notes de version / Changelog:</label>
+                        <textarea id="txtVersionChangelog" class="form-control" rows="5"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="txtVersionMinPlatform">Version minimale de Process Studio:</label>
+                        <input type="text" id="txtVersionMinPlatform" class="form-control" placeholder="23.10.0" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chkIsLatestVersion">
+                            <input type="checkbox" id="chkIsLatestVersion" checked />
+                            Définir comme version actuelle (dernière version)
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fileVersionPackage"><strong>Fichier ZIP du composant:</strong></label>
+                        <div class="custom-file-upload">
+                            <button type="button" class="file-select-button">
+                                <i class="fas fa-file-archive"></i> Choisir un fichier ZIP
+                            </button>
+                            <input type="file" id="fileVersionPackage" accept=".zip" hidden />
+                            <div id="selectedVersionFileName" class="selected-file-name"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="btnSaveVersion" class="btn btn-primary">Enregistrer</button>
+                        <button type="button" id="btnCancelVersion" class="btn btn-secondary">Annuler</button>
+                    </div>
+                </div>
+            </div>
+            
             <div id="iconModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
@@ -330,10 +413,10 @@ component-name.zip
     {
         <script type="text/javascript">
             // Configuration pour JavaScript
-            var apiBaseUrl = '@Model.ApiBaseUrl';
+            var apiBaseUrl = '@Model.ApiBaseUrl.TrimEnd('/')';
             var adminToken = '@Model.AdminToken';
         </script>
-        <script src="~/js/admin.js" type="text/javascript"></script>
+        <script src="~/js/admin.js?v=@DateTime.Now.Ticks" type="text/javascript"></script>
     }
 </body>
 </html>

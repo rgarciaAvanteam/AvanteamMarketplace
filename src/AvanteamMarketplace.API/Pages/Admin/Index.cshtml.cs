@@ -31,7 +31,7 @@ namespace AvanteamMarketplace.API.Pages.Admin
             try
             {
                 // Vérifier si l'utilisateur est déjà authentifié via cookie
-                if (Request.Cookies.TryGetValue("AdminToken", out string adminToken) && !string.IsNullOrEmpty(adminToken))
+                if (Request.Cookies.TryGetValue("AdminToken", out string? adminToken) && !string.IsNullOrEmpty(adminToken))
                 {
                     IsAuthenticated = true;
                     AdminToken = adminToken;

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test du Panel de Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            border: none;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .result {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test du Panel de Version de Marketplace</h1>
+    
+    <div class="test-section">
+        <h2>Problème détecté</h2>
+        <p>Nous rencontrons un problème de cache avec le panel de gestion des versions du Marketplace. Cet outil permet de vérifier si le problème est résolu.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Vérification des fichiers JavaScript</h2>
+        <p>Vérifiez que le fichier <code>admin.js</code> est correctement chargé et à jour :</p>
+        <button class="button" onclick="checkAdminJS()">Vérifier admin.js</button>
+        <div id="jsResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Vérification des fichiers CSS</h2>
+        <p>Vérifiez que les fichiers CSS sont correctement chargés et à jour :</p>
+        <button class="button" onclick="checkCSS()">Vérifier CSS</button>
+        <div id="cssResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test du panel de version</h2>
+        <p>Ce test vérifie si les fonctions spécifiques au panel de version sont disponibles :</p>
+        <button class="button" onclick="testVersionPanel()">Tester panel de version</button>
+        <div id="panelResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Vérifier les en-têtes de cache</h2>
+        <p>Vérifie les en-têtes HTTP pour s'assurer que le cache est correctement contrôlé :</p>
+        <button class="button" onclick="checkCacheHeaders()">Vérifier en-têtes</button>
+        <div id="headerResult" class="result"></div>
+    </div>
+
+    <script>
+        // Fonction pour vérifier le fichier admin.js
+        function checkAdminJS() {
+            const resultDiv = document.getElementById('jsResult');
+            resultDiv.innerHTML = '<p>Vérification de admin.js...</p>';
+            
+            fetch('/js/admin.js?' + new Date().getTime())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Vérifier si le fichier contient des fonctions de gestion de version
+                    const hasVersionFunctions = data.includes('showVersionPanel') || 
+                                               data.includes('loadComponentVersions') || 
+                                               data.includes('saveVersion');
+                    
+                    if (hasVersionFunctions) {
+                        resultDiv.innerHTML = '<p>✅ Le fichier admin.js est correctement chargé et contient les fonctions de gestion de version.</p>';
+                        
+                        // Afficher les 10 premières lignes pour vérifier s'il y a un commentaire de version
+                        const firstLines = data.split('\n').slice(0, 10).join('\n');
+                        resultDiv.innerHTML += `<p>Premières lignes du fichier:</p><pre>${escapeHtml(firstLines)}</pre>`;
+                    } else {
+                        resultDiv.innerHTML = '<p>❌ Le fichier admin.js est chargé mais ne contient pas les fonctions de gestion de version.</p>';
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `<p>❌ Erreur lors du chargement de admin.js: ${error.message}</p>`;
+                });
+        }
+        
+        // Fonction pour vérifier les fichiers CSS
+        function checkCSS() {
+            const resultDiv = document.getElementById('cssResult');
+            resultDiv.innerHTML = '<p>Vérification des fichiers CSS...</p>';
+            
+            Promise.all([
+                fetch('/css/admin.css?' + new Date().getTime()).then(r => r.text()),
+                fetch('/css/marketplace.css?' + new Date().getTime()).then(r => r.text())
+            ])
+            .then(([adminCss, marketplaceCss]) => {
+                // Vérifier si le CSS contient des styles pour le panel de version
+                const hasVersionStyles = adminCss.includes('version-panel') || 
+                                        adminCss.includes('versions-list') || 
+                                        marketplaceCss.includes('version-panel');
+                
+                if (hasVersionStyles) {
+                    resultDiv.innerHTML = '<p>✅ Les fichiers CSS sont correctement chargés et contiennent les styles pour le panel de version.</p>';
+                } else {
+                    resultDiv.innerHTML = '<p>❌ Les fichiers CSS sont chargés mais ne contiennent pas les styles pour le panel de version.</p>';
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `<p>❌ Erreur lors du chargement des fichiers CSS: ${error.message}</p>`;
+            });
+        }
+        
+        // Fonction pour tester le panel de version
+        function testVersionPanel() {
+            const resultDiv = document.getElementById('panelResult');
+            resultDiv.innerHTML = '<p>Test du panel de version...</p>';
+            
+            // Vérifier si les fonctions sont disponibles dans window
+            if (typeof window.showVersionPanel === 'function') {
+                resultDiv.innerHTML = '<p>✅ La fonction showVersionPanel est disponible globalement.</p>';
+            } else {
+                resultDiv.innerHTML = '<p>❌ La fonction showVersionPanel n\'est pas disponible globalement.</p>';
+                resultDiv.innerHTML += '<p>Cela peut être normal si la fonction est définie dans une portée locale ou utilisée avec jQuery.</p>';
+                
+                // Vérifier jQuery
+                if (typeof jQuery !== 'undefined') {
+                    resultDiv.innerHTML += '<p>✅ jQuery est disponible.</p>';
+                    
+                    // Essayer de trouver des éléments liés au panel de version
+                    const versionElements = jQuery('[id*="version"], [class*="version"]').length;
+                    resultDiv.innerHTML += `<p>${versionElements} éléments liés aux versions trouvés dans le DOM.</p>`;
+                } else {
+                    resultDiv.innerHTML += '<p>❌ jQuery n\'est pas disponible.</p>';
+                }
+            }
+        }
+        
+        // Fonction pour vérifier les en-têtes de cache
+        function checkCacheHeaders() {
+            const resultDiv = document.getElementById('headerResult');
+            resultDiv.innerHTML = '<p>Vérification des en-têtes de cache...</p>';
+            
+            const files = [
+                '/js/admin.js',
+                '/css/admin.css',
+                '/css/marketplace.css'
+            ];
+            
+            const results = [];
+            
+            Promise.all(files.map(file => 
+                fetch(file + '?' + new Date().getTime(), { method: 'HEAD' })
+                    .then(response => {
+                        const cacheControl = response.headers.get('cache-control') || 'Non défini';
+                        const expires = response.headers.get('expires') || 'Non défini';
+                        const pragma = response.headers.get('pragma') || 'Non défini';
+                        
+                        return `<strong>${file}</strong>:<br/>
+                                Cache-Control: ${cacheControl}<br/>
+                                Expires: ${expires}<br/>
+                                Pragma: ${pragma}`;
+                    })
+                    .catch(error => `<strong>${file}</strong>: Erreur - ${error.message}`)
+            ))
+            .then(headerResults => {
+                resultDiv.innerHTML = '<p>Résultats des en-têtes de cache:</p>';
+                headerResults.forEach(result => {
+                    resultDiv.innerHTML += `<div>${result}</div><hr>`;
+                });
+                
+                // Conclusion
+                if (headerResults.some(r => r.includes('no-cache') || r.includes('no-store'))) {
+                    resultDiv.innerHTML += '<p>✅ Au moins un fichier a des directives de cache correctes.</p>';
+                } else {
+                    resultDiv.innerHTML += '<p>⚠️ Aucun fichier ne semble avoir des directives anti-cache.</p>';
+                }
+            });
+        }
+        
+        // Fonction utilitaire pour échapper le HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

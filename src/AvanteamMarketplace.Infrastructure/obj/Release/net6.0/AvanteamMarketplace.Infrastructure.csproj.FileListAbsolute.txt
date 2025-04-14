@@ -14,3 +14,4 @@
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Release/net6.0/AvanteamMarketplace.Infrastructure.pdb
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Release/net6.0/ref/AvanteamMarketplace.Infrastructure.dll
 /mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/bin/Release/net6.0/AvanteamMarketplace.Core.xml
+/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.Infrastructure/obj/Release/net6.0/AvanteamMarketplace.Infrastructure.sourcelink.json

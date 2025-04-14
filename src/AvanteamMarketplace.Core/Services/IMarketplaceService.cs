@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AvanteamMarketplace.Core.Models;
 using AvanteamMarketplace.Core.ViewModels;
 
 namespace AvanteamMarketplace.Core.Services
@@ -57,6 +58,16 @@ namespace AvanteamMarketplace.Core.Services
         /// <returns>True si la désinstallation a réussi, sinon False</returns>
         Task<bool> UninstallComponentAsync(int componentId, string clientId);
         
+        /// <summary>
+        /// Vérifie si une mise à jour est disponible pour un composant installé
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="clientId">Identifiant du client</param>
+        /// <param name="installedVersion">Version installée actuelle</param>
+        /// <param name="platformVersion">Version de Process Studio</param>
+        /// <returns>Informations sur la mise à jour disponible ou null si aucune mise à jour</returns>
+        Task<ComponentUpdateInfo> CheckForUpdateAsync(int componentId, string clientId, string installedVersion, string platformVersion);
+        
         // Méthodes d'administration
         
         /// <summary>
@@ -85,6 +96,36 @@ namespace AvanteamMarketplace.Core.Services
         Task<bool> DeleteComponentAsync(int componentId);
         
         /// <summary>
+        /// Récupère la liste des versions d'un composant
+        /// </summary>
+        Task<List<VersionViewModel>> GetComponentVersionsAsync(int componentId);
+        
+        /// <summary>
+        /// Récupère les détails d'une version spécifique
+        /// </summary>
+        Task<VersionViewModel> GetComponentVersionAsync(int versionId);
+        
+        /// <summary>
+        /// Crée une nouvelle version pour un composant
+        /// </summary>
+        Task<int> CreateComponentVersionAsync(int componentId, ComponentVersionCreateViewModel model);
+        
+        /// <summary>
+        /// Met à jour une version existante
+        /// </summary>
+        Task<bool> UpdateComponentVersionAsync(int versionId, ComponentVersionCreateViewModel model);
+        
+        /// <summary>
+        /// Récupère les clients qui utilisent une version spécifique d'un composant
+        /// </summary>
+        Task<List<ClientInstallationViewModel>> GetClientsByComponentVersionAsync(int componentId, string version);
+        
+        /// <summary>
+        /// Définit une version comme étant la dernière version du composant
+        /// </summary>
+        Task<bool> SetLatestVersionAsync(int componentId, int versionId);
+        
+        /// <summary>
         /// Récupère la liste des clés API
         /// </summary>
         Task<List<ApiKeyViewModel>> GetApiKeysAsync();
@@ -110,5 +151,46 @@ namespace AvanteamMarketplace.Core.Services
         public string? FilePath { get; set; }
         public string? ChecksumSha256 { get; set; }
         public long FileSize { get; set; }
+    }
+    
+    /// <summary>
+    /// Informations sur la mise à jour d'un composant
+    /// </summary>
+    public class ComponentUpdateInfo
+    {
+        /// <summary>
+        /// Numéro de version disponible pour la mise à jour
+        /// </summary>
+        public string AvailableVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Version actuellement installée
+        /// </summary>
+        public string InstalledVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Version minimale de Process Studio requise pour cette mise à jour
+        /// </summary>
+        public string MinPlatformVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// URL de téléchargement du package
+        /// </summary>
+        public string DownloadUrl { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Notes de version / Changelog
+        /// </summary>
+        public string ChangeLog { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Indique si la mise à jour nécessite un redémarrage de Process Studio
+        /// </summary>
+        public bool RequiresRestart { get; set; }
+        
+        /// <summary>
+        /// Indique si la mise à jour est compatible avec la version actuelle de Process Studio
+        /// </summary>
+        public bool IsCompatibleWithCurrentPlatform { get; set; }
     }
 }

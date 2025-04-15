@@ -1,48 +1,7 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\avanteammarketplace.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\avanteammarketplace.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}|src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.core\\avanteammarketplace.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{FA2D71B0-CA64-47F9-B1E3-0EC54C988D44}|src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj|solutionrelative:src\\avanteammarketplace.core\\avanteammarketplace.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\wwwroot\\js\\admin\\admin-file-handlers.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\wwwroot\\js\\admin\\admin-file-handlers.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\pages\\admin\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\pages\\admin\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\pages\\admin\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\pages\\admin\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\wwwroot\\js\\admin\\admin.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\wwwroot\\js\\admin\\admin.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|c:\\avanteam\\dev\\devrg\\avanteammarketplace\\src\\avanteammarketplace.api\\appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}|src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj|solutionrelative:src\\avanteammarketplace.api\\appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -50,21 +9,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": -1,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "AvanteamMarketplace.API",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\AvanteamMarketplace.API.csproj",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-04-15T08:24:11.109Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
@@ -104,123 +50,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "admin-file-handlers.js",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-file-handlers.js",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-file-handlers.js",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-file-handlers.js",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-file-handlers.js",
-              "ViewState": "AQIAAE8AAAAAAAAAAAAgwG4AAAABAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-04-15T08:45:23.381Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Index.cshtml.cs",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml.cs",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml.cs",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml.cs",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml.cs",
-              "ViewState": "AQIAAAsAAAAAAAAAAIAwwC0AAAARAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-15T08:34:50.119Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\Pages\\Admin\\Index.cshtml",
-              "ViewState": "AQIAAI0BAAAAAAAAAAAAAJ8BAAAvAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-04-15T08:34:39.839Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "admin.js",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin.js",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin.js",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin.js",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin.js",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-04-15T08:32:52.016Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AvanteamMarketplace.Core",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj",
-              "RelativeToolTip": "src\\AvanteamMarketplace.Core\\AvanteamMarketplace.Core.csproj",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-04-15T08:05:08.093Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "web.config",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\web.config",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\web.config",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\web.config",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\web.config",
-              "ViewState": "AQIAAAUAAAAAAAAAAAAUwCUAAAAQAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2025-04-15T08:02:30.834Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "appsettings.Production.json",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\appsettings.Production.json",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\appsettings.Production.json",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\appsettings.Production.json",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\appsettings.Production.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-04-15T08:00:53.594Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\appsettings.json",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\appsettings.json",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\appsettings.json",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\appsettings.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAEAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-04-15T08:00:40.38Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Program.cs",
-              "RelativeDocumentMoniker": "src\\AvanteamMarketplace.API\\Program.cs",
-              "ToolTip": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\Program.cs",
-              "RelativeToolTip": "src\\AvanteamMarketplace.API\\Program.cs",
-              "ViewState": "AQIAACoBAAAAAAAAAAAkwEABAAAsAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-13T17:01:32.418Z",
-              "EditorCaption": ""
             }
           ]
         },

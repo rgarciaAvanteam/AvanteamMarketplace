@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AvanteamMarketplace.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+efa24fdcff0d724137f1558b4c852a83cc6cbb04")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3c1dd366d3c2f0902a8ea50e1e792121fe3dc01e")]
 [assembly: System.Reflection.AssemblyProductAttribute("AvanteamMarketplace.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AvanteamMarketplace.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

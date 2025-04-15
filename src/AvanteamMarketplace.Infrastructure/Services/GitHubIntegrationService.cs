@@ -127,10 +127,21 @@ namespace AvanteamMarketplace.Infrastructure.Services
                                 var componentModel = CreateComponentFromManifest(manifest, repositoryUrl);
                                 int componentId = await _marketplaceService.CreateComponentAsync(componentModel);
                                 
-                                // Télécharger et attacher le package
-                                await CreateAndAttachPackageAsync(owner, repo, componentId, componentModel.Version);
+                                _logger.LogInformation($"Composant créé avec ID: {componentId}, tentative de création et d'attachement du package...");
                                 
-                                result.NewComponents.Add(componentName);
+                                // Télécharger et attacher le package
+                                var packageResult = await CreateAndAttachPackageAsync(owner, repo, componentId, componentModel.Version);
+                                
+                                if (packageResult)
+                                {
+                                    _logger.LogInformation($"Package créé et attaché avec succès pour le composant {componentName} (id: {componentId})");
+                                    result.NewComponents.Add($"{componentName} (id: {componentId}, package: OK)");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"Échec de la création du package pour le composant {componentName} (id: {componentId})");
+                                    result.NewComponents.Add($"{componentName} (id: {componentId}, package: ÉCHEC)");
+                                }
                             }
                             else
                             {
@@ -140,8 +151,23 @@ namespace AvanteamMarketplace.Infrastructure.Services
                                 // Vérifier si on doit mettre à jour le package
                                 if (existingComponent.Versions != null && existingComponent.Versions.Any())
                                 {
-                                    await CreateAndAttachPackageAsync(owner, repo, existingComponent.ComponentId, 
-                                        existingComponent.Versions.FirstOrDefault(v => v.IsLatest)?.Version ?? existingComponent.Versions.First().Version);
+                                    var versionToUpdate = existingComponent.Versions.FirstOrDefault(v => v.IsLatest)?.Version ?? 
+                                                         existingComponent.Versions.First().Version;
+                                    
+                                    _logger.LogInformation($"Mise à jour du package pour le composant existant {componentName} (id: {existingComponent.ComponentId}, version: {versionToUpdate})");
+                                    
+                                    var packageResult = await CreateAndAttachPackageAsync(owner, repo, existingComponent.ComponentId, versionToUpdate);
+                                    
+                                    if (packageResult)
+                                    {
+                                        _logger.LogInformation($"Package mis à jour avec succès pour le composant {componentName}");
+                                        result.UpdatedComponents.Add($"{componentName} (id: {existingComponent.ComponentId}, package: OK)");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning($"Échec de la mise à jour du package pour le composant {componentName}");
+                                        result.UpdatedComponents.Add($"{componentName} (id: {existingComponent.ComponentId}, package: ÉCHEC)");
+                                    }
                                 }
                             }
                         }
@@ -195,10 +221,21 @@ namespace AvanteamMarketplace.Infrastructure.Services
                                 var componentModel = CreateComponentFromManifest(manifest, $"https://github.com/{owner}/{repo}/tree/main/{directory}");
                                 int componentId = await _marketplaceService.CreateComponentAsync(componentModel);
                                 
-                                // Télécharger et attacher le package
-                                await CreateAndAttachPackageAsync(owner, repo, componentId, componentModel.Version, directory);
+                                _logger.LogInformation($"Composant créé avec ID: {componentId}, tentative de création et d'attachement du package...");
                                 
-                                result.NewComponents.Add(componentName);
+                                // Télécharger et attacher le package
+                                var packageResult = await CreateAndAttachPackageAsync(owner, repo, componentId, componentModel.Version, directory);
+                                
+                                if (packageResult)
+                                {
+                                    _logger.LogInformation($"Package créé et attaché avec succès pour le composant {componentName} (id: {componentId})");
+                                    result.NewComponents.Add($"{componentName} (id: {componentId}, package: OK)");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"Échec de la création du package pour le composant {componentName} (id: {componentId})");
+                                    result.NewComponents.Add($"{componentName} (id: {componentId}, package: ÉCHEC)");
+                                }
                             }
                             else
                             {
@@ -208,9 +245,23 @@ namespace AvanteamMarketplace.Infrastructure.Services
                                 // Vérifier si on doit mettre à jour le package
                                 if (existingComponent.Versions != null && existingComponent.Versions.Any())
                                 {
-                                    await CreateAndAttachPackageAsync(owner, repo, existingComponent.ComponentId, 
-                                        existingComponent.Versions.FirstOrDefault(v => v.IsLatest)?.Version ?? existingComponent.Versions.First().Version,
-                                        directory);
+                                    var versionToUpdate = existingComponent.Versions.FirstOrDefault(v => v.IsLatest)?.Version ?? 
+                                                         existingComponent.Versions.First().Version;
+                                    
+                                    _logger.LogInformation($"Mise à jour du package pour le composant existant {componentName} (id: {existingComponent.ComponentId}, version: {versionToUpdate})");
+                                    
+                                    var packageResult = await CreateAndAttachPackageAsync(owner, repo, existingComponent.ComponentId, versionToUpdate, directory);
+                                    
+                                    if (packageResult)
+                                    {
+                                        _logger.LogInformation($"Package mis à jour avec succès pour le composant {componentName}");
+                                        result.UpdatedComponents.Add($"{componentName} (id: {existingComponent.ComponentId}, package: OK)");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning($"Échec de la mise à jour du package pour le composant {componentName}");
+                                        result.UpdatedComponents.Add($"{componentName} (id: {existingComponent.ComponentId}, package: ÉCHEC)");
+                                    }
                                 }
                             }
                         }
@@ -427,6 +478,9 @@ namespace AvanteamMarketplace.Infrastructure.Services
         {
             try
             {
+                // Récupérer le README du dépôt pour l'inclure dans le composant
+                string readmeContent = GetReadmeContentAsync(repositoryUrl).GetAwaiter().GetResult() ?? "";
+
                 var model = new ComponentCreateViewModel
                 {
                     Name = manifest.GetProperty("name").GetString(),
@@ -450,7 +504,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         : "23.0.0",
                     RepositoryUrl = repositoryUrl,
                     RequiresRestart = manifest.TryGetProperty("requiresRestart", out var requiresRestart)
-                        && requiresRestart.ValueKind == JsonValueKind.True
+                        && requiresRestart.ValueKind == JsonValueKind.True,
+                    ReadmeContent = readmeContent
                 };
 
                 // Ajouter des tags si disponibles
@@ -466,6 +521,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     }
                     model.Tags = tags;
                 }
+
+                _logger.LogInformation($"Modèle de composant créé à partir du manifest: {model.Name} v{model.Version}");
 
                 return model;
             }
@@ -705,8 +762,18 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         }
                     }
                     
+                    // Récupérer le nom du composant depuis la base de données
+                    var component = await _marketplaceService.GetComponentAdminDetailAsync(componentId);
+                    if (component == null)
+                    {
+                        _logger.LogError($"Composant {componentId} non trouvé dans la base de données");
+                        return false;
+                    }
+                    
+                    _logger.LogInformation($"Création du package pour le composant {component.Name} (id: {componentId}, version: {version})");
+                    
                     // 3. Créer un package ZIP à partir du répertoire
-                    string packagePath = await _packageService.GenerateComponentPackageAsync(componentPath, $"component-{componentId}", version);
+                    string packagePath = await _packageService.GenerateComponentPackageAsync(componentPath, component.Name, version);
                     
                     if (string.IsNullOrEmpty(packagePath) || !File.Exists(packagePath))
                     {
@@ -723,7 +790,16 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         return false;
                     }
                     
-                    // 5. Créer une version pour le composant si elle n'existe pas encore
+                    // 5. Mettre à jour le composant principal avec l'URL de package
+                    var updateModel = new ComponentUpdateViewModel
+                    {
+                        PackageUrl = result.PackageUrl
+                    };
+                    
+                    await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
+                    _logger.LogInformation($"URL du package mise à jour pour le composant {componentId}: {result.PackageUrl}");
+                    
+                    // 6. Créer une version pour le composant si elle n'existe pas encore
                     var versions = await _marketplaceService.GetComponentVersionsAsync(componentId);
                     
                     if (!versions.Any(v => v.VersionNumber == version))

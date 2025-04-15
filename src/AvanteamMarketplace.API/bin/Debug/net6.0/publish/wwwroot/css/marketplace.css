@@ -222,6 +222,17 @@ body {
     border-radius: 10px;
 }
 
+.component-update-badge {
+    display: inline-block;
+    background-color: #ffc107;
+    color: #212529;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
 .component-actions {
     padding: 15px 20px;
     background-color: #f8f9fa;
@@ -318,6 +329,19 @@ body {
 
 .btn-retry:hover {
     background-color: #e68100;
+}
+
+.btn-github {
+    background-color: #24292e;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-github:hover {
+    background-color: #1b1f23;
+    color: white;
 }
 
 /* Messages */

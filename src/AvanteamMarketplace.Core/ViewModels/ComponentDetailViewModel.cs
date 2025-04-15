@@ -13,6 +13,7 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string DisplayName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
+        public string? InstalledVersion { get; set; }
         public string Category { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string MinPlatformVersion { get; set; } = string.Empty;

@@ -96,6 +96,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         DisplayName = component.DisplayName,
                         Description = component.Description,
                         Version = component.Version,
+                        InstalledVersion = isInstalled && installInfo != null ? installInfo.Version : null,
                         Category = component.Category,
                         Author = component.Author,
                         MinPlatformVersion = component.MinPlatformVersion,
@@ -191,6 +192,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         DisplayName = component.DisplayName,
                         Description = component.Description,
                         Version = component.Version,
+                        InstalledVersion = installInfo.Version,
                         Category = component.Category,
                         Author = component.Author,
                         MinPlatformVersion = component.MinPlatformVersion,
@@ -309,6 +311,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     DisplayName = component.DisplayName,
                     Description = component.Description,
                     Version = component.Version,
+                    InstalledVersion = null, // Sera défini par le client
                     Category = component.Category,
                     Author = component.Author,
                     MinPlatformVersion = component.MinPlatformVersion,

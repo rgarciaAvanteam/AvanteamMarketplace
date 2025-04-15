@@ -49,14 +49,6 @@
       "PackagePath": "staticwebassets\\js\\admin\\admin.js"
     },
     {
-      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\backup\\admin.js.bak",
-      "PackagePath": "staticwebassets\\js\\backup\\admin.js.bak"
-    },
-    {
-      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\backup\\marketplace.js.bak",
-      "PackagePath": "staticwebassets\\js\\backup\\marketplace.js.bak"
-    },
-    {
       "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-components.js",
       "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-components.js"
     },

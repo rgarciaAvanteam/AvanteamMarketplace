@@ -180,8 +180,15 @@ function showComponentModal(componentId = null) {
     $("#txtTags").val("");
     $("#chkRequiresRestart").prop("checked", false);
     
-    // Si c'est une modification, charger les données du composant
+    // Réinitialiser la section de téléversement du package
+    $("#fileManifestPackage").val("");
+    $("#selectedManifestFileName").text("");
+    $("#parseManifestResult").hide();
+    
+    // Si c'est une modification, cacher la section de téléversement du package
     if (componentId) {
+        $(".form-group:has(#fileManifestPackage)").hide();
+        
         $.ajax({
             url: `${apiBaseUrl}/management/components/${componentId}`,
             type: "GET",
@@ -228,10 +235,16 @@ function showComponentModal(componentId = null) {
                 alert(`Erreur lors du chargement du composant: ${xhr.status} ${xhr.statusText}`);
             }
         });
+    } else {
+        // Pour un nouveau composant, afficher la section de téléversement du package
+        $(".form-group:has(#fileManifestPackage)").show();
     }
     
     // Afficher le modal
     $("#componentModal").css("display", "block");
+    
+    // Réinitialiser la clé de package
+    window.currentPackageKey = null;
 }
 
 // Modifier un composant (afficher le modal prérempli)

@@ -12,7 +12,7 @@
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/marketplace.css?v=@DateTime.Now.Ticks" />
     <link rel="stylesheet" href="~/css/admin.css?v=@DateTime.Now.Ticks" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
@@ -167,6 +167,19 @@
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <h2 id="componentModalTitle">Ajouter un composant</h2>
+                    
+                    <div class="form-group">
+                        <label>Téléverser un package pour pré-remplir les champs (optionnel):</label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="fileManifestPackage" accept=".zip" />
+                            <button type="button" class="file-select-button">Choisir un fichier</button>
+                            <span id="selectedManifestFileName"></span>
+                        </div>
+                        <button type="button" id="btnParseManifest" class="btn btn-secondary">
+                            Analyser le manifest
+                        </button>
+                        <div id="parseManifestResult" style="margin-top: 10px;"></div>
+                    </div>
                     
                     <div class="form-group">
                         <label for="txtName">Nom technique:</label>

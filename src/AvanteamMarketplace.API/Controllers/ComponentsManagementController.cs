@@ -7,8 +7,10 @@ using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 
 namespace AvanteamMarketplace.API.Controllers
 {
@@ -35,6 +37,24 @@ namespace AvanteamMarketplace.API.Controllers
         private readonly IGitHubIntegrationService _githubService;
         private readonly IComponentPackageService _packageService;
         private readonly ILogger<ComponentsManagementController> _logger;
+        
+        // Méthode utilitaire pour extraire les tags d'un manifest
+        private string[] GetTagsFromManifest(JsonElement manifest)
+        {
+            if (manifest.TryGetProperty("tags", out var tagsElement) && tagsElement.ValueKind == JsonValueKind.Array)
+            {
+                var tags = new List<string>();
+                foreach (var tag in tagsElement.EnumerateArray())
+                {
+                    if (tag.ValueKind == JsonValueKind.String)
+                    {
+                        tags.Add(tag.GetString() ?? "");
+                    }
+                }
+                return tags.Where(t => !string.IsNullOrEmpty(t)).ToArray();
+            }
+            return Array.Empty<string>();
+        }
 
         public ComponentsManagementController(
             IMarketplaceService marketplaceService,
@@ -50,6 +70,131 @@ namespace AvanteamMarketplace.API.Controllers
 
         #region Components Management Endpoints
 
+        /// <summary>
+        /// Extrait les métadonnées d'un manifest.json contenu dans un fichier ZIP
+        /// </summary>
+        /// <param name="packageFile">Le fichier ZIP à analyser</param>
+        /// <returns>Les métadonnées extraites du manifest.json</returns>
+        [HttpPost("components/extract-manifest")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> ExtractManifestFromPackage(IFormFile packageFile)
+        {
+            try
+            {
+                if (packageFile == null || packageFile.Length == 0)
+                {
+                    return BadRequest(new { error = "Aucun fichier n'a été téléversé" });
+                }
+
+                // Chemin temporaire pour enregistrer le fichier
+                var tempFilePath = Path.GetTempFileName();
+                try
+                {
+                    using (var stream = new FileStream(tempFilePath, FileMode.Create))
+                    {
+                        await packageFile.CopyToAsync(stream);
+                    }
+
+                    // Valider le package
+                    var validationResult = await _packageService.ValidateComponentPackageAsync(tempFilePath);
+                    if (!validationResult.IsValid)
+                    {
+                        return BadRequest(new { error = "Le package n'est pas valide", details = validationResult.ErrorMessage });
+                    }
+
+                    // Extraire le contenu du manifest
+                    string? manifestContent = null;
+                    string? readmeContent = null;
+                    
+                    using (var archive = ZipFile.OpenRead(tempFilePath))
+                    {
+                        // Rechercher manifest.json à la racine ou dans un sous-dossier de premier niveau
+                        var manifestEntry = archive.Entries.FirstOrDefault(e => 
+                            e.FullName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) ||
+                            e.FullName.EndsWith("/manifest.json", StringComparison.OrdinalIgnoreCase));
+                        
+                        if (manifestEntry != null)
+                        {
+                            using (var stream = manifestEntry.Open())
+                            using (var reader = new StreamReader(stream))
+                            {
+                                manifestContent = await reader.ReadToEndAsync();
+                            }
+                        }
+                        
+                        // Rechercher README.md à la racine ou dans un sous-dossier de premier niveau
+                        var readmeEntry = archive.Entries.FirstOrDefault(e => 
+                            e.FullName.Equals("README.md", StringComparison.OrdinalIgnoreCase) ||
+                            e.FullName.Equals("readme.md", StringComparison.OrdinalIgnoreCase) ||
+                            e.FullName.EndsWith("/README.md", StringComparison.OrdinalIgnoreCase) ||
+                            e.FullName.EndsWith("/readme.md", StringComparison.OrdinalIgnoreCase));
+                        
+                        if (readmeEntry != null)
+                        {
+                            using (var stream = readmeEntry.Open())
+                            using (var reader = new StreamReader(stream))
+                            {
+                                readmeContent = await reader.ReadToEndAsync();
+                            }
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(manifestContent))
+                    {
+                        return BadRequest(new { error = "Le package ne contient pas de fichier manifest.json" });
+                    }
+
+                    // Parser le manifest
+                    var manifest = JsonSerializer.Deserialize<JsonElement>(manifestContent);
+                    
+                    // Créer un objet de réponse avec les informations extraites
+                    var componentData = new
+                    {
+                        name = manifest.TryGetProperty("name", out var name) ? name.GetString() : "",
+                        displayName = manifest.TryGetProperty("displayName", out var displayName) ? displayName.GetString() : "",
+                        description = manifest.TryGetProperty("description", out var description) ? description.GetString() : "",
+                        version = manifest.TryGetProperty("version", out var version) ? version.GetString() : "",
+                        category = manifest.TryGetProperty("category", out var category) ? category.GetString() : "",
+                        author = manifest.TryGetProperty("author", out var author) ? author.GetString() : "Avanteam",
+                        minPlatformVersion = manifest.TryGetProperty("minPlatformVersion", out var minPlatformVersion) ? minPlatformVersion.GetString() : "",
+                        requiresRestart = manifest.TryGetProperty("requiresRestart", out var requiresRestart) && requiresRestart.ValueKind == JsonValueKind.True,
+                        repositoryUrl = manifest.TryGetProperty("repositoryUrl", out var repositoryUrl) ? repositoryUrl.GetString() : "",
+                        tags = GetTagsFromManifest(manifest),
+                        readmeContent = readmeContent
+                    };
+                    
+                    // Générer un identifiant unique pour le fichier temporaire
+                    string packageKey = Guid.NewGuid().ToString();
+                    
+                    // Stocker le chemin du fichier temporaire en session (pour une utilisation ultérieure)
+                    HttpContext.Session.SetString($"TempPackage_{packageKey}", tempFilePath);
+                    
+                    return Ok(new { 
+                        componentData = componentData,
+                        packageKey = packageKey
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Supprimer le fichier temporaire en cas d'erreur
+                    if (System.IO.File.Exists(tempFilePath))
+                    {
+                        System.IO.File.Delete(tempFilePath);
+                    }
+                    
+                    _logger.LogError(ex, "Erreur lors de l'extraction du manifest du package");
+                    return StatusCode(500, new { error = "Une erreur est survenue lors de l'extraction du manifest", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de l'extraction du manifest du package");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de l'extraction du manifest", details = ex.Message });
+            }
+        }
+        
         /// <summary>
         /// Récupère tous les composants pour l'administration
         /// </summary>
@@ -101,12 +246,13 @@ namespace AvanteamMarketplace.API.Controllers
         /// Crée un nouveau composant
         /// </summary>
         /// <param name="model">Données du composant à créer</param>
+        /// <param name="packageKey">Clé du package temporaire (optionnel)</param>
         /// <returns>ID du composant créé et statut de la création</returns>
         [HttpPost("components")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> CreateComponent([FromBody] ComponentCreateViewModel model)
+        public async Task<ActionResult> CreateComponent([FromBody] ComponentCreateViewModel model, [FromQuery] string? packageKey = null)
         {
             try
             {
@@ -116,6 +262,55 @@ namespace AvanteamMarketplace.API.Controllers
                 }
 
                 var componentId = await _marketplaceService.CreateComponentAsync(model);
+                
+                // Si un package a été fourni, le traiter après la création du composant
+                if (!string.IsNullOrEmpty(packageKey))
+                {
+                    try
+                    {
+                        // Récupérer le chemin du fichier temporaire depuis la session
+                        var tempFilePath = HttpContext.Session.GetString($"TempPackage_{packageKey}");
+                        
+                        if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+                        {
+                            // Traiter le package
+                            var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, model.Version);
+                            
+                            if (packageResult.Success)
+                            {
+                                // Mettre à jour le composant avec l'URL du package
+                                var updateModel = new ComponentUpdateViewModel
+                                {
+                                    PackageUrl = packageResult.PackageUrl
+                                };
+                                
+                                await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
+                                
+                                _logger.LogInformation($"Package traité avec succès pour le nouveau composant {componentId}");
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"Échec du traitement du package pour le nouveau composant {componentId}: {packageResult.ErrorMessage}");
+                            }
+                            
+                            // Supprimer le fichier temporaire
+                            File.Delete(tempFilePath);
+                            
+                            // Nettoyer la session
+                            HttpContext.Session.Remove($"TempPackage_{packageKey}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Fichier temporaire introuvable pour la clé {packageKey}");
+                        }
+                    }
+                    catch (Exception packageEx)
+                    {
+                        _logger.LogError(packageEx, $"Erreur lors du traitement du package pour le nouveau composant {componentId}");
+                        // Ne pas faire échouer la création du composant si le traitement du package échoue
+                    }
+                }
+                
                 return CreatedAtAction(nameof(GetComponentAdminDetail), new { componentId }, new { componentId });
             }
             catch (Exception ex)

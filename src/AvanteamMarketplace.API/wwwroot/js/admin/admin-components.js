@@ -259,6 +259,111 @@ $(".close, #btnCancelComponent").click(function() {
     window.currentComponentDetails = null;
 });
 
+// Fonction pour analyser le manifest depuis un package ZIP
+function parseManifestFromPackage() {
+    const fileInput = $("#fileManifestPackage")[0];
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Veuillez sélectionner un fichier ZIP.");
+        return;
+    }
+    
+    // Afficher un indicateur de chargement
+    const parseBtn = $("#btnParseManifest");
+    const originalText = parseBtn.text();
+    parseBtn.html('<i class="fas fa-spinner fa-spin"></i> Analyse...');
+    parseBtn.prop('disabled', true);
+    
+    const formData = new FormData();
+    formData.append("packageFile", fileInput.files[0]);
+    
+    $.ajax({
+        url: `${apiBaseUrl}/management/components/extract-manifest`,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            "Authorization": `Bearer ${adminToken}`
+        },
+        success: function(response) {
+            // Réinitialiser le bouton
+            parseBtn.html(originalText);
+            parseBtn.prop('disabled', false);
+            
+            // Stocker la clé du package pour l'utiliser lors de la création
+            window.currentPackageKey = response.packageKey;
+            
+            // Remplir les champs du formulaire avec les données extraites
+            const componentData = response.componentData;
+            
+            $("#txtName").val(componentData.name || "");
+            $("#txtDisplayName").val(componentData.displayName || componentData.name || "");
+            $("#txtDescription").val(componentData.description || "");
+            $("#txtVersion").val(componentData.version || "");
+            $("#txtCategory").val(componentData.category || "");
+            $("#txtAuthor").val(componentData.author || "Avanteam");
+            $("#txtMinPlatformVersion").val(componentData.minPlatformVersion || "");
+            $("#txtRepositoryUrl").val(componentData.repositoryUrl || "");
+            $("#chkRequiresRestart").prop("checked", componentData.requiresRestart || false);
+            
+            // Gestion des tags
+            if (componentData.tags && Array.isArray(componentData.tags)) {
+                $("#txtTags").val(componentData.tags.join(", "));
+            }
+            
+            // Afficher un message de succès
+            $("#parseManifestResult").html('<div class="alert alert-success">Manifest analysé avec succès. Les champs ont été pré-remplis.</div>');
+            $("#parseManifestResult").show();
+            
+            // Afficher le nom du fichier sélectionné
+            $("#selectedManifestFileName").text(fileInput.files[0].name);
+        },
+        error: function(xhr, status, error) {
+            // Réinitialiser le bouton
+            parseBtn.html(originalText);
+            parseBtn.prop('disabled', false);
+            
+            console.error("Erreur lors de l'analyse du manifest:", error);
+            
+            // Afficher un message d'erreur
+            let errorMessage = "Erreur lors de l'analyse du manifest.";
+            try {
+                if (xhr.responseText) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.error) {
+                        errorMessage = response.error;
+                        if (response.details) {
+                            errorMessage += " " + response.details;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Impossible de parser la réponse d'erreur:", e);
+            }
+            
+            $("#parseManifestResult").html(`<div class="alert alert-danger">${errorMessage}</div>`);
+            $("#parseManifestResult").show();
+            
+            // Réinitialiser la clé de package en cas d'erreur
+            window.currentPackageKey = null;
+        }
+    });
+}
+
+// Attacher l'événement au bouton d'analyse du manifest
+$(document).on("click", "#btnParseManifest", parseManifestFromPackage);
+
+// Afficher le nom du fichier sélectionné pour le manifest
+$(document).on("change", "#fileManifestPackage", function() {
+    const fileName = $(this).val().split("\\").pop();
+    $("#selectedManifestFileName").text(fileName || "");
+    
+    // Réinitialiser le résultat de l'analyse et la clé du package
+    $("#parseManifestResult").hide();
+    window.currentPackageKey = null;
+});
+
 // Enregistrer un composant (ajout ou modification)
 $("#btnSaveComponent").click(function(e) {
     // Empêcher tout comportement de soumission qui pourrait causer un refresh
@@ -434,10 +539,15 @@ $("#btnSaveComponent").click(function(e) {
         // Ajouter plus de logs pour le débogage
         console.log("Objet complet pour la création:", JSON.stringify(createComponent));
         
-        console.log("Données envoyées pour la création:", createComponent);
+        // Préparer l'URL de création avec la clé du package si disponible
+        let createUrl = `${apiBaseUrl}/management/components`;
+        if (window.currentPackageKey) {
+            createUrl += `?packageKey=${window.currentPackageKey}`;
+            console.log("Création avec package, clé:", window.currentPackageKey);
+        }
         
         $.ajax({
-            url: `${apiBaseUrl}/management/components`,
+            url: createUrl,
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(createComponent),
@@ -446,8 +556,9 @@ $("#btnSaveComponent").click(function(e) {
             },
             success: function(response) {
                 $("#componentModal").css("display", "none");
-                // Nettoyer les détails du composant stockés en mémoire
+                // Nettoyer les détails du composant et la clé du package stockés en mémoire
                 window.currentComponentDetails = null;
+                window.currentPackageKey = null;
                 
                 // Extraire l'ID du composant créé
                 let componentId = null;

@@ -35,6 +35,13 @@
             **IMPORTANT** : Tous les endpoints nécessitent une clé API avec des droits d'administration.
             </remarks>
         </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.ExtractManifestFromPackage(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Extrait les métadonnées d'un manifest.json contenu dans un fichier ZIP
+            </summary>
+            <param name="packageFile">Le fichier ZIP à analyser</param>
+            <returns>Les métadonnées extraites du manifest.json</returns>
+        </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentsForAdmin">
             <summary>
             Récupère tous les composants pour l'administration
@@ -48,11 +55,12 @@
             <param name="componentId">ID du composant</param>
             <returns>Détails du composant</returns>
         </member>
-        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponent(AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel)">
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponent(AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel,System.String)">
             <summary>
             Crée un nouveau composant
             </summary>
             <param name="model">Données du composant à créer</param>
+            <param name="packageKey">Clé du package temporaire (optionnel)</param>
             <returns>ID du composant créé et statut de la création</returns>
         </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponent(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentUpdateViewModel)">

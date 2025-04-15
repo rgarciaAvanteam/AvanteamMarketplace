@@ -85,7 +85,7 @@ textarea.form-control {
     margin-bottom: 8px;
 }
 
-.file-select-button {
+.file-select-button, .file-select-button-manifest {
     padding: 10px 15px;
     border-radius: 4px;
     background-color: #2c7d32;
@@ -103,7 +103,7 @@ textarea.form-control {
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     font-size: 14px;
-    width: 100%;
+    width: auto;
 }
 
 .file-select-button i {
@@ -111,13 +111,13 @@ textarea.form-control {
     font-size: 18px;
 }
 
-.file-select-button:hover {
+.file-select-button:hover, .file-select-button-manifest:hover {
     background-image: linear-gradient(to bottom, #2c9630, #246b2a);
     box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     transform: translateY(-1px);
 }
 
-.file-select-button:active {
+.file-select-button:active, .file-select-button-manifest:active {
     background-image: linear-gradient(to bottom, #246b2a, #2c9630);
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     transform: translateY(1px);

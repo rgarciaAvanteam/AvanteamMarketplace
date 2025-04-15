@@ -184,6 +184,7 @@ function showComponentModal(componentId = null) {
     $("#fileManifestPackage").val("");
     $("#selectedManifestFileName").text("");
     $("#parseManifestResult").hide();
+    $("#btnParseManifest").prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary');
     
     // Si c'est une modification, cacher la section de téléversement du package
     if (componentId) {
@@ -296,6 +297,7 @@ function parseManifestFromPackage() {
             
             // Remplir les champs du formulaire avec les données extraites
             const componentData = response.componentData;
+            console.log("Données extraites du manifest:", componentData);
             
             $("#txtName").val(componentData.name || "");
             $("#txtDisplayName").val(componentData.displayName || componentData.name || "");
@@ -304,7 +306,16 @@ function parseManifestFromPackage() {
             $("#txtCategory").val(componentData.category || "");
             $("#txtAuthor").val(componentData.author || "Avanteam");
             $("#txtMinPlatformVersion").val(componentData.minPlatformVersion || "");
-            $("#txtRepositoryUrl").val(componentData.repositoryUrl || "");
+            
+            // Spécifiquement pour l'URL du dépôt, s'assurer qu'il est correctement affiché
+            if (componentData.repositoryUrl) {
+                console.log("URL du dépôt trouvée:", componentData.repositoryUrl);
+                $("#txtRepositoryUrl").val(componentData.repositoryUrl);
+            } else {
+                console.log("Aucune URL de dépôt trouvée dans le manifest");
+                $("#txtRepositoryUrl").val("");
+            }
+            
             $("#chkRequiresRestart").prop("checked", componentData.requiresRestart || false);
             
             // Gestion des tags
@@ -362,6 +373,13 @@ $(document).on("change", "#fileManifestPackage", function() {
     // Réinitialiser le résultat de l'analyse et la clé du package
     $("#parseManifestResult").hide();
     window.currentPackageKey = null;
+    
+    // Si un fichier est sélectionné, activer automatiquement le bouton d'analyse
+    if (fileName) {
+        $("#btnParseManifest").prop('disabled', false).addClass('btn-primary').removeClass('btn-secondary');
+    } else {
+        $("#btnParseManifest").prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary');
+    }
 });
 
 // Enregistrer un composant (ajout ou modification)

@@ -149,6 +149,32 @@ namespace AvanteamMarketplace.API.Controllers
                     // Parser le manifest
                     var manifest = JsonSerializer.Deserialize<JsonElement>(manifestContent);
                     
+                    // Vérifier si l'URL du dépôt est présente
+                    string repoUrl = "";
+                    if (manifest.TryGetProperty("repositoryUrl", out var repositoryUrl) && !string.IsNullOrEmpty(repositoryUrl.GetString()))
+                    {
+                        repoUrl = repositoryUrl.GetString();
+                        _logger.LogInformation($"URL du dépôt trouvée dans le manifest: {repoUrl}");
+                    }
+                    else if (manifest.TryGetProperty("repository", out var repository))
+                    {
+                        // Certains manifests peuvent utiliser "repository" au lieu de "repositoryUrl"
+                        if (repository.ValueKind == JsonValueKind.String && !string.IsNullOrEmpty(repository.GetString()))
+                        {
+                            repoUrl = repository.GetString();
+                            _logger.LogInformation($"URL du dépôt trouvée dans le champ repository: {repoUrl}");
+                        }
+                        else if (repository.ValueKind == JsonValueKind.Object)
+                        {
+                            // Format npm-style avec repository.url
+                            if (repository.TryGetProperty("url", out var repoUrlProperty) && !string.IsNullOrEmpty(repoUrlProperty.GetString()))
+                            {
+                                repoUrl = repoUrlProperty.GetString();
+                                _logger.LogInformation($"URL du dépôt trouvée dans repository.url: {repoUrl}");
+                            }
+                        }
+                    }
+
                     // Créer un objet de réponse avec les informations extraites
                     var componentData = new
                     {
@@ -160,7 +186,7 @@ namespace AvanteamMarketplace.API.Controllers
                         author = manifest.TryGetProperty("author", out var author) ? author.GetString() : "Avanteam",
                         minPlatformVersion = manifest.TryGetProperty("minPlatformVersion", out var minPlatformVersion) ? minPlatformVersion.GetString() : "",
                         requiresRestart = manifest.TryGetProperty("requiresRestart", out var requiresRestart) && requiresRestart.ValueKind == JsonValueKind.True,
-                        repositoryUrl = manifest.TryGetProperty("repositoryUrl", out var repositoryUrl) ? repositoryUrl.GetString() : "",
+                        repositoryUrl = repoUrl,
                         tags = GetTagsFromManifest(manifest),
                         readmeContent = readmeContent
                     };
@@ -271,7 +297,7 @@ namespace AvanteamMarketplace.API.Controllers
                         // Récupérer le chemin du fichier temporaire depuis la session
                         var tempFilePath = HttpContext.Session.GetString($"TempPackage_{packageKey}");
                         
-                        if (!string.IsNullOrEmpty(tempFilePath) && File.Exists(tempFilePath))
+                        if (!string.IsNullOrEmpty(tempFilePath) && System.IO.File.Exists(tempFilePath))
                         {
                             // Traiter le package
                             var packageResult = await _packageService.ProcessComponentPackageAsync(componentId, tempFilePath, model.Version);
@@ -294,7 +320,7 @@ namespace AvanteamMarketplace.API.Controllers
                             }
                             
                             // Supprimer le fichier temporaire
-                            File.Delete(tempFilePath);
+                            System.IO.File.Delete(tempFilePath);
                             
                             // Nettoyer la session
                             HttpContext.Session.Remove($"TempPackage_{packageKey}");

@@ -171,8 +171,8 @@
                     <div class="form-group">
                         <label>Téléverser un package pour pré-remplir les champs (optionnel):</label>
                         <div class="custom-file-upload">
-                            <input type="file" id="fileManifestPackage" accept=".zip" />
-                            <button type="button" class="file-select-button">Choisir un fichier</button>
+                            <input type="file" id="fileManifestPackage" accept=".zip" hidden />
+                            <button type="button" class="file-select-button-manifest" onclick="$('#fileManifestPackage').click()" style="width: auto; max-width: 250px;">Choisir un fichier</button>
                             <span id="selectedManifestFileName"></span>
                         </div>
                         <button type="button" id="btnParseManifest" class="btn btn-secondary">

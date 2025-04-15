@@ -29,6 +29,12 @@ namespace AvanteamMarketplace.Core.Services
         /// <param name="versions">Liste des versions à supprimer</param>
         /// <returns>Nombre de fichiers supprimés</returns>
         Task<int> DeleteComponentPackageFilesAsync(string componentName, IEnumerable<string> versions);
+        
+        /// <summary>
+        /// Obtient l'URL de base pour les packages
+        /// </summary>
+        /// <returns>L'URL de base configurée</returns>
+        string GetPackageBaseUrl();
     }
     
     /// <summary>
@@ -40,6 +46,9 @@ namespace AvanteamMarketplace.Core.Services
         public string Version { get; set; } = string.Empty;
         public string PackageUrl { get; set; } = string.Empty;
         public string ErrorMessage { get; set; } = string.Empty;
+        public string TargetPath { get; set; } = string.Empty;
+        public string MinPlatformVersion { get; set; } = string.Empty;
+        public string RepositoryUrl { get; set; } = string.Empty;
     }
     
     /// <summary>

@@ -11,6 +11,8 @@ using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using AvanteamMarketplace.Infrastructure.Data;
 
 namespace AvanteamMarketplace.API.Controllers
 {
@@ -37,6 +39,7 @@ namespace AvanteamMarketplace.API.Controllers
         private readonly IGitHubIntegrationService _githubService;
         private readonly IComponentPackageService _packageService;
         private readonly ILogger<ComponentsManagementController> _logger;
+        private readonly MarketplaceDbContext _context;
         
         // Méthode utilitaire pour extraire les tags d'un manifest
         private string[] GetTagsFromManifest(JsonElement manifest)
@@ -60,11 +63,13 @@ namespace AvanteamMarketplace.API.Controllers
             IMarketplaceService marketplaceService,
             IGitHubIntegrationService githubService,
             IComponentPackageService packageService,
+            MarketplaceDbContext context,
             ILogger<ComponentsManagementController> logger)
         {
             _marketplaceService = marketplaceService;
             _githubService = githubService;
             _packageService = packageService;
+            _context = context;
             _logger = logger;
         }
 
@@ -175,24 +180,106 @@ namespace AvanteamMarketplace.API.Controllers
                         }
                     }
 
+                    // Extraire le targetPath
+                    string targetPath = "";
+                    if (manifest.TryGetProperty("installation", out var installation) && installation.ValueKind == JsonValueKind.Object)
+                    {
+                        if (installation.TryGetProperty("targetPath", out var targetPathProperty) && !string.IsNullOrEmpty(targetPathProperty.GetString()))
+                        {
+                            targetPath = targetPathProperty.GetString();
+                            _logger.LogInformation($"Target path trouvé dans le manifest: {targetPath}");
+                        }
+                    }
+                    
+                    // Extraire le nom et la version
+                    string componentName = manifest.TryGetProperty("name", out var nameProperty) ? nameProperty.GetString() : "";
+                    string componentVersion = manifest.TryGetProperty("version", out var versionProperty) ? versionProperty.GetString() : "";
+                    
+                    // Générer une URL de package à partir du nom et de la version
+                    string packageUrl = "";
+                    if (!string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(componentVersion))
+                    {
+                        string fileName = $"{componentName}-{componentVersion}.zip";
+                        
+                        // Utiliser l'URL de base complète depuis la configuration si disponible
+                        var baseUrl = _packageService.GetPackageBaseUrl();
+                        if (!string.IsNullOrEmpty(baseUrl))
+                        {
+                            // Utiliser la base URL du service
+                            packageUrl = $"{baseUrl}/packages/{fileName}";
+                        }
+                        else
+                        {
+                            // Fallback: Utiliser l'URL de la requête actuelle
+                            packageUrl = $"{Request.Scheme}://{Request.Host}/packages/{fileName}";
+                        }
+                        
+                        _logger.LogInformation($"Package URL générée: {packageUrl}");
+                    }
+                    
                     // Créer un objet de réponse avec les informations extraites
                     var componentData = new
                     {
-                        name = manifest.TryGetProperty("name", out var name) ? name.GetString() : "",
+                        name = componentName,
                         displayName = manifest.TryGetProperty("displayName", out var displayName) ? displayName.GetString() : "",
                         description = manifest.TryGetProperty("description", out var description) ? description.GetString() : "",
-                        version = manifest.TryGetProperty("version", out var version) ? version.GetString() : "",
+                        version = componentVersion,
                         category = manifest.TryGetProperty("category", out var category) ? category.GetString() : "",
                         author = manifest.TryGetProperty("author", out var author) ? author.GetString() : "Avanteam",
                         minPlatformVersion = manifest.TryGetProperty("minPlatformVersion", out var minPlatformVersion) ? minPlatformVersion.GetString() : "",
                         requiresRestart = manifest.TryGetProperty("requiresRestart", out var requiresRestart) && requiresRestart.ValueKind == JsonValueKind.True,
                         repositoryUrl = repoUrl,
+                        targetPath = targetPath,
+                        packageUrl = packageUrl,  // Cette URL est utilisée côté client
                         tags = GetTagsFromManifest(manifest),
                         readmeContent = readmeContent
                     };
                     
                     // Générer un identifiant unique pour le fichier temporaire
                     string packageKey = Guid.NewGuid().ToString();
+                    
+                    // Créer le répertoire des packages s'il n'existe pas
+                    string packageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "packages");
+                    if (!Directory.Exists(packageDirectory))
+                    {
+                        Directory.CreateDirectory(packageDirectory);
+                    }
+                    
+                    // Copier immédiatement le fichier dans le répertoire des packages pour que l'URL soit valide
+                    if (!string.IsNullOrEmpty(componentName) && !string.IsNullOrEmpty(componentVersion) && !string.IsNullOrEmpty(packageUrl))
+                    {
+                        string fileName = $"{componentName}-{componentVersion}.zip";
+                        string destinationPath = Path.Combine(packageDirectory, fileName);
+                        
+                        try
+                        {
+                            // Faire une copie immédiate du fichier pour assurer que l'URL sera valide
+                            System.IO.File.Copy(tempFilePath, destinationPath, true);
+                            _logger.LogInformation($"Fichier copié avec succès vers {destinationPath}");
+                            
+                            // Vérifier si le fichier a bien été copié
+                            if (System.IO.File.Exists(destinationPath))
+                            {
+                                var fileInfo = new FileInfo(destinationPath);
+                                _logger.LogInformation($"Le fichier existe bien à {destinationPath}, taille: {fileInfo.Length} bytes");
+                                
+                                // Vérifier que l'URL est toujours valide
+                                _logger.LogCritical($"URL du package avant l'envoi au frontend: [{packageUrl}]");
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"Le fichier NE SEMBLE PAS AVOIR ÉTÉ COPIÉ à {destinationPath}");
+                            }
+                        }
+                        catch (Exception copyEx)
+                        {
+                            _logger.LogWarning($"Impossible de copier le fichier vers {destinationPath}: {copyEx.Message}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Impossible de copier le fichier - informations manquantes: componentName={componentName}, componentVersion={componentVersion}, packageUrl={packageUrl}");
+                    }
                     
                     // Stocker le chemin du fichier temporaire en session (pour une utilisation ultérieure)
                     HttpContext.Session.SetString($"TempPackage_{packageKey}", tempFilePath);
@@ -282,12 +369,36 @@ namespace AvanteamMarketplace.API.Controllers
         {
             try
             {
+                // Log de débogage pour voir ce qui est reçu
+                _logger.LogInformation($"Création de composant - Modèle reçu: PackageUrl={model.PackageUrl}, TargetPath={model.TargetPath}, Name={model.Name}, Version={model.Version}");
+                
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogWarning("Validation du modèle échouée");
                     return BadRequest(ModelState);
                 }
 
                 var componentId = await _marketplaceService.CreateComponentAsync(model);
+                
+                // Vérifier immédiatement si le composant a été correctement créé avec le PackageUrl
+                var componentAfterCreation = await _context.Components.FindAsync(componentId);
+                if (componentAfterCreation != null && string.IsNullOrEmpty(componentAfterCreation.PackageUrl) && !string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    _logger.LogCritical($"CORRECTION IMMÉDIATE - Le composant {componentId} a été créé sans PackageUrl, tentative de correction directe");
+                    
+                    // Mise à jour d'urgence directe
+                    componentAfterCreation.PackageUrl = model.PackageUrl;
+                    await _context.SaveChangesAsync();
+                    
+                    _logger.LogCritical($"CORRECTION IMMÉDIATE - PackageUrl défini à [{componentAfterCreation.PackageUrl}]");
+                    
+                    // Double vérification avec requête SQL directe
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
+                        model.PackageUrl, componentId);
+                        
+                    _logger.LogCritical($"CORRECTION IMMÉDIATE - Mise à jour SQL exécutée");
+                }
                 
                 // Si un package a été fourni, le traiter après la création du composant
                 if (!string.IsNullOrEmpty(packageKey))
@@ -304,23 +415,50 @@ namespace AvanteamMarketplace.API.Controllers
                             
                             if (packageResult.Success)
                             {
-                                // Mettre à jour le composant avec l'URL du package
+                                // Mettre à jour le composant avec les informations extraites du package
                                 var updateModel = new ComponentUpdateViewModel
                                 {
-                                    PackageUrl = packageResult.PackageUrl
+                                    PackageUrl = packageResult.PackageUrl,
+                                    RepositoryUrl = !string.IsNullOrEmpty(packageResult.RepositoryUrl) ? packageResult.RepositoryUrl : model.RepositoryUrl,
+                                    TargetPath = !string.IsNullOrEmpty(packageResult.TargetPath) ? packageResult.TargetPath : model.TargetPath,
+                                    MinPlatformVersion = !string.IsNullOrEmpty(packageResult.MinPlatformVersion) ? packageResult.MinPlatformVersion : model.MinPlatformVersion
                                 };
                                 
-                                await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
+                                var updateSuccess = await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
                                 
-                                _logger.LogInformation($"Package traité avec succès pour le nouveau composant {componentId}");
+                                if (updateSuccess)
+                                {
+                                    _logger.LogInformation($"Package traité avec succès pour le nouveau composant {componentId}");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"Mise à jour des informations de package échouée pour le composant {componentId}");
+                                    
+                                    // Tentative de correction directe
+                                    if (!string.IsNullOrEmpty(packageResult.PackageUrl))
+                                    {
+                                        _logger.LogCritical($"Tentative de correction directe du PackageUrl pour le composant {componentId}");
+                                        await _context.Database.ExecuteSqlRawAsync(
+                                            "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
+                                            packageResult.PackageUrl, componentId);
+                                    }
+                                }
                             }
                             else
                             {
                                 _logger.LogWarning($"Échec du traitement du package pour le nouveau composant {componentId}: {packageResult.ErrorMessage}");
                             }
                             
-                            // Supprimer le fichier temporaire
-                            System.IO.File.Delete(tempFilePath);
+                            // Le fichier a été traité par ProcessComponentPackageAsync qui l'a déjà copié dans le répertoire des packages
+                            // On peut donc supprimer le fichier temporaire
+                            try {
+                                if (System.IO.File.Exists(tempFilePath)) {
+                                    System.IO.File.Delete(tempFilePath);
+                                }
+                            }
+                            catch (Exception deleteEx) {
+                                _logger.LogWarning($"Impossible de supprimer le fichier temporaire: {deleteEx.Message}");
+                            }
                             
                             // Nettoyer la session
                             HttpContext.Session.Remove($"TempPackage_{packageKey}");
@@ -334,6 +472,76 @@ namespace AvanteamMarketplace.API.Controllers
                     {
                         _logger.LogError(packageEx, $"Erreur lors du traitement du package pour le nouveau composant {componentId}");
                         // Ne pas faire échouer la création du composant si le traitement du package échoue
+                    }
+                }
+                // Si aucun package n'est fourni mais qu'on a un packageUrl dans le modèle (provenant du manifest),
+                // nous devons copier le fichier temporaire analysé vers le répertoire des packages
+                else if (!string.IsNullOrEmpty(model.PackageUrl) && model.PackageUrl != "https://avanteam-online.com/no-package")
+                {
+                    try
+                    {
+                        _logger.LogInformation($"PackageUrl fourni dans le modèle: {model.PackageUrl}");
+                        
+                        // Extraire le nom du fichier de l'URL
+                        string fileName = Path.GetFileName(new Uri(model.PackageUrl).AbsolutePath);
+                        
+                        if (!string.IsNullOrEmpty(fileName))
+                        {
+                            // Chemin de destination du fichier
+                            string packageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "packages");
+                            
+                            // S'assurer que le répertoire existe
+                            if (!Directory.Exists(packageDirectory))
+                            {
+                                Directory.CreateDirectory(packageDirectory);
+                            }
+                            
+                            // Chemin complet du fichier de destination
+                            string destinationPath = Path.Combine(packageDirectory, fileName);
+                            
+                            // Parcourir toutes les clés de session et chercher des fichiers temporaires
+                            var tempKeys = new List<string>();
+                            foreach (var key in HttpContext.Session.Keys)
+                            {
+                                if (key.StartsWith("TempPackage_"))
+                                {
+                                    tempKeys.Add(key);
+                                }
+                            }
+                            
+                            bool packageSaved = false;
+                            foreach (var key in tempKeys)
+                            {
+                                var tempFilePath = HttpContext.Session.GetString(key);
+                                
+                                if (!string.IsNullOrEmpty(tempFilePath) && System.IO.File.Exists(tempFilePath))
+                                {
+                                    _logger.LogInformation($"Copie du fichier temporaire {tempFilePath} vers {destinationPath}");
+                                    
+                                    // Copier le fichier temporaire vers le répertoire des packages
+                                    System.IO.File.Copy(tempFilePath, destinationPath, true);
+                                    
+                                    // Supprimer le fichier temporaire
+                                    System.IO.File.Delete(tempFilePath);
+                                    
+                                    // Nettoyer la session
+                                    HttpContext.Session.Remove(key);
+                                    
+                                    _logger.LogInformation($"Fichier package sauvegardé avec succès pour le composant {componentId}");
+                                    packageSaved = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!packageSaved)
+                            {
+                                _logger.LogWarning($"Aucun fichier temporaire trouvé pour créer le package {fileName}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Erreur lors de la sauvegarde du fichier package pour le composant {componentId}");
                     }
                 }
                 
@@ -764,12 +972,12 @@ namespace AvanteamMarketplace.API.Controllers
                         return BadRequest(new { error = "Échec du traitement du package", details = packageResult.ErrorMessage });
                     }
                     
-                    // Créer la version avec l'URL du package générée
+                    // Créer la version avec l'URL du package générée et les informations extraites
                     var model = new ComponentVersionCreateViewModel
                     {
                         Version = version,
                         ChangeLog = changeLog ?? "",
-                        MinPlatformVersion = minPlatformVersion ?? "",
+                        MinPlatformVersion = !string.IsNullOrEmpty(packageResult.MinPlatformVersion) ? packageResult.MinPlatformVersion : (minPlatformVersion ?? ""),
                         IsLatest = isLatest,
                         PackageUrl = packageResult.PackageUrl // Assigner l'URL du package obtenue
                     };

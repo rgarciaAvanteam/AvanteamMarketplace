@@ -103,6 +103,12 @@
             <param name="versions">Liste des versions à supprimer</param>
             <returns>Nombre de fichiers supprimés</returns>
         </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentPackageService.GetPackageBaseUrl">
+            <summary>
+            Obtient l'URL de base pour les packages
+            </summary>
+            <returns>L'URL de base configurée</returns>
+        </member>
         <member name="T:AvanteamMarketplace.Core.Services.ComponentPackageResult">
             <summary>
             Résultat du traitement d'un package de composant

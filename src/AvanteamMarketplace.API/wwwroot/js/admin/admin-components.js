@@ -316,6 +316,19 @@ function parseManifestFromPackage() {
                 $("#txtRepositoryUrl").val("");
             }
             
+            // Stocker les informations supplémentaires qui ne sont pas visibles dans le formulaire
+            window.extractedManifestInfo = {};
+            
+            if (componentData.targetPath) {
+                console.log("Target path trouvé:", componentData.targetPath);
+                window.extractedManifestInfo.targetPath = componentData.targetPath;
+            }
+            
+            if (componentData.packageUrl) {
+                console.log("Package URL générée:", componentData.packageUrl);
+                window.extractedManifestInfo.packageUrl = componentData.packageUrl;
+            }
+            
             $("#chkRequiresRestart").prop("checked", componentData.requiresRestart || false);
             
             // Gestion des tags
@@ -453,9 +466,13 @@ $("#btnSaveComponent").click(function(e) {
             repositoryUrl: newComponent.repositoryUrl,
             requiresRestart: newComponent.requiresRestart,
             tags: newComponent.tags,
-            // Utiliser une URL par défaut valide pour le packageUrl, elle sera remplacée lors du téléversement du package
-            packageUrl: "https://avanteam-online.com/no-package",
-            targetPath: "",
+            // Utiliser les informations extraites du manifest si disponibles
+            packageUrl: window.extractedManifestInfo && window.extractedManifestInfo.packageUrl 
+                ? window.extractedManifestInfo.packageUrl 
+                : "https://avanteam-online.com/no-package",
+            targetPath: window.extractedManifestInfo && window.extractedManifestInfo.targetPath 
+                ? window.extractedManifestInfo.targetPath 
+                : "",
             readmeContent: "",
             recommendedPlatformVersion: newComponent.minPlatformVersion || "",
             dependencies: []
@@ -546,9 +563,13 @@ $("#btnSaveComponent").click(function(e) {
             repositoryUrl: newComponent.repositoryUrl,
             requiresRestart: newComponent.requiresRestart,
             tags: newComponent.tags,
-            // Utiliser une URL par défaut valide pour le packageUrl, elle sera remplacée lors du téléversement du package
-            packageUrl: "https://avanteam-online.com/no-package",
-            targetPath: "",
+            // Utiliser les informations extraites du manifest si disponibles
+            packageUrl: window.extractedManifestInfo && window.extractedManifestInfo.packageUrl 
+                ? window.extractedManifestInfo.packageUrl 
+                : "https://avanteam-online.com/no-package",
+            targetPath: window.extractedManifestInfo && window.extractedManifestInfo.targetPath 
+                ? window.extractedManifestInfo.targetPath 
+                : "",
             readmeContent: "",
             recommendedPlatformVersion: newComponent.minPlatformVersion || "",
             dependencies: []
@@ -556,6 +577,18 @@ $("#btnSaveComponent").click(function(e) {
         
         // Ajouter plus de logs pour le débogage
         console.log("Objet complet pour la création:", JSON.stringify(createComponent));
+        console.log("extractedManifestInfo:", JSON.stringify(window.extractedManifestInfo));
+        console.log("PackageUrl utilisé:", createComponent.packageUrl);
+        
+        // Vérification supplémentaire pour packageUrl
+        if (!createComponent.packageUrl || createComponent.packageUrl === "https://avanteam-online.com/no-package") {
+            console.warn("PackageUrl vide ou placeholder détecté, tentative de récupération depuis componentData");
+            // Si nous avons des données de manifest, essayer de trouver l'URL du package
+            if (window.extractedManifestInfo && window.extractedManifestInfo.packageUrl) {
+                createComponent.packageUrl = window.extractedManifestInfo.packageUrl;
+                console.log("PackageUrl récupéré depuis extractedManifestInfo:", createComponent.packageUrl);
+            }
+        }
         
         // Préparer l'URL de création avec la clé du package si disponible
         let createUrl = `${apiBaseUrl}/management/components`;
@@ -574,9 +607,10 @@ $("#btnSaveComponent").click(function(e) {
             },
             success: function(response) {
                 $("#componentModal").css("display", "none");
-                // Nettoyer les détails du composant et la clé du package stockés en mémoire
+                // Nettoyer les détails du composant, la clé du package et les informations extraites du manifest stockés en mémoire
                 window.currentComponentDetails = null;
                 window.currentPackageKey = null;
+                window.extractedManifestInfo = null;
                 
                 // Extraire l'ID du composant créé
                 let componentId = null;
@@ -591,12 +625,18 @@ $("#btnSaveComponent").click(function(e) {
                 // Si nous avons un ID de composant, créer automatiquement la première version
                 if (componentId) {
                     // Créer la première version avec les mêmes valeurs que le composant
+                    // IMPORTANT: Inclure PackageUrl pour éviter que la version ne supprime l'URL du composant
                     const versionData = {
                         Version: newComponent.version,
                         ChangeLog: "Version initiale",
                         MinPlatformVersion: newComponent.minPlatformVersion || "",
-                        IsLatest: true
+                        IsLatest: true,
+                        // S'assurer que PackageUrl est également défini pour la version
+                        PackageUrl: createComponent.packageUrl
                     };
+                    
+                    console.log("DEBUGINFO - PackageUrl du composant:", createComponent.packageUrl);
+                    console.log("DEBUGINFO - PackageUrl de la version:", versionData.PackageUrl);
                     
                     console.log("Création automatique de la première version:", versionData);
                     

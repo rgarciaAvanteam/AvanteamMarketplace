@@ -440,8 +440,28 @@ namespace AvanteamMarketplace.Infrastructure.Services
                             if (parts.Length > 0)
                             {
                                 string repoPath = parts[parts.Length - 1];
-                                downloadUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
-                                _logger.LogInformation($"URL de téléchargement GitHub générée: {downloadUrl}");
+                                // Essayer d'abord la branche main, qui est la nouvelle norme
+                                string mainUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
+                                // Essayer aussi la branche master, qui était l'ancienne norme
+                                string masterUrl = $"https://github.com/{repoPath}/archive/refs/heads/master.zip";
+                                
+                                // Vérifier si l'URL existe avant de l'utiliser
+                                if (IsUrlAccessible(mainUrl))
+                                {
+                                    downloadUrl = mainUrl;
+                                    _logger.LogInformation($"URL de téléchargement GitHub générée (branche main): {downloadUrl}");
+                                }
+                                else if (IsUrlAccessible(masterUrl))
+                                {
+                                    downloadUrl = masterUrl;
+                                    _logger.LogInformation($"URL de téléchargement GitHub générée (branche master): {downloadUrl}");
+                                }
+                                else
+                                {
+                                    // Par défaut, utiliser main mais avec un avertissement
+                                    downloadUrl = mainUrl;
+                                    _logger.LogWarning($"Impossible de vérifier l'URL GitHub. Utilisation par défaut: {downloadUrl}");
+                                }
                             }
                         }
                         else if (repoUrl.Contains("gitlab"))
@@ -816,8 +836,29 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     if (parts.Length > 0)
                     {
                         string repoPath = parts[parts.Length - 1];
-                        packageUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
-                        _logger.LogInformation($"URL de téléchargement GitHub générée pour le nouveau composant: {packageUrl}");
+                        
+                        // Essayer d'abord la branche main, qui est la nouvelle norme
+                        string mainUrl = $"https://github.com/{repoPath}/archive/refs/heads/main.zip";
+                        // Essayer aussi la branche master, qui était l'ancienne norme
+                        string masterUrl = $"https://github.com/{repoPath}/archive/refs/heads/master.zip";
+                        
+                        // Vérifier si l'URL existe avant de l'utiliser
+                        if (IsUrlAccessible(mainUrl))
+                        {
+                            packageUrl = mainUrl;
+                            _logger.LogInformation($"URL de téléchargement GitHub générée (branche main) pour le nouveau composant: {packageUrl}");
+                        }
+                        else if (IsUrlAccessible(masterUrl))
+                        {
+                            packageUrl = masterUrl;
+                            _logger.LogInformation($"URL de téléchargement GitHub générée (branche master) pour le nouveau composant: {packageUrl}");
+                        }
+                        else
+                        {
+                            // Par défaut, utiliser main mais avec un avertissement
+                            packageUrl = mainUrl;
+                            _logger.LogWarning($"Impossible de vérifier l'URL GitHub. Utilisation par défaut: {packageUrl}");
+                        }
                     }
                 }
                 else if (repoUrl.Contains("gitlab"))
@@ -839,6 +880,33 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 packageUrl = string.Empty;
             }
             
+            // Priorité : utiliser le PackageUrl fourni par le modèle s'il est présent, valide et non vide,
+            // sinon utiliser la valeur calculée à partir du dépôt
+            string finalPackageUrl = string.Empty;
+            
+            if (!string.IsNullOrEmpty(model.PackageUrl) && model.PackageUrl != "https://avanteam-online.com/no-package")
+            {
+                finalPackageUrl = model.PackageUrl;
+                _logger.LogInformation($"Utilisation du PackageUrl fourni par le modèle: '{model.PackageUrl}'");
+            }
+            else
+            {
+                finalPackageUrl = packageUrl;
+                _logger.LogInformation($"Utilisation du PackageUrl calculé: '{packageUrl}'");
+            }
+            
+            // Log pour le débogage
+            _logger.LogInformation($"Création de composant: PackageUrl du modèle = '{model.PackageUrl}', PackageUrl calculé = '{packageUrl}', Valeur finale = '{finalPackageUrl}'");
+            
+            // Ajout de logs supplémentaires pour identifier où le problème pourrait survenir
+            _logger.LogInformation($"Type du finalPackageUrl: {finalPackageUrl?.GetType().FullName ?? "null"}, Longueur: {finalPackageUrl?.Length ?? 0}");
+            
+            // Vérifier si la valeur contient des caractères non imprimables
+            if (!string.IsNullOrEmpty(finalPackageUrl))
+            {
+                _logger.LogInformation($"Vérification des caractères dans finalPackageUrl: {string.Join(", ", finalPackageUrl.Select(c => ((int)c).ToString()))}");
+            }
+            
             var component = new Component
             {
                 Name = model.Name,
@@ -852,11 +920,25 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 RepositoryUrl = model.RepositoryUrl,
                 RequiresRestart = model.RequiresRestart,
                 TargetPath = model.TargetPath,
-                PackageUrl = packageUrl, // Utiliser la valeur calculée
+                PackageUrl = finalPackageUrl, // Utiliser le PackageUrl fourni ou la valeur calculée
                 ReadmeContent = model.ReadmeContent,
                 CreatedDate = DateTime.UtcNow,
                 UpdatedDate = DateTime.UtcNow
             };
+            
+            // Log critique pour débogage
+            _logger.LogCritical($"CRÉATION COMPOSANT - PackageUrl={component.PackageUrl}, TargetPath={component.TargetPath}");
+            
+            // Logs supplémentaires pour s'assurer que la valeur est correctement assignée
+            _logger.LogCritical($"VÉRIFICATION AVANT AJOUT - component.PackageUrl=[{component.PackageUrl}]");
+            if (string.IsNullOrEmpty(component.PackageUrl))
+            {
+                // Si la valeur est vide ici, forcer une valeur, juste pour tester
+                _logger.LogCritical("ATTENTION: PackageUrl est vide, forçage d'une valeur pour le test");
+                component.PackageUrl = !string.IsNullOrEmpty(model.PackageUrl) 
+                    ? model.PackageUrl 
+                    : $"https://packages.avanteam.com/{model.Name}-{model.Version}.zip";
+            }
             
             // Ajouter les tags
             if (model.Tags != null)
@@ -882,8 +964,77 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 }
             }
             
+            // Log juste avant d'ajouter le composant à la base de données
+            _logger.LogCritical($"JUSTE AVANT ADD - component.PackageUrl=[{component.PackageUrl}]");
+            
             _context.Components.Add(component);
+            
+            // Log avant la sauvegarde
+            _logger.LogCritical($"AVANT SAVECHANGES - component.PackageUrl=[{component.PackageUrl}]");
+            
             await _context.SaveChangesAsync();
+            
+            // Log après la sauvegarde
+            _logger.LogCritical($"APRÈS SAVECHANGES - component.PackageUrl=[{component.PackageUrl}], ComponentId={component.ComponentId}");
+            
+            // Vérification supplémentaire après la sauvegarde 
+            var savedComponent = await _context.Components
+                .AsNoTracking() // Important pour récupérer la valeur réellement en base
+                .FirstOrDefaultAsync(c => c.ComponentId == component.ComponentId);
+                
+            if (savedComponent != null)
+            {
+                _logger.LogCritical($"VÉRIFICATION EN BASE - savedComponent.PackageUrl=[{savedComponent.PackageUrl}]");
+                
+                // Si la valeur en base est vide ou différente de ce qu'on a défini, on tente une mise à jour explicite
+                if (string.IsNullOrEmpty(savedComponent.PackageUrl) || savedComponent.PackageUrl != component.PackageUrl)
+                {
+                    _logger.LogCritical($"PROBLÈME DÉTECTÉ - La valeur en base diffère de celle définie. Tentative de correction...");
+                    
+                    try
+                    {
+                        // Détacher l'entité du contexte pour éviter les problèmes de suivi
+                        _context.Entry(component).State = EntityState.Detached;
+                        
+                        // Récupérer le composant directement de la base pour le mettre à jour
+                        var componentToUpdate = await _context.Components.FindAsync(component.ComponentId);
+                        if (componentToUpdate != null) 
+                        {
+                            componentToUpdate.PackageUrl = component.PackageUrl;
+                            _logger.LogCritical($"MISE À JOUR DIRECTE - Définition de PackageUrl=[{componentToUpdate.PackageUrl}]");
+                            await _context.SaveChangesAsync();
+                            _logger.LogCritical($"MISE À JOUR SAUVEGARDÉE - Après SaveChanges");
+                        }
+                        
+                        // Double vérification avec la requête SQL directe
+                        await _context.Database.ExecuteSqlRawAsync(
+                            "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
+                            component.PackageUrl, component.ComponentId);
+                            
+                        _logger.LogCritical($"CORRECTION ENVOYÉE - Mise à jour directe via SQL");
+                        
+                        // Vérification ultime que la valeur a bien été enregistrée
+                        var finalCheck = await _context.Components
+                            .AsNoTracking()
+                            .Where(c => c.ComponentId == component.ComponentId)
+                            .Select(c => new { c.PackageUrl })
+                            .FirstOrDefaultAsync();
+                            
+                        if (finalCheck != null)
+                        {
+                            _logger.LogCritical($"VÉRIFICATION FINALE - PackageUrl=[{finalCheck.PackageUrl}]");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogCritical($"ÉCHEC CORRECTION - {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogCritical($"ERREUR - Composant non trouvé après sauvegarde");
+            }
             
             return component.ComponentId;
         }
@@ -976,7 +1127,43 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 }
             }
             
+            // Log packageUrl avant de sauvegarder
+            _logger.LogCritical($"UPDATECOMPONENTASYNC - Avant SaveChanges, component.PackageUrl=[{component.PackageUrl}]");
+            
             await _context.SaveChangesAsync();
+            
+            // Vérification après SaveChanges
+            _logger.LogCritical($"UPDATECOMPONENTASYNC - Après SaveChanges, component.PackageUrl=[{component.PackageUrl}]");
+            
+            // Vérification supplémentaire que le packageUrl a bien été sauvegardé
+            var verifyComponent = await _context.Components
+                .AsNoTracking() // Important pour récupérer la valeur réellement en base
+                .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                
+            if (verifyComponent != null)
+            {
+                _logger.LogCritical($"UPDATECOMPONENTASYNC - Vérification en base, verifyComponent.PackageUrl=[{verifyComponent.PackageUrl}]");
+                
+                // Si le packageUrl n'est pas correctement sauvegardé mais qu'on a une valeur dans le modèle
+                if (string.IsNullOrEmpty(verifyComponent.PackageUrl) && !string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    _logger.LogCritical($"UPDATECOMPONENTASYNC - PROBLÈME DÉTECTÉ - PackageUrl non sauvegardé. Tentative de correction directe");
+                    
+                    try
+                    {
+                        // Mise à jour directe via SQL
+                        await _context.Database.ExecuteSqlRawAsync(
+                            "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
+                            model.PackageUrl, componentId);
+                            
+                        _logger.LogCritical($"UPDATECOMPONENTASYNC - CORRECTION SQL EXÉCUTÉE");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogCritical($"UPDATECOMPONENTASYNC - ÉCHEC CORRECTION - {ex.Message}");
+                    }
+                }
+            }
             
             return true;
         }
@@ -1463,9 +1650,21 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 component.MinPlatformVersion = model.MinPlatformVersion;
                 component.UpdatedDate = DateTime.UtcNow;
                 
-                // Toujours mettre à jour PackageUrl du composant principal, même si vide
-                // Pour garantir la synchronisation entre les tables Component et ComponentVersion
-                component.PackageUrl = model.PackageUrl ?? component.PackageUrl;
+                // IMPORTANT: Ne mettre à jour PackageUrl que si le modèle a une valeur non vide
+                // Sinon on risque de perdre l'URL originale
+                string originalPackageUrl = component.PackageUrl;
+                _logger.LogCritical($"CREATECOMPONENTVERSION - AVANT MISE À JOUR - component.PackageUrl=[{component.PackageUrl}], model.PackageUrl=[{model.PackageUrl}]");
+                
+                if (!string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    component.PackageUrl = model.PackageUrl;
+                    _logger.LogCritical($"CREATECOMPONENTVERSION - Mise à jour PackageUrl avec la valeur du modèle: {model.PackageUrl}");
+                }
+                else
+                {
+                    _logger.LogCritical($"CREATECOMPONENTVERSION - Modèle PackageUrl vide, conservation de la valeur existante: {component.PackageUrl}");
+                    // On conserve la valeur existante, ne rien faire
+                }
                 
                 _context.Components.Update(component);
                 await _context.SaveChangesAsync();
@@ -1549,9 +1748,21 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 component.MinPlatformVersion = model.MinPlatformVersion;
                 component.UpdatedDate = DateTime.UtcNow;
                 
-                // Toujours mettre à jour PackageUrl du composant principal, même si vide
-                // Pour garantir la synchronisation entre les tables Component et ComponentVersion
-                component.PackageUrl = model.PackageUrl ?? component.PackageUrl;
+                // IMPORTANT: Ne mettre à jour PackageUrl que si le modèle a une valeur non vide
+                // Sinon on risque de perdre l'URL originale
+                string originalPackageUrl = component.PackageUrl;
+                _logger.LogCritical($"CREATECOMPONENTVERSION - AVANT MISE À JOUR - component.PackageUrl=[{component.PackageUrl}], model.PackageUrl=[{model.PackageUrl}]");
+                
+                if (!string.IsNullOrEmpty(model.PackageUrl))
+                {
+                    component.PackageUrl = model.PackageUrl;
+                    _logger.LogCritical($"CREATECOMPONENTVERSION - Mise à jour PackageUrl avec la valeur du modèle: {model.PackageUrl}");
+                }
+                else
+                {
+                    _logger.LogCritical($"CREATECOMPONENTVERSION - Modèle PackageUrl vide, conservation de la valeur existante: {component.PackageUrl}");
+                    // On conserve la valeur existante, ne rien faire
+                }
                 
                 _context.Components.Update(component);
                 await _context.SaveChangesAsync();
@@ -1674,6 +1885,36 @@ namespace AvanteamMarketplace.Infrastructure.Services
         }
 
         /// <summary>\n        /// Supprime une version spécifique d'un composant\n        /// </summary>\n        /// <param name="componentId">ID du composant</param>\n        /// <param name="versionId">ID de la version à supprimer</param>\n        /// <returns>True si la suppression a réussi, sinon False</returns>\n        public async Task<bool> DeleteComponentVersionAsync(int componentId, int versionId)\n        {\n            try\n            {\n                _logger.LogInformation($"Suppression de la version {versionId} pour le composant {componentId}");\n                \n                // Récupérer le composant avec ses versions\n                var component = await _context.Components\n                    .Include(c => c.Versions)\n                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);\n                    \n                if (component == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version pour un composant inexistant: {componentId}");\n                    return false;\n                }\n                \n                // Récupérer la version à supprimer\n                var version = component.Versions.FirstOrDefault(v => v.VersionId == versionId);\n                if (version == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version inexistante: {versionId} pour le composant {componentId}");\n                    return false;\n                }\n                \n                // Vérifier si c'est la seule version ou la version actuelle du composant\n                if (component.Versions.Count == 1)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la seule version d'un composant: {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la seule version d'un composant");\n                }\n                \n                // Vérifier si c'est la version actuelle/latest\n                if (version.IsLatest)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la version actuelle d'un composant: {versionId} pour le composant {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la version actuelle d'un composant. Veuillez définir une autre version comme actuelle avant de supprimer celle-ci.");\n                }\n                \n                // Vérifier si cette version est installée chez des clients\n                var clientsUsingVersion = await _context.InstalledComponents\n                    .Include(ic => ic.Installation)\n                    .Where(ic => ic.ComponentId == componentId && ic.Version == version.Version && ic.IsActive)\n                    .ToListAsync();\n                    \n                if (clientsUsingVersion.Any())\n                {\n                    var clientsList = string.Join(", ", clientsUsingVersion.Select(ic => ic.Installation.ClientIdentifier));\n                    _logger.LogWarning($"Impossible de supprimer une version utilisée par des clients: {version.Version} pour le composant {componentId}. Clients: {clientsList}");\n                    throw new InvalidOperationException(\n                        $"Impossible de supprimer cette version car elle est actuellement utilisée par {clientsUsingVersion.Count} client(s): {clientsList}");\n                }\n                \n                // Supprimer les téléchargements associés à cette version\n                var downloads = await _context.ComponentDownloads\n                    .Where(cd => cd.ComponentId == componentId && cd.Version == version.Version)\n                    .ToListAsync();\n                    \n                _context.ComponentDownloads.RemoveRange(downloads);\n                \n                // Supprimer la version\n                _context.ComponentVersions.Remove(version);\n                await _context.SaveChangesAsync();\n                \n                _logger.LogInformation($"Version {versionId} ({version.Version}) du composant {componentId} supprimée avec succès");\n                return true;\n            }\n            catch (Exception ex)\n            {\n                _logger.LogError(ex, $"Erreur lors de la suppression de la version {versionId} du composant {componentId}: {ex.Message}");\n                throw;\n            }\n        }
+    }
+    
+    /// <summary>
+    /// Vérifie si une URL est accessible
+    /// </summary>
+    /// <param name="url">URL à vérifier</param>
+    /// <returns>True si l'URL est accessible, sinon False</returns>
+    private bool IsUrlAccessible(string url)
+    {
+        try
+        {
+            // Créer une requête HEAD pour vérifier si l'URL existe sans télécharger le contenu
+            var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+            request.Method = "HEAD";
+            request.Timeout = 5000; // 5 secondes de timeout
+            
+            using (var response = (System.Net.HttpWebResponse)request.GetResponse())
+            {
+                return response.StatusCode == System.Net.HttpStatusCode.OK;
+            }
+        }
+        catch (System.Net.WebException)
+        {
+            return false; // URL inaccessible
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Erreur lors de la vérification de l'URL {url}: {ex.Message}");
+            return false;
+        }
     }
 }
 }

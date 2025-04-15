@@ -388,7 +388,29 @@ namespace AvanteamMarketplace.API.Controllers
                 var downloadResult = await _marketplaceService.GetComponentDownloadInfoAsync(componentId, version);
                 if (downloadResult == null)
                     return NotFound(new { error = "Composant non trouvé" });
-                    
+                
+                // Vérifier que l'URL de téléchargement existe et est accessible
+                if (!string.IsNullOrEmpty(downloadResult.DownloadUrl) && downloadResult.DownloadUrl.StartsWith("http"))
+                {
+                    bool isAccessible = await TestUrlAccessibleAsync(downloadResult.DownloadUrl);
+                    if (!isAccessible)
+                    {
+                        _logger.LogWarning($"L'URL de téléchargement n'est pas accessible: {downloadResult.DownloadUrl}");
+                        
+                        // Tenter d'obtenir une URL alternative à partir des versions disponibles
+                        var alternativeUrl = await FindAlternativePackageUrlAsync(componentId);
+                        if (!string.IsNullOrEmpty(alternativeUrl))
+                        {
+                            _logger.LogInformation($"URL alternative trouvée: {alternativeUrl}");
+                            downloadResult.DownloadUrl = alternativeUrl;
+                        }
+                        else
+                        {
+                            return BadRequest(new { error = $"L'URL de téléchargement n'est pas accessible: {downloadResult.DownloadUrl}" });
+                        }
+                    }
+                }
+                
                 // Enregistrer le téléchargement
                 await _marketplaceService.LogComponentDownloadAsync(componentId, clientId, version ?? downloadResult.Version);
                 
@@ -784,6 +806,91 @@ namespace AvanteamMarketplace.API.Controllers
             {
                 _logger.LogError(ex, "Erreur lors de la récupération du script d'installation");
                 return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération du script d'installation" });
+            }
+        }
+        
+        /// <summary>
+        /// Teste si une URL est accessible
+        /// </summary>
+        private async Task<bool> TestUrlAccessibleAsync(string url)
+        {
+            try
+            {
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromSeconds(5);
+                
+                // Utiliser HEAD pour ne pas télécharger le contenu complet
+                var request = new HttpRequestMessage(HttpMethod.Head, url);
+                var response = await httpClient.SendAsync(request);
+                
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Erreur lors du test de l'URL {url}: {ex.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Recherche une URL de package alternative parmi toutes les versions disponibles du composant
+        /// </summary>
+        private async Task<string> FindAlternativePackageUrlAsync(int componentId)
+        {
+            try
+            {
+                // Récupérer toutes les versions du composant
+                var versions = await _marketplaceService.GetComponentVersionsAsync(componentId);
+                if (versions == null || !versions.Any())
+                    return null;
+                
+                // Tester chaque URL de version en commençant par la plus récente
+                foreach (var version in versions.OrderByDescending(v => v.ReleaseDate))
+                {
+                    if (!string.IsNullOrEmpty(version.DownloadUrl) && 
+                        version.DownloadUrl.StartsWith("http") &&
+                        await TestUrlAccessibleAsync(version.DownloadUrl))
+                    {
+                        return version.DownloadUrl;
+                    }
+                }
+                
+                // Si non trouvé dans les versions, vérifier si le composant a une URL GitHub utilisable
+                var component = await _marketplaceService.GetComponentDetailAsync(componentId);
+                if (component != null && !string.IsNullOrEmpty(component.RepositoryUrl) && 
+                    component.RepositoryUrl.Contains("github.com"))
+                {
+                    // Essayer les branches possibles
+                    string repoUrl = component.RepositoryUrl
+                        .Replace("https://github.com/", "")
+                        .Replace("http://github.com/", "")
+                        .Replace("github.com:", "")
+                        .Replace("github.com/", "")
+                        .TrimEnd('/');
+                    
+                    var branchUrls = new[]
+                    {
+                        $"https://github.com/{repoUrl}/archive/refs/heads/main.zip",
+                        $"https://github.com/{repoUrl}/archive/refs/heads/master.zip",
+                        $"https://github.com/{repoUrl}/archive/refs/tags/v{component.Version}.zip",
+                        $"https://github.com/{repoUrl}/archive/refs/tags/{component.Version}.zip"
+                    };
+                    
+                    foreach (var url in branchUrls)
+                    {
+                        if (await TestUrlAccessibleAsync(url))
+                        {
+                            return url;
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la recherche d'une URL alternative pour le composant {componentId}");
+                return null;
             }
         }
     }

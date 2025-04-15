@@ -353,5 +353,15 @@
             <response code="200">Retourne le script PowerShell</response>
             <response code="500">Si une erreur serveur s'est produite</response>
         </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.TestUrlAccessibleAsync(System.String)">
+            <summary>
+            Teste si une URL est accessible
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.MarketplaceController.FindAlternativePackageUrlAsync(System.Int32)">
+            <summary>
+            Recherche une URL de package alternative parmi toutes les versions disponibles du composant
+            </summary>
+        </member>
     </members>
 </doc>

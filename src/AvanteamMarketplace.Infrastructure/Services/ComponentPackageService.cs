@@ -47,6 +47,14 @@ namespace AvanteamMarketplace.Infrastructure.Services
         }
         
         /// <summary>
+        /// Obtient l'URL de base pour les packages
+        /// </summary>
+        public string GetPackageBaseUrl()
+        {
+            return _baseUrl;
+        }
+        
+        /// <summary>
         /// Traite un package de composant téléchargé
         /// </summary>
         public async Task<ComponentPackageResult> ProcessComponentPackageAsync(int componentId, string packagePath, string? version = null)
@@ -55,7 +63,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
             {
                 _logger.LogInformation($"Traitement du package pour le composant {componentId}");
                 
-                // Valider le package
+                // Valider le package et extraire les informations détaillées du manifest
                 var validationResult = await ValidateComponentPackageAsync(packagePath);
                 
                 if (!validationResult.IsValid)
@@ -72,6 +80,9 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 {
                     version = validationResult.Version;
                 }
+                
+                // Extraire les informations complètes du manifest pour la création du composant
+                var manifestInfo = await ExtractManifestInfoAsync(packagePath);
                 
                 // Copier le package dans le répertoire des packages
                 string fileName = $"{validationResult.ComponentName}-{version}.zip";
@@ -91,7 +102,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 {
                     Success = true,
                     Version = version,
-                    PackageUrl = packageUrl
+                    PackageUrl = packageUrl,
+                    TargetPath = manifestInfo?.TargetPath ?? "",
+                    MinPlatformVersion = manifestInfo?.MinPlatformVersion ?? "",
+                    RepositoryUrl = manifestInfo?.RepositoryUrl ?? ""
                 };
             }
             catch (Exception ex)
@@ -365,6 +379,118 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 // Ne pas faire échouer l'ensemble du processus si l'extraction de l'icône échoue
                 _logger.LogError(ex, $"Erreur lors de l'extraction de l'icône pour le composant {componentName}: {ex.Message}");
             }
+        }
+        
+        /// <summary>
+        /// Extrait les informations détaillées du manifest
+        /// </summary>
+        private async Task<ManifestInfo> ExtractManifestInfoAsync(string packagePath)
+        {
+            try
+            {
+                _logger.LogInformation($"Extraction des informations détaillées du manifest du package: {packagePath}");
+                
+                var result = new ManifestInfo();
+                
+                using (var archive = ZipFile.OpenRead(packagePath))
+                {
+                    // Rechercher le manifest.json
+                    var manifestEntry = archive.Entries.FirstOrDefault(e => 
+                        e.FullName.Equals("manifest.json", StringComparison.OrdinalIgnoreCase) ||
+                        e.Name.Equals("manifest.json", StringComparison.OrdinalIgnoreCase));
+                    
+                    if (manifestEntry == null)
+                    {
+                        _logger.LogWarning("Aucun fichier manifest.json trouvé dans le package");
+                        return result;
+                    }
+                    
+                    // Lire le contenu du manifest
+                    using (var stream = manifestEntry.Open())
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string json = await reader.ReadToEndAsync();
+                        var manifest = JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
+                        
+                        if (manifest.ValueKind == JsonValueKind.Object)
+                        {
+                            // Extraire les propriétés standard
+                            if (manifest.TryGetProperty("name", out var nameProperty))
+                                result.Name = nameProperty.GetString() ?? "";
+                                
+                            if (manifest.TryGetProperty("version", out var versionProperty))
+                                result.Version = versionProperty.GetString() ?? "";
+                                
+                            if (manifest.TryGetProperty("author", out var authorProperty))
+                                result.Author = authorProperty.GetString() ?? "";
+                                
+                            if (manifest.TryGetProperty("description", out var descProperty))
+                                result.Description = descProperty.GetString() ?? "";
+                                
+                            // Extraire le TargetPath
+                            if (manifest.TryGetProperty("installation", out var installProperty) && 
+                                installProperty.ValueKind == JsonValueKind.Object)
+                            {
+                                if (installProperty.TryGetProperty("targetPath", out var targetPathProperty))
+                                    result.TargetPath = targetPathProperty.GetString() ?? "";
+                            }
+                            
+                            // Extraire repositoryUrl
+                            if (manifest.TryGetProperty("repositoryUrl", out var repoUrlProperty))
+                            {
+                                result.RepositoryUrl = repoUrlProperty.GetString() ?? "";
+                            }
+                            else if (manifest.TryGetProperty("repository", out var repoProperty))
+                            {
+                                // Format alternatif: repository peut être une chaîne ou un objet
+                                if (repoProperty.ValueKind == JsonValueKind.String)
+                                {
+                                    result.RepositoryUrl = repoProperty.GetString() ?? "";
+                                }
+                                else if (repoProperty.ValueKind == JsonValueKind.Object)
+                                {
+                                    if (repoProperty.TryGetProperty("url", out var urlProperty))
+                                        result.RepositoryUrl = urlProperty.GetString() ?? "";
+                                }
+                            }
+                            
+                            // Extraire minPlatformVersion
+                            if (manifest.TryGetProperty("minPlatformVersion", out var minPlatformProperty))
+                            {
+                                result.MinPlatformVersion = minPlatformProperty.GetString() ?? "";
+                            }
+                            else if (manifest.TryGetProperty("engines", out var enginesProperty) && 
+                                    enginesProperty.ValueKind == JsonValueKind.Object)
+                            {
+                                if (enginesProperty.TryGetProperty("processstudio", out var psProperty))
+                                    result.MinPlatformVersion = psProperty.GetString() ?? "";
+                            }
+                        }
+                    }
+                }
+                
+                _logger.LogInformation($"Informations extraites du manifest: Name={result.Name}, TargetPath={result.TargetPath}, RepoUrl={result.RepositoryUrl}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de l'extraction des informations du manifest: {ex.Message}");
+                return new ManifestInfo();
+            }
+        }
+        
+        /// <summary>
+        /// Classe interne pour stocker les informations du manifest
+        /// </summary>
+        private class ManifestInfo
+        {
+            public string Name { get; set; } = "";
+            public string Version { get; set; } = "";
+            public string Author { get; set; } = "";
+            public string Description { get; set; } = "";
+            public string MinPlatformVersion { get; set; } = "";
+            public string TargetPath { get; set; } = "";
+            public string RepositoryUrl { get; set; } = "";
         }
         
         /// <summary>

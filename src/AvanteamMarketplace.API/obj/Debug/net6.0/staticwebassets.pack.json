@@ -1,47 +1,103 @@
 {
   "Files": [
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/css/admin.css",
-      "PackagePath": "staticwebassets/css/admin.css"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\css\\admin.css",
+      "PackagePath": "staticwebassets\\css\\admin.css"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/css/marketplace.css",
-      "PackagePath": "staticwebassets/css/marketplace.css"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\css\\marketplace.css",
+      "PackagePath": "staticwebassets\\css\\marketplace.css"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/images/default-component.svg",
-      "PackagePath": "staticwebassets/images/default-component.svg"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\images\\default-component.svg",
+      "PackagePath": "staticwebassets\\images\\default-component.svg"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/images/marketplace-logo.svg",
-      "PackagePath": "staticwebassets/images/marketplace-logo.svg"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\images\\marketplace-logo.svg",
+      "PackagePath": "staticwebassets\\images\\marketplace-logo.svg"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin.js",
-      "PackagePath": "staticwebassets/js/admin.js"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-apikeys.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-apikeys.js"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace.js",
-      "PackagePath": "staticwebassets/js/marketplace.js"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-components.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-components.js"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/simple-login.html",
-      "PackagePath": "staticwebassets/simple-login.html"
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-core.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-core.js"
     },
     {
-      "Id": "obj/Debug/net6.0/staticwebassets/msbuild.AvanteamMarketplace.API.Microsoft.AspNetCore.StaticWebAssets.props",
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-file-handlers.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-file-handlers.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-github.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-github.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-ui.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-ui.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin-versions.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin-versions.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\admin\\admin.js",
+      "PackagePath": "staticwebassets\\js\\admin\\admin.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\backup\\admin.js.bak",
+      "PackagePath": "staticwebassets\\js\\backup\\admin.js.bak"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\backup\\marketplace.js.bak",
+      "PackagePath": "staticwebassets\\js\\backup\\marketplace.js.bak"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-components.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-components.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-core.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-core.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-install.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-install.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-ui.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-ui.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace-uninstall.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace-uninstall.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\js\\marketplace\\marketplace.js",
+      "PackagePath": "staticwebassets\\js\\marketplace\\marketplace.js"
+    },
+    {
+      "Id": "C:\\Avanteam\\dev\\DevRG\\AvanteamMarketplace\\src\\AvanteamMarketplace.API\\wwwroot\\simple-login.html",
+      "PackagePath": "staticwebassets\\simple-login.html"
+    },
+    {
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.AvanteamMarketplace.API.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },
     {
-      "Id": "obj/Debug/net6.0/staticwebassets/msbuild.build.AvanteamMarketplace.API.props",
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.build.AvanteamMarketplace.API.props",
       "PackagePath": "build\\AvanteamMarketplace.API.props"
     },
     {
-      "Id": "obj/Debug/net6.0/staticwebassets/msbuild.buildMultiTargeting.AvanteamMarketplace.API.props",
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildMultiTargeting.AvanteamMarketplace.API.props",
       "PackagePath": "buildMultiTargeting\\AvanteamMarketplace.API.props"
     },
     {
-      "Id": "obj/Debug/net6.0/staticwebassets/msbuild.buildTransitive.AvanteamMarketplace.API.props",
+      "Id": "obj\\Debug\\net6.0\\staticwebassets\\msbuild.buildTransitive.AvanteamMarketplace.API.props",
       "PackagePath": "buildTransitive\\AvanteamMarketplace.API.props"
     }
   ],

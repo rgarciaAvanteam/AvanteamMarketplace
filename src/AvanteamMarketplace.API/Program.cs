@@ -13,17 +13,35 @@ using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 
-// Correction du chemin wwwroot pour éviter DirectoryNotFoundException
-if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")))
-{
-    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"));
-    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "js"));
-    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "css"));
-    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images"));
-    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "packages"));
-}
+// Désactiver complètement le chargement des StaticWebAssets
+Environment.SetEnvironmentVariable("ASPNETCORE_HOSTINGSTARTUPASSEMBLIES", "");
+Environment.SetEnvironmentVariable("ASPNETCORE_STATICWEBASSETSFILEPROVIDER_ENABLED", "false");
+Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+Environment.SetEnvironmentVariable("ASPNETCORE_STATICWEBASSETSLOADMODE", "Never");
 
-var builder = WebApplication.CreateBuilder(args);
+// Définir des chemins par défaut
+string currentDirectory = Directory.GetCurrentDirectory();
+string defaultWwwrootPath = Path.Combine(currentDirectory, "wwwroot");
+
+// Créer le builder avec des options explicites
+var webApplicationOptions = new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = currentDirectory,
+    WebRootPath = defaultWwwrootPath,
+    ApplicationName = typeof(Program).Assembly.GetName().Name
+};
+
+var builder = WebApplication.CreateBuilder(webApplicationOptions);
+
+// Configuration explicite de WebRootPath
+builder.WebHost.UseWebRoot(defaultWwwrootPath);
+
+// Désactiver explicitement les StaticWebAssets
+builder.WebHost.ConfigureAppConfiguration((hostingContext, config) =>
+{
+    hostingContext.HostingEnvironment.WebRootPath = defaultWwwrootPath;
+});
 
 // Configuration de la base de données
 builder.Services.AddDbContext<MarketplaceDbContext>(options =>
@@ -40,8 +58,12 @@ builder.Services.AddScoped<IComponentPackageService, ComponentPackageService>();
 builder.Services.AddScoped<IGitHubIntegrationService, GitHubIntegrationService>();
 builder.Services.AddScoped<IComponentInstallerService, ComponentInstallerService>();
 
-// Activer la prise en charge de Razor Pages
-builder.Services.AddRazorPages();
+// Activer la prise en charge de Razor Pages avec compilation runtime
+builder.Services.AddRazorPages()
+    .AddRazorRuntimeCompilation();
+
+// Désactiver le cache des réponses
+builder.Services.AddResponseCaching(options => options.MaximumBodySize = 0);
 
 // Configurer la session pour l'authentification admin
 builder.Services.AddDistributedMemoryCache();
@@ -64,17 +86,19 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { 
-        Title = "Avanteam Marketplace API", 
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Avanteam Marketplace API",
         Version = "v1",
         Description = "API pour la gestion et l'utilisation du Marketplace Avanteam destiné aux composants Process Studio",
-        Contact = new() {
+        Contact = new()
+        {
             Name = "Avanteam Support",
             Email = "support@avanteam.fr",
             Url = new Uri("https://www.avanteam.fr/contact")
         }
     });
-    
+
     // Configuration sécurité
     c.AddSecurityDefinition("Bearer", new()
     {
@@ -100,10 +124,10 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
-    
+
     // Activation des annotations Swagger
     c.EnableAnnotations();
-    
+
     // Inclusion des commentaires XML pour la documentation
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -111,7 +135,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath);
     }
-    
+
     // Documentation des modèles Core
     var coreXmlFile = "AvanteamMarketplace.Core.xml";
     var coreXmlPath = Path.Combine(AppContext.BaseDirectory, coreXmlFile);
@@ -119,20 +143,20 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(coreXmlPath);
     }
-    
+
     // Groupement des endpoints par tag
     c.TagActionsBy(api => {
         if (api.GroupName != null)
             return new[] { api.GroupName };
-            
+
         if (api.ActionDescriptor.RouteValues.TryGetValue("controller", out var controller) && controller != null)
         {
-            if (controller.Contains("Marketplace")) 
+            if (controller.Contains("Marketplace"))
                 return new[] { "Client API" };
-            else if (controller.Contains("Management")) 
+            else if (controller.Contains("Management"))
                 return new[] { "Administration API" };
         }
-        
+
         return new[] { "Autres" };
     });
     c.DocInclusionPredicate((name, api) => true);
@@ -183,6 +207,16 @@ builder.Services.AddScoped<IApiKeyValidator, ApiKeyValidator>();
 
 var app = builder.Build();
 
+// Mise à jour du chemin wwwroot après avoir lu la configuration
+// Cela permet de spécifier un chemin dans appsettings.json
+var customWebRootPath = app.Configuration["AppSettings:CustomWebRootPath"];
+if (!string.IsNullOrEmpty(customWebRootPath) && Directory.Exists(customWebRootPath))
+{
+    // Utiliser le chemin personnalisé pour les fichiers statiques
+    app.Logger.LogInformation($"Utilisation du chemin wwwroot personnalisé: {customWebRootPath}");
+    app.Environment.WebRootPath = customWebRootPath;
+}
+
 // Forcer le mode production si configuré dans appsettings.json
 var configuredEnvironment = app.Configuration["Environment"];
 if (!string.IsNullOrEmpty(configuredEnvironment) && configuredEnvironment.Equals("Production", StringComparison.OrdinalIgnoreCase))
@@ -197,6 +231,11 @@ if (app.Environment.IsDevelopment())
 {
     app.Logger.LogInformation("Running in Development mode");
     app.UseDeveloperExceptionPage();
+
+    // Log détaillé des chemins en mode développement
+    app.Logger.LogInformation($"ContentRootPath: {app.Environment.ContentRootPath}");
+    app.Logger.LogInformation($"WebRootPath: {app.Environment.WebRootPath}");
+    app.Logger.LogInformation($"Current Directory: {Directory.GetCurrentDirectory()}");
 }
 else
 {
@@ -213,12 +252,12 @@ app.UseSwagger(c => {
 
 app.UseSwaggerUI(c => {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Avanteam Marketplace API v1");
-    
+
     // Ajouter des options supplémentaires pour le débogage
     c.DisplayRequestDuration();
     c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
     c.DefaultModelsExpandDepth(-1); // Cache les schémas des modèles par défaut
-    
+
     // En production, limiter l'accès à Swagger
     if (!app.Environment.IsDevelopment())
     {
@@ -229,41 +268,31 @@ app.UseSwaggerUI(c => {
 
 app.UseHttpsRedirection();
 
-// S'assurer que le répertoire wwwroot existe
-var wwwrootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
-if (!Directory.Exists(wwwrootPath))
+// Configuration des fichiers statiques avec gestion d'erreur
+try
 {
-    app.Logger.LogInformation($"Création du répertoire wwwroot: {wwwrootPath}");
-    Directory.CreateDirectory(wwwrootPath);
-    
-    // Créer également les sous-répertoires nécessaires
-    Directory.CreateDirectory(Path.Combine(wwwrootPath, "js"));
-    Directory.CreateDirectory(Path.Combine(wwwrootPath, "css"));
-    Directory.CreateDirectory(Path.Combine(wwwrootPath, "images"));
-    Directory.CreateDirectory(Path.Combine(wwwrootPath, "packages"));
-}
-else
-{
-    app.Logger.LogInformation($"Le répertoire wwwroot existe: {wwwrootPath}");
-}
+    var effectiveWebRootPath = app.Environment.WebRootPath;
+    app.Logger.LogInformation($"Configuration des fichiers statiques avec le chemin: {effectiveWebRootPath}");
 
-// Ajouter des en-têtes de cache pour les fichiers statiques
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
-    RequestPath = "",
-    OnPrepareResponse = ctx =>
+    var fileProvider = new PhysicalFileProvider(effectiveWebRootPath);
+    app.UseStaticFiles(new StaticFileOptions
     {
-        // Désactiver le cache pour JS/CSS
-        if (ctx.File.Name.EndsWith(".js", StringComparison.OrdinalIgnoreCase) ||
-            ctx.File.Name.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+        FileProvider = fileProvider,
+        RequestPath = "",
+        OnPrepareResponse = ctx =>
         {
+            // Désactiver le cache pour tous les fichiers statiques
             ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
             ctx.Context.Response.Headers.Append("Pragma", "no-cache");
             ctx.Context.Response.Headers.Append("Expires", "0");
         }
-    }
-});
+    });
+}
+catch (Exception ex)
+{
+    app.Logger.LogError($"Erreur lors de la configuration des fichiers statiques: {ex.Message}");
+    // L'application continuera de fonctionner, mais sans servir de fichiers statiques
+}
 
 app.UseCors("AllowProcessStudioOrigins");
 
@@ -280,14 +309,22 @@ app.MapRazorPages();
 app.MapControllers();
 
 // Seed de la base de données si nécessaire
-using (var scope = app.Services.CreateScope())
+try
 {
-    var services = scope.ServiceProvider;
-    var dbContext = services.GetRequiredService<MarketplaceDbContext>();
-    dbContext.Database.Migrate();
-    
-    // Seed de données initiales
-    DbInitializer.Initialize(dbContext);
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var dbContext = services.GetRequiredService<MarketplaceDbContext>();
+        dbContext.Database.Migrate();
+
+        // Seed de données initiales
+        DbInitializer.Initialize(dbContext);
+    }
+}
+catch (Exception ex)
+{
+    app.Logger.LogError($"Erreur lors de l'initialisation de la base de données: {ex.Message}");
+    // Ne pas arrêter l'application
 }
 
 app.Run();

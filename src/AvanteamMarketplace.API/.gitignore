@@ -1,0 +1,263 @@
+# Dossiers de construction et d'exécution
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Fichiers de Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+*.vcxproj.filters
+
+# Dossiers et fichiers de build
+[Bb]uild/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
+# Visual Studio 2017 auto generated files
+Generated\ Files/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Build Results de projets .NET
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# ReSharper est un add-in .NET coding pour Visual Studio
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# TeamCity est un add-in de build
+_TeamCity*
+
+# DotCover est un outil de couverture de code
+*.dotCover
+
+# AxoCover est un outil de couverture de code
+.axoCover/*
+!.axoCover/settings.json
+
+# Coverlet est un outil gratuit de couverture de code cross-platform pour .NET
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Visual Studio code coverage results
+*.coverage
+*.coveragexml
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield output folder
+[Ee]xpress/
+
+# DocProject is a documentation generator add-in
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Répertoire de publication Web
+*.[Pp]ublish.xml
+*.azurePubxml
+# Note: Commentez la ligne suivante si vous voulez vérifier vos paramètres de déploiement web,
+# mais les chaînes de connexion à la base de données (avec des mots de passe potentiels) seront non cryptées
+*.pubxml
+*.publishproj
+
+# Paramètres de publication de Microsoft Azure Web App
+# Commentez la ligne suivante si vous voulez vérifier vos paramètres de publication Azure Web App,
+# mais des informations sensibles contenues dans ces scripts ne seront pas cryptées
+PublishScripts/
+
+# NuGet Packages
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# Le dossier packages peut être ignoré à cause de Package Restore
+**/[Pp]ackages/*
+# sauf build/, qui est utilisé comme cible MSBuild.
+!**/[Pp]ackages/build/
+# Décommentez si nécessaire mais généralement il sera régénéré lors de la génération
+#!**/[Pp]ackages/repositories.config
+# Les fichiers project.json de NuGet v3 génèrent plus de fichiers ignorables
+*.nuget.props
+*.nuget.targets
+
+# Sortie de build Microsoft Azure
+csx/
+*.build.csdef
+
+# Émulateur Microsoft Azure
+ecf/
+rcf/
+
+# Répertoires et fichiers de packages Windows Store app
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.appxbundle
+*.appxupload
+
+# Fichiers cache de Visual Studio
+# fichiers se terminant par .cache peuvent être ignorés
+*.[Cc]ache
+# mais gardez la trace des répertoires se terminant par .cache
+!?*.[Cc]ache/
+
+# Autres
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# Fichiers temporaires générés par Visual Studio
+.vscode/
+.idea/
+*.tmp
+*.temp
+*.bak
+*.swp
+*.*~
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# StyleCop
+StyleCopReport.xml
+
+# Files built by Visual Studio
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*_wpftmp.csproj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Chutzpah Test files
+_Chutzpah*
+
+# Visual C++ cache files
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Fichiers spécifiques pour .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Fichiers de configuration et secrets
+appsettings.Development.json
+appsettings.local.json
+appsettings.*.json
+!appsettings.json
+*.pfx
+*.key
+
+# Fichiers spécifiques à l'environnement
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Fichiers générés par le système d'exploitation
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Répertoire de publication
+publish/
+
+# Azure DevOps artifacts
+_site/

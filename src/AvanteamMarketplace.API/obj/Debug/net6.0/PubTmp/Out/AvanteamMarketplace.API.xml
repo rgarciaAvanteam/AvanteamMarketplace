@@ -4,6 +4,23 @@
         <name>AvanteamMarketplace.API</name>
     </assembly>
     <members>
+        <member name="T:AvanteamMarketplace.API.Controllers.AuthController">
+            <summary>
+            Contrôleur d'API pour l'authentification
+            </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.AuthController.ValidateAdminKey(System.String)">
+            <summary>
+            Vérifie la validité d'une clé d'administration
+            </summary>
+            <param name="key">Clé d'administration à vérifier</param>
+            <returns>True si la clé est valide</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.AuthController.GetAuthStatus">
+            <summary>
+            Vérifie si l'utilisateur est authentifié
+            </summary>
+        </member>
         <member name="T:AvanteamMarketplace.API.Controllers.ComponentsManagementController">
             <summary>
             Contrôleur pour l'API d'administration du Marketplace
@@ -18,117 +35,68 @@
             **IMPORTANT** : Tous les endpoints nécessitent une clé API avec des droits d'administration.
             </remarks>
         </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentsForAdmin">
+            <summary>
+            Récupère tous les composants pour l'administration
+            </summary>
+            <returns>Liste des composants pour l'administration</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentAdminDetail(System.Int32)">
+            <summary>
+            Récupère les détails d'un composant pour l'administration
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Détails du composant</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponent(AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel)">
+            <summary>
+            Crée un nouveau composant
+            </summary>
+            <param name="model">Données du composant à créer</param>
+            <returns>ID du composant créé et statut de la création</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponent(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentUpdateViewModel)">
+            <summary>
+            Met à jour un composant existant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="model">Données de mise à jour</param>
+            <returns>Statut de la mise à jour</returns>
+        </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.DeleteComponent(System.Int32)">
             <summary>
-            Supprime un composant du Marketplace
+            Supprime un composant
             </summary>
             <param name="componentId">ID du composant à supprimer</param>
             <returns>Statut de la suppression</returns>
-            <response code="204">Composant supprimé avec succès</response>
-            <response code="400">Si le composant est installé sur des plateformes clientes</response>
-            <response code="404">Si le composant n'existe pas</response>
-            <response code="500">Si une erreur serveur s'est produite</response>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String)">
+            <summary>
+            Téléverse un package pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="packageFile">Fichier du package</param>
+            <param name="version">Version du package (optionnel)</param>
+            <returns>Résultat du téléversement</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentIcon(System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Téléverse une icône pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="iconFile">Fichier de l'icône (SVG)</param>
+            <returns>Résultat du téléversement</returns>
         </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentIcon(System.Int32)">
             <summary>
             Récupère l'icône d'un composant
             </summary>
             <param name="componentId">ID du composant</param>
-            <returns>Fichier image SVG de l'icône</returns>
-            <response code="200">Retourne l'icône</response>
-            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
-            <response code="404">Si le composant ou l'icône n'existe pas</response>
-            <response code="500">Si une erreur serveur s'est produite</response>
-        </member>
-        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String)">
-            <summary>
-            Téléverse un package de composant (fichier ZIP)
-            </summary>
-            <param name="componentId">ID du composant</param>
-            <param name="packageFile">Fichier de package au format ZIP</param>
-            <param name="version">Version du package (ex: 1.0.0) - si non spécifiée, utilise la version du manifest.json</param>
-            <returns>Informations sur le package téléversé</returns>
-            <response code="200">Téléversement réussi</response>
-            <response code="400">Si le fichier est manquant ou invalide</response>
-            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
-            <response code="404">Si le composant n'existe pas</response>
-            <response code="500">Si une erreur serveur s'est produite</response>
-            <remarks>
-            Le package ZIP doit contenir au minimum :
-            - Un répertoire src/ contenant les fichiers du composant
-            - OU les fichiers du composant directement à la racine
-            
-            Structure recommandée :
-            ```
-            component-name/
-              ├── manifest.json   # Métadonnées du composant
-              ├── README.md       # Documentation
-              ├── install.ps1     # Script d'installation personnalisé (optionnel)
-              └── src/            # Fichiers source du composant
-            ```
-            </remarks>
-        </member>
-        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SynchronizeFromGitHub(System.String)">
-            <summary>
-            Synchronise les composants depuis un dépôt GitHub
-            </summary>
-            <param name="repository">URL du dépôt GitHub à synchroniser (ex: https://github.com/avanteam/component-HishikawaDiagram)</param>
-            <returns>Résultat de la synchronisation avec les composants créés, mis à jour et en échec</returns>
-            <response code="200">Synchronisation réussie</response>
-            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
-            <response code="500">Si une erreur serveur s'est produite</response>
-            <remarks>
-            Cet endpoint permet d'importer ou de mettre à jour des composants à partir d'un dépôt GitHub.
-            Le dépôt doit contenir un fichier manifest.json à la racine qui décrit le composant.
-            
-            Format du manifest.json attendu :
-            ```json
-            {
-              "name": "IshikawaDiagram",
-              "displayName": "Diagramme Ishikawa",
-              "version": "1.0.0",
-              "author": "Avanteam",
-              "description": "Description du composant",
-              "category": "Analyse",
-              "minPlatformVersion": "23.0.0",
-              "recommendedPlatformVersion": "23.0.0",
-              "repository": "https://github.com/avanteam/component-repository",
-              "tags": ["analyse", "qualité"]
-            }
-            ```
-            </remarks>
-        </member>
-        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateApiKey(AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel)">
-            <summary>
-            Crée une nouvelle clé API
-            </summary>
-            <param name="model">Informations pour la création de la clé API</param>
-            <returns>La nouvelle clé API générée</returns>
-            <response code="200">Création réussie, retourne la clé API générée</response>
-            <response code="400">Si le modèle est invalide</response>
-            <response code="401">Si l'authentification a échoué ou si l'utilisateur n'est pas administrateur</response>
-            <response code="500">Si une erreur serveur s'est produite</response>
-            <remarks>
-            Les clés API sont utilisées pour authentifier les requêtes au Marketplace.
-            
-            Il existe deux types de clés API :
-            - Clés client : utilisées par Process Studio pour accéder aux composants
-            - Clés administrateur : utilisées pour gérer le Marketplace (créer/modifier/supprimer des composants)
-            
-            Exemple de requête :
-            ```json
-            {
-              "clientId": "process-studio-client-001",
-              "isAdmin": true
-            }
-            ```
-            
-            **IMPORTANT** : Sauvegardez la clé API générée, elle ne sera plus jamais affichée après cette opération.
-            </remarks>
+            <returns>Fichier de l'icône</returns>
         </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentVersions(System.Int32)">
             <summary>
-            Récupère la liste des versions d'un composant
+            Récupère toutes les versions d'un composant
             </summary>
             <param name="componentId">ID du composant</param>
             <returns>Liste des versions du composant</returns>
@@ -146,8 +114,29 @@
             Crée une nouvelle version pour un composant
             </summary>
             <param name="componentId">ID du composant</param>
-            <param name="model">Données de la nouvelle version</param>
-            <returns>ID de la nouvelle version créée</returns>
+            <param name="model">Données de la version</param>
+            <returns>ID de la version créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponentVersionWithPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Crée une nouvelle version avec un package pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="packageFile">Fichier du package</param>
+            <param name="version">Version</param>
+            <param name="changeLog">Notes de version</param>
+            <param name="minPlatformVersion">Version minimale de la plateforme</param>
+            <param name="isLatest">Définir comme version actuelle</param>
+            <returns>ID de la version créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateVersionPackage(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Ajoute ou met à jour le package d'une version
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="versionId">ID de la version</param>
+            <param name="packageFile">Fichier du package</param>
+            <returns>Résultat de la mise à jour</returns>
         </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponentVersion(System.Int32,System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
             <summary>
@@ -160,19 +149,38 @@
         </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SetLatestVersion(System.Int32,System.Int32)">
             <summary>
-            Définit une version comme étant la dernière version du composant
+            Définit une version comme version actuelle d'un composant
             </summary>
             <param name="componentId">ID du composant</param>
-            <param name="versionId">ID de la version à définir comme dernière</param>
-            <returns>Statut de l'opération</returns>
+            <param name="versionId">ID de la version</param>
+            <returns>Statut de la mise à jour</returns>
         </member>
-        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetVersionUsage(System.Int32,System.String)">
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetApiKeys">
             <summary>
-            Récupère la liste des clients qui utilisent une version spécifique d'un composant
+            Récupère toutes les clés API
             </summary>
-            <param name="componentId">ID du composant</param>
-            <param name="version">Numéro de version</param>
-            <returns>Liste des clients qui utilisent cette version</returns>
+            <returns>Liste des clés API</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateApiKey(AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel)">
+            <summary>
+            Crée une nouvelle clé API
+            </summary>
+            <param name="model">Données de la clé API</param>
+            <returns>Clé API créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.DeleteApiKey(System.Int32)">
+            <summary>
+            Supprime une clé API
+            </summary>
+            <param name="apiKeyId">ID de la clé API</param>
+            <returns>Statut de la suppression</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SynchronizeFromGitHub(System.String)">
+            <summary>
+            Synchronise les composants depuis un dépôt GitHub
+            </summary>
+            <param name="repository">URL du dépôt GitHub</param>
+            <returns>Résultats de la synchronisation</returns>
         </member>
         <member name="T:AvanteamMarketplace.API.Controllers.LocalInstallerController">
             <summary>
@@ -336,23 +344,6 @@
             </remarks>
             <response code="200">Retourne le script PowerShell</response>
             <response code="500">Si une erreur serveur s'est produite</response>
-        </member>
-        <member name="T:AvanteamMarketplace.API.DirectLoginController">
-            <summary>
-            Contrôleur simple pour l'authentification directe
-            </summary>
-        </member>
-        <member name="M:AvanteamMarketplace.API.DirectLoginController.CheckAdminKey(System.String)">
-            <summary>
-            Vérifie la validité d'une clé d'administration
-            </summary>
-            <param name="key">Clé d'administration à vérifier</param>
-            <returns>True si la clé est valide</returns>
-        </member>
-        <member name="M:AvanteamMarketplace.API.DirectLoginController.LoginPage">
-            <summary>
-            Génère une page HTML de connexion simple
-            </summary>
         </member>
     </members>
 </doc>

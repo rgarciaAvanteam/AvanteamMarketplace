@@ -61,7 +61,7 @@
             var apiKey = '<%= ApiKey %>';
             var clientId = '<%= ClientId %>';
         </script>
-        <script src="js/marketplace.js" type="text/javascript"></script>
+        <script src="js/marketplace/marketplace.js" type="text/javascript"></script>
     </form>
 </body>
 </html>

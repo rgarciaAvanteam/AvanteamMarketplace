@@ -352,15 +352,32 @@ textarea.form-control {
 .action-buttons {
     display: flex;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .action-btn {
-    padding: 3px 8px;
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
     font-size: 12px;
     border-radius: 3px;
     color: white;
     cursor: pointer;
     text-decoration: none;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .action-btn-edit {
@@ -377,6 +394,23 @@ textarea.form-control {
 
 .action-btn-icon {
     background-color: #6f42c1;
+}
+
+.action-btn-versions {
+    background-color: #fd7e14;
+}
+
+/* Boutons d'action pour les versions */
+.action-btn-edit-version {
+    background-color: #0066cc;
+}
+
+.action-btn-set-latest {
+    background-color: #28a745;
+}
+
+.action-btn-delete-version {
+    background-color: #dc3545;
 }
 
 /* Prévisualisation d'icône */
@@ -482,7 +516,7 @@ textarea.form-control {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2000; /* z-index augmenté pour être supérieur au panneau de versions */
     left: 0;
     top: 0;
     width: 100%;
@@ -567,6 +601,17 @@ textarea.form-control {
     color: #155724;
 }
 
+/* Badge de version actuelle */
+.is-latest-badge {
+    display: inline-block;
+    background-color: #28a745;
+    color: white;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
 /* Version Management Panel */
 .version-panel {
     display: none;
@@ -578,7 +623,7 @@ textarea.form-control {
     max-width: 900px;
     background-color: white;
     box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-    z-index: 10;
+    z-index: 1001; /* Z-index augmenté pour s'assurer qu'il est au-dessus des autres éléments */
     overflow-y: auto;
 }
 

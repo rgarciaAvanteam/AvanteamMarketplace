@@ -1,8 +1,12 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EA8FCC72-8A50-49F3-B8F3-AFCAABF26694}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.API", "src\AvanteamMarketplace.API\AvanteamMarketplace.API.csproj", "{AD1B8C68-5E0D-47F8-9AFE-5B7B9E1DD7D1}"
 EndProject
@@ -10,7 +14,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.Core", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.Infrastructure", "src\AvanteamMarketplace.Infrastructure\AvanteamMarketplace.Infrastructure.csproj", "{EF8AF8A7-F65E-4CC3-9BE7-DECD7AAA5A2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvanteamMarketplace.LocalInstaller", "src\AvanteamMarketplace.LocalInstaller\AvanteamMarketplace.LocalInstaller.csproj", "{E4EAA308-7AD4-4D33-8224-4234A66C110C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.LocalInstaller", "src\AvanteamMarketplace.LocalInstaller\AvanteamMarketplace.LocalInstaller.csproj", "{E4EAA308-7AD4-4D33-8224-4234A66C110C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

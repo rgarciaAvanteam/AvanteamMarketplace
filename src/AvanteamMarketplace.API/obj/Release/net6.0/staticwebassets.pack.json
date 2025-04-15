@@ -17,12 +17,68 @@
       "PackagePath": "staticwebassets/images/marketplace-logo.svg"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin.js",
-      "PackagePath": "staticwebassets/js/admin.js"
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-apikeys.js",
+      "PackagePath": "staticwebassets/js/admin/admin-apikeys.js"
     },
     {
-      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace.js",
-      "PackagePath": "staticwebassets/js/marketplace.js"
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-components.js",
+      "PackagePath": "staticwebassets/js/admin/admin-components.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-core.js",
+      "PackagePath": "staticwebassets/js/admin/admin-core.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-file-handlers.js",
+      "PackagePath": "staticwebassets/js/admin/admin-file-handlers.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-github.js",
+      "PackagePath": "staticwebassets/js/admin/admin-github.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-ui.js",
+      "PackagePath": "staticwebassets/js/admin/admin-ui.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin-versions.js",
+      "PackagePath": "staticwebassets/js/admin/admin-versions.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/admin/admin.js",
+      "PackagePath": "staticwebassets/js/admin/admin.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/backup/admin.js.bak",
+      "PackagePath": "staticwebassets/js/backup/admin.js.bak"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/backup/marketplace.js.bak",
+      "PackagePath": "staticwebassets/js/backup/marketplace.js.bak"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace-components.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace-components.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace-core.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace-core.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace-install.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace-install.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace-ui.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace-ui.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace-uninstall.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace-uninstall.js"
+    },
+    {
+      "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/js/marketplace/marketplace.js",
+      "PackagePath": "staticwebassets/js/marketplace/marketplace.js"
     },
     {
       "Id": "/mnt/c/Avanteam/dev/DevRG/AvanteamMarketplace/src/AvanteamMarketplace.API/wwwroot/simple-login.html",

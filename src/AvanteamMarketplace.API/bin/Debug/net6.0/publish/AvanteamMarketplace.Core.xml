@@ -95,6 +95,14 @@
             Génère un package de composant à partir d'un répertoire source
             </summary>
         </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IComponentPackageService.DeleteComponentPackageFilesAsync(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Supprime les fichiers de package d'un composant et de ses versions
+            </summary>
+            <param name="componentName">Nom du composant</param>
+            <param name="versions">Liste des versions à supprimer</param>
+            <returns>Nombre de fichiers supprimés</returns>
+        </member>
         <member name="T:AvanteamMarketplace.Core.Services.ComponentPackageResult">
             <summary>
             Résultat du traitement d'un package de composant
@@ -267,6 +275,13 @@
             <summary>
             Supprime une clé API
             </summary>
+        </member>
+        <member name="M:AvanteamMarketplace.Core.Services.IMarketplaceService.GetComponentByRepositoryUrlAsync(System.String)">
+            <summary>
+            Vérifie si un composant existe avec l'URL de dépôt GitHub spécifiée
+            </summary>
+            <param name="repositoryUrl">URL du dépôt GitHub à vérifier</param>
+            <returns>Le composant trouvé ou null si aucun composant n'existe avec cette URL</returns>
         </member>
         <member name="T:AvanteamMarketplace.Core.Services.ComponentDownloadInfo">
             <summary>
@@ -561,6 +576,11 @@
         <member name="T:AvanteamMarketplace.Core.ViewModels.VersionViewModel">
             <summary>
             ViewModel pour les versions d'un composant
+            </summary>
+        </member>
+        <member name="P:AvanteamMarketplace.Core.ViewModels.VersionViewModel.MinPlatformVersion">
+            <summary>
+            Version minimale de la plateforme requise pour cette version
             </summary>
         </member>
     </members>

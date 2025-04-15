@@ -35,6 +35,109 @@
             **IMPORTANT** : Tous les endpoints nécessitent une clé API avec des droits d'administration.
             </remarks>
         </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentsForAdmin">
+            <summary>
+            Récupère tous les composants pour l'administration
+            </summary>
+            <returns>Liste des composants pour l'administration</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentAdminDetail(System.Int32)">
+            <summary>
+            Récupère les détails d'un composant pour l'administration
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Détails du composant</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponent(AvanteamMarketplace.Core.ViewModels.ComponentCreateViewModel)">
+            <summary>
+            Crée un nouveau composant
+            </summary>
+            <param name="model">Données du composant à créer</param>
+            <returns>ID du composant créé et statut de la création</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponent(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentUpdateViewModel)">
+            <summary>
+            Met à jour un composant existant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="model">Données de mise à jour</param>
+            <returns>Statut de la mise à jour</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.DeleteComponent(System.Int32)">
+            <summary>
+            Supprime un composant
+            </summary>
+            <param name="componentId">ID du composant à supprimer</param>
+            <returns>Statut de la suppression</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String)">
+            <summary>
+            Téléverse un package pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="packageFile">Fichier du package</param>
+            <param name="version">Version du package (optionnel)</param>
+            <returns>Résultat du téléversement</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UploadComponentIcon(System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Téléverse une icône pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="iconFile">Fichier de l'icône (SVG)</param>
+            <returns>Résultat du téléversement</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentIcon(System.Int32)">
+            <summary>
+            Récupère l'icône d'un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Fichier de l'icône</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentVersions(System.Int32)">
+            <summary>
+            Récupère toutes les versions d'un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <returns>Liste des versions du composant</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetComponentVersion(System.Int32,System.Int32)">
+            <summary>
+            Récupère les détails d'une version spécifique
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="versionId">ID de la version</param>
+            <returns>Détails de la version</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponentVersion(System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
+            <summary>
+            Crée une nouvelle version pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="model">Données de la version</param>
+            <returns>ID de la version créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateComponentVersionWithPackage(System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Crée une nouvelle version avec un package pour un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="packageFile">Fichier du package</param>
+            <param name="version">Version</param>
+            <param name="changeLog">Notes de version</param>
+            <param name="minPlatformVersion">Version minimale de la plateforme</param>
+            <param name="isLatest">Définir comme version actuelle</param>
+            <returns>ID de la version créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateVersionPackage(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Ajoute ou met à jour le package d'une version
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="versionId">ID de la version</param>
+            <param name="packageFile">Fichier du package</param>
+            <returns>Résultat de la mise à jour</returns>
+        </member>
         <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.UpdateComponentVersion(System.Int32,System.Int32,AvanteamMarketplace.Core.ViewModels.ComponentVersionCreateViewModel)">
             <summary>
             Met à jour une version existante
@@ -43,6 +146,41 @@
             <param name="versionId">ID de la version</param>
             <param name="model">Données de mise à jour</param>
             <returns>Statut de la mise à jour</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SetLatestVersion(System.Int32,System.Int32)">
+            <summary>
+            Définit une version comme version actuelle d'un composant
+            </summary>
+            <param name="componentId">ID du composant</param>
+            <param name="versionId">ID de la version</param>
+            <returns>Statut de la mise à jour</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.GetApiKeys">
+            <summary>
+            Récupère toutes les clés API
+            </summary>
+            <returns>Liste des clés API</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.CreateApiKey(AvanteamMarketplace.Core.ViewModels.ApiKeyCreateViewModel)">
+            <summary>
+            Crée une nouvelle clé API
+            </summary>
+            <param name="model">Données de la clé API</param>
+            <returns>Clé API créée</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.DeleteApiKey(System.Int32)">
+            <summary>
+            Supprime une clé API
+            </summary>
+            <param name="apiKeyId">ID de la clé API</param>
+            <returns>Statut de la suppression</returns>
+        </member>
+        <member name="M:AvanteamMarketplace.API.Controllers.ComponentsManagementController.SynchronizeFromGitHub(System.String)">
+            <summary>
+            Synchronise les composants depuis un dépôt GitHub
+            </summary>
+            <param name="repository">URL du dépôt GitHub</param>
+            <returns>Résultats de la synchronisation</returns>
         </member>
         <member name="T:AvanteamMarketplace.API.Controllers.LocalInstallerController">
             <summary>

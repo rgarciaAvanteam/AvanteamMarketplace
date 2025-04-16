@@ -143,7 +143,10 @@ function renderComponents(tabName, components) {
                     ${statusBadge}
                 </div>
                 <div class="component-details">
-                    <h3 class="component-name">${component.displayName}</h3>
+                    <div class="component-title-wrapper">
+                        <h3 class="component-name">${component.displayName}</h3>
+                        ${component.isInstalled ? `<button type="button" class="btn-icon help-icon" title="Voir la documentation" data-id="${component.componentId}" onclick="showComponentReadme(${component.componentId})"><i class="fas fa-question-circle"></i></button>` : ''}
+                    </div>
                     <p class="component-description">${component.description}</p>
                     <div class="component-meta">
                         <span class="component-version">v${component.isInstalled && component.installedVersion ? component.installedVersion : component.version}</span>
@@ -383,4 +386,74 @@ function createComponentDetailsModal(component) {
         console.error(`Erreur lors du chargement de l'icône modale pour le composant ${component.componentId}:`, error);
         // En cas d'échec, laisser l'icône par défaut
     });
+}
+
+/**
+ * Affiche le fichier Readme.html d'un composant installé
+ * @param {number} componentId - ID du composant
+ */
+function showComponentReadme(componentId) {
+    // Trouver le composant dans le cache pour vérifier s'il est installé
+    let component = null;
+    
+    for (const category in componentCache) {
+        if (componentCache[category]) {
+            let components = componentCache[category];
+            
+            // Normaliser les données si nécessaire
+            if (!Array.isArray(components)) {
+                if (components.$values && Array.isArray(components.$values)) {
+                    components = components.$values;
+                } else if (components.components && Array.isArray(components.components)) {
+                    components = components.components;
+                } else if (components.components && components.components.$values && Array.isArray(components.components.$values)) {
+                    components = components.components.$values;
+                } else if (components.items && Array.isArray(components.items)) {
+                    components = components.items;
+                } else if (components.data && Array.isArray(components.data)) {
+                    components = components.data;
+                } else {
+                    continue;
+                }
+            }
+            
+            const found = components.find(c => c.componentId === componentId);
+            if (found) {
+                component = found;
+                break;
+            }
+        }
+    }
+    
+    if (!component || !component.isInstalled) {
+        alert('Ce composant n\'est pas installé ou n\'existe pas');
+        return;
+    }
+    
+    // Construire le chemin vers le fichier ReadMe.html
+    // Récupérer la variable BaseSite depuis window.top (frame parent)
+    let basePath = '/';
+    
+    try {
+        // Tentative d'accès à la variable BaseSite du parent
+        if (window.top && typeof window.top.BaseSite !== 'undefined') {
+            basePath = window.top.BaseSite;
+            console.log("Utilisation de window.top.BaseSite:", basePath);
+        }
+    } catch (e) {
+        console.error("Erreur lors de l'accès à window.top.BaseSite:", e);
+    }
+    
+    // Supprimer le slash final s'il existe pour éviter les doubles slashes
+    if (basePath.endsWith('/')) {
+        basePath = basePath.slice(0, -1);
+    }
+    
+    // Le chemin est {basePath}/Custom/MarketPlace/Components/{componentId}/ReadMe.html
+    const readmeUrl = `${basePath}/Custom/MarketPlace/Components/${componentId}/ReadMe.html`;
+    
+    console.log(`Ouverture du fichier ReadMe: ${readmeUrl}`);
+    
+    // Ouvrir le fichier ReadMe dans une nouvelle fenêtre ou un nouvel onglet
+    window.open(readmeUrl, `readme_${componentId}`, 'width=800,height=600,scrollbars=yes');
 }

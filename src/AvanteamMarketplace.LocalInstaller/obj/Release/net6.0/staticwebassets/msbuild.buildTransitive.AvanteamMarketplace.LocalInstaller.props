@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/AvanteamMarketplace.LocalInstaller.props" />
-</Project>

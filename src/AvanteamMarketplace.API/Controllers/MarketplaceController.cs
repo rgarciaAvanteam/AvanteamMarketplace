@@ -87,7 +87,15 @@ namespace AvanteamMarketplace.API.Controllers
                     var apiKey = HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                     if (!string.IsNullOrEmpty(apiKey))
                     {
-                        await _apiKeyValidator.RegisterApiKeyAsync(apiKey, clientId);
+                        // Récupérer l'URL de base à partir de l'en-tête Referer ou une valeur par défaut
+                        string baseUrl = Request.Headers["Referer"].ToString();
+                        if (string.IsNullOrEmpty(baseUrl))
+                        {
+                            // Utiliser l'origine comme fallback
+                            baseUrl = Request.Headers["Origin"].ToString();
+                        }
+                        
+                        await _apiKeyValidator.RegisterApiKeyAsync(apiKey, clientId, baseUrl);
                     }
                 }
                 
@@ -143,7 +151,26 @@ namespace AvanteamMarketplace.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Récupère les composants qui nécessitent une version plus récente de la plateforme
+        /// </summary>
+        /// <param name="clientId">Identifiant unique du client Process Studio</param>
+        /// <param name="version">Version de la plateforme Process Studio du client</param>
+        /// <returns>Liste des composants qui nécessitent une version plus récente</returns>
+        /// <response code="200">Retourne la liste des composants futurs</response>
+        /// <response code="400">Si la version n'est pas spécifiée</response>
+        /// <response code="401">Si l'authentification a échoué</response>
+        /// <response code="500">Si une erreur serveur s'est produite</response>
+        /// <remarks>
+        /// Cette méthode retourne les composants dont la version minimale requise est supérieure
+        /// à la version actuelle du client. Cela permet d'informer les utilisateurs des
+        /// composants qu'ils pourront installer après une mise à jour de Process Studio.
+        /// </remarks>
         [HttpGet("components/future")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ComponentsViewModel))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ComponentsViewModel>> GetFutureComponents(
             [FromQuery] string clientId,
             [FromQuery] string version)
@@ -167,7 +194,20 @@ namespace AvanteamMarketplace.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Récupère les détails d'un composant spécifique
+        /// </summary>
+        /// <param name="componentId">ID du composant à récupérer</param>
+        /// <returns>Détails du composant</returns>
+        /// <response code="200">Retourne les détails du composant</response>
+        /// <response code="401">Si l'authentification a échoué</response>
+        /// <response code="404">Si le composant n'existe pas</response>
+        /// <response code="500">Si une erreur serveur s'est produite</response>
         [HttpGet("components/{componentId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ComponentDetailViewModel))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ComponentDetailViewModel>> GetComponentDetail(int componentId)
         {
             try
@@ -227,7 +267,24 @@ namespace AvanteamMarketplace.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Récupère le fichier README d'un composant au format HTML
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <returns>Contenu HTML du README du composant</returns>
+        /// <response code="200">Retourne le contenu HTML du README</response>
+        /// <response code="401">Si l'authentification a échoué</response>
+        /// <response code="404">Si le composant ou le README n'existe pas</response>
+        /// <response code="500">Si une erreur serveur s'est produite</response>
+        /// <remarks>
+        /// Cette méthode retourne la documentation du composant au format HTML,
+        /// générée à partir du fichier README.md du composant.
+        /// </remarks>
         [HttpGet("components/{componentId}/readme")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> GetComponentReadme(int componentId)
         {
             try

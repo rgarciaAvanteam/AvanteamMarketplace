@@ -6,6 +6,6 @@ namespace AvanteamMarketplace.API.Authentication
     {
         Task<bool> IsValidApiKeyAsync(string apiKey);
         Task<bool> IsAdminApiKeyAsync(string apiKey);
-        Task RegisterApiKeyAsync(string apiKey, string clientId);
+        Task RegisterApiKeyAsync(string apiKey, string clientId, string baseUrl);
     }
 }

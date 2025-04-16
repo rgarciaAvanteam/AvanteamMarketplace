@@ -36,7 +36,6 @@ namespace AvanteamMarketplace.API.Controllers
     public class ComponentsManagementController : ControllerBase
     {
         private readonly IMarketplaceService _marketplaceService;
-        private readonly IGitHubIntegrationService _githubService;
         private readonly IComponentPackageService _packageService;
         private readonly ILogger<ComponentsManagementController> _logger;
         private readonly MarketplaceDbContext _context;
@@ -61,13 +60,11 @@ namespace AvanteamMarketplace.API.Controllers
 
         public ComponentsManagementController(
             IMarketplaceService marketplaceService,
-            IGitHubIntegrationService githubService,
             IComponentPackageService packageService,
             MarketplaceDbContext context,
             ILogger<ComponentsManagementController> logger)
         {
             _marketplaceService = marketplaceService;
-            _githubService = githubService;
             _packageService = packageService;
             _context = context;
             _logger = logger;
@@ -380,24 +377,18 @@ namespace AvanteamMarketplace.API.Controllers
 
                 var componentId = await _marketplaceService.CreateComponentAsync(model);
                 
-                // Vérifier immédiatement si le composant a été correctement créé avec le PackageUrl
-                var componentAfterCreation = await _context.Components.FindAsync(componentId);
+                // Vérifier si le composant a été correctement créé avec le PackageUrl
+                var componentAfterCreation = await _context.Components
+                    .Include(c => c.Tags)
+                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                    
                 if (componentAfterCreation != null && string.IsNullOrEmpty(componentAfterCreation.PackageUrl) && !string.IsNullOrEmpty(model.PackageUrl))
                 {
-                    _logger.LogCritical($"CORRECTION IMMÉDIATE - Le composant {componentId} a été créé sans PackageUrl, tentative de correction directe");
+                    _logger.LogInformation($"Correction du PackageUrl pour le composant {componentId}");
                     
-                    // Mise à jour d'urgence directe
+                    // Mise à jour directe via Entity Framework pour préserver les tags
                     componentAfterCreation.PackageUrl = model.PackageUrl;
                     await _context.SaveChangesAsync();
-                    
-                    _logger.LogCritical($"CORRECTION IMMÉDIATE - PackageUrl défini à [{componentAfterCreation.PackageUrl}]");
-                    
-                    // Double vérification avec requête SQL directe
-                    await _context.Database.ExecuteSqlRawAsync(
-                        "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
-                        model.PackageUrl, componentId);
-                        
-                    _logger.LogCritical($"CORRECTION IMMÉDIATE - Mise à jour SQL exécutée");
                 }
                 
                 // Si un package a été fourni, le traiter après la création du composant
@@ -415,13 +406,20 @@ namespace AvanteamMarketplace.API.Controllers
                             
                             if (packageResult.Success)
                             {
+                                // Récupérer le composant actuel avec ses tags pour ne pas les perdre
+                                var existingComponent = await _context.Components
+                                    .Include(c => c.Tags)
+                                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+
                                 // Mettre à jour le composant avec les informations extraites du package
                                 var updateModel = new ComponentUpdateViewModel
                                 {
                                     PackageUrl = packageResult.PackageUrl,
                                     RepositoryUrl = !string.IsNullOrEmpty(packageResult.RepositoryUrl) ? packageResult.RepositoryUrl : model.RepositoryUrl,
                                     TargetPath = !string.IsNullOrEmpty(packageResult.TargetPath) ? packageResult.TargetPath : model.TargetPath,
-                                    MinPlatformVersion = !string.IsNullOrEmpty(packageResult.MinPlatformVersion) ? packageResult.MinPlatformVersion : model.MinPlatformVersion
+                                    MinPlatformVersion = !string.IsNullOrEmpty(packageResult.MinPlatformVersion) ? packageResult.MinPlatformVersion : model.MinPlatformVersion,
+                                    // Préserver les tags existants
+                                    Tags = existingComponent?.Tags?.Select(t => t.Tag)?.ToList() ?? model.Tags
                                 };
                                 
                                 var updateSuccess = await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
@@ -434,13 +432,20 @@ namespace AvanteamMarketplace.API.Controllers
                                 {
                                     _logger.LogWarning($"Mise à jour des informations de package échouée pour le composant {componentId}");
                                     
-                                    // Tentative de correction directe
+                                    // Mise à jour directe si nécessaire
                                     if (!string.IsNullOrEmpty(packageResult.PackageUrl))
                                     {
-                                        _logger.LogCritical($"Tentative de correction directe du PackageUrl pour le composant {componentId}");
-                                        await _context.Database.ExecuteSqlRawAsync(
-                                            "UPDATE Components SET PackageUrl = {0} WHERE ComponentId = {1}",
-                                            packageResult.PackageUrl, componentId);
+                                        // Récupérer le composant avec ses tags
+                                        var componentToFix = await _context.Components
+                                            .Include(c => c.Tags)
+                                            .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                                            
+                                        if (componentToFix != null)
+                                        {
+                                            _logger.LogInformation($"Mise à jour du PackageUrl pour le composant {componentId}");
+                                            componentToFix.PackageUrl = packageResult.PackageUrl;
+                                            await _context.SaveChangesAsync();
+                                        }
                                     }
                                 }
                             }
@@ -1300,45 +1305,5 @@ namespace AvanteamMarketplace.API.Controllers
 
         #endregion
 
-        #region GitHub Integration Endpoints
-
-        /// <summary>
-        /// Synchronise les composants depuis un dépôt GitHub
-        /// </summary>
-        /// <param name="repository">URL du dépôt GitHub</param>
-        /// <returns>Résultats de la synchronisation</returns>
-        [HttpPost("github/sync")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> SynchronizeFromGitHub([FromQuery] string repository)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(repository))
-                {
-                    return BadRequest(new { error = "L'URL du dépôt est requise" });
-                }
-
-                var syncResult = await _githubService.SynchronizeComponentsFromGitHubAsync(repository);
-                
-                // Formater la réponse en utilisant les champs de GitHubSyncResult
-                var result = new 
-                {
-                    newComponents = syncResult.NewComponents,
-                    updatedComponents = syncResult.UpdatedComponents,
-                    failedComponents = syncResult.FailedComponents
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Erreur lors de la synchronisation depuis GitHub");
-                return StatusCode(500, new { error = "Une erreur est survenue lors de la synchronisation depuis GitHub", details = ex.Message });
-            }
-        }
-
-        #endregion
     }
 }

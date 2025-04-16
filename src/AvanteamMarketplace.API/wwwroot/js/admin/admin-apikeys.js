@@ -66,9 +66,11 @@ function displayApiKeys(apiKeys) {
         const isAdmin = apiKey.isAdmin === true;
         const createdDate = apiKey.createdDate ? new Date(apiKey.createdDate).toLocaleDateString() : 'N/A';
         
+        const baseUrl = apiKey.baseUrl || 'N/A';
         html += `<tr>
             <td>${id}</td>
             <td>${clientId}</td>
+            <td>${baseUrl}</td>
             <td>${keyValue !== 'N/A' ? keyValue.substring(0, 10) + '...' : 'N/A'}</td>
             <td>${isAdmin ? 'Oui' : 'Non'}</td>
             <td>${createdDate}</td>
@@ -92,6 +94,7 @@ function displayApiKeys(apiKeys) {
 $("#btnAddApiKey").click(function(e) {
     e.preventDefault();
     $("#txtClientId").val("");
+    $("#txtBaseUrl").val("");
     $("#chkIsAdmin").prop("checked", false);
     $("#apiKeyModal").css("display", "block");
 });
@@ -105,12 +108,18 @@ $(".close, #btnCancelApiKey").click(function() {
 $("#btnSaveApiKey").click(function() {
     const apiKey = {
         clientId: $("#txtClientId").val(),
+        baseUrl: $("#txtBaseUrl").val(),
         isAdmin: $("#chkIsAdmin").is(":checked")
     };
     
     // Validation basique
     if (!apiKey.clientId) {
         alert("Veuillez saisir un identifiant client.");
+        return;
+    }
+    
+    if (!apiKey.baseUrl) {
+        alert("Veuillez saisir une URL de base.");
         return;
     }
     

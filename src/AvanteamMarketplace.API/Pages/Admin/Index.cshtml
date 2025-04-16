@@ -48,7 +48,6 @@
             <div class="admin-tabs">
                 <div class="tab-btn active" data-tab="components">Composants</div>
                 <div class="tab-btn" data-tab="apikeys">Clés API</div>
-                <div class="tab-btn" data-tab="github">Synchroniser GitHub</div>
                 <div class="logout-btn">
                     <a href="/admin/logout" class="logout-link">Déconnexion</a>
                 </div>
@@ -128,6 +127,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Client ID</th>
+                                <th>URL de base</th>
                                 <th>Clé API</th>
                                 <th>Administrateur</th>
                                 <th>Date de création</th>
@@ -141,26 +141,6 @@
                 </div>
             </div>
             
-            <!-- Onglet Synchroniser GitHub -->
-            <div class="tab-content" id="github-tab">
-                <div class="github-sync-panel">
-                    <h2>Synchronisation avec GitHub</h2>
-                    <p>Synchronisez les composants à partir de dépôts GitHub. Les composants doivent inclure un fichier manifest.json à la racine.</p>
-                    
-                    <div class="form-group">
-                        <label for="txtGitHubRepo">URL du dépôt GitHub:</label>
-                        <input type="text" id="txtGitHubRepo" placeholder="https://github.com/avanteam/component-name" class="form-control" />
-                    </div>
-                    
-                    <div class="form-actions">
-                        <a href="#" id="btnSyncGitHub" class="btn btn-primary">Synchroniser</a>
-                    </div>
-                    
-                    <div class="sync-results" id="syncResults">
-                        <!-- Résultats de synchronisation affichés ici -->
-                    </div>
-                </div>
-            </div>
             
             <!-- Modals pour les actions -->
             <div id="componentModal" class="modal">
@@ -305,6 +285,12 @@ component-name.zip
                     <div class="form-group">
                         <label for="txtClientId">Identifiant client:</label>
                         <input type="text" id="txtClientId" class="form-control" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="txtBaseUrl">URL de base:</label>
+                        <input type="url" id="txtBaseUrl" class="form-control" placeholder="https://exemple.com" />
+                        <small>L'URL de base du client qui va utiliser cette clé API</small>
                     </div>
                     
                     <div class="form-group">

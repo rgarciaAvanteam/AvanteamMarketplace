@@ -1,17 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace AvanteamMarketplace.LocalInstaller.Controllers
 {
+    /// <summary>
+    /// Contrôleur fournissant les API d'installation et de désinstallation locale des composants
+    /// </summary>
     [ApiController]
     [Route("")]
+    [Produces("application/json")]
     public class InstallerController : ControllerBase
     {
         private readonly ILogger<InstallerController> _logger;
@@ -68,6 +75,11 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
             _logger.LogInformation($"API d'installation locale initialisée. Racine: {_rootPath}, Scripts: {_scriptsPath}, Logs: {_logsPath}");
         }
 
+        /// <summary>
+        /// Vérifie l'état de l'API d'installation locale
+        /// </summary>
+        /// <returns>Informations sur l'état de l'API, incluant les chemins configurés et les fonctionnalités disponibles</returns>
+        /// <response code="200">API opérationnelle avec informations de configuration</response>
         [HttpGet("status")]
         public IActionResult GetStatus()
         {
@@ -82,6 +94,26 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
             });
         }
 
+        /// <summary>
+        /// Installe un composant à partir d'une URL de package
+        /// </summary>
+        /// <param name="request">Informations du composant à installer, incluant l'ID du composant, la version, l'URL du package et un ID d'installation optionnel</param>
+        /// <returns>Résultat de l'opération d'installation avec logs et chemin de destination</returns>
+        /// <remarks>
+        /// Exemple de requête:
+        /// 
+        ///     POST /install
+        ///     {
+        ///         "componentId": 123,
+        ///         "version": "1.0.0",
+        ///         "packageUrl": "https://example.com/packages/component-123-1.0.0.zip",
+        ///         "installId": "install-20250416-abc123"
+        ///     }
+        /// 
+        /// </remarks>
+        /// <response code="200">Installation réussie ou échec avec informations détaillées</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="500">Erreur serveur lors de l'installation</response>
         [HttpPost("install")]
         public async Task<IActionResult> InstallComponent([FromBody] InstallRequest request)
         {
@@ -388,6 +420,25 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
             }
         }
         
+        /// <summary>
+        /// Désinstalle un composant présent sur le serveur Process Studio
+        /// </summary>
+        /// <param name="request">Informations du composant à désinstaller, incluant l'ID du composant, l'option force et un ID de désinstallation optionnel</param>
+        /// <returns>Résultat de l'opération de désinstallation avec logs et chemin de sauvegarde</returns>
+        /// <remarks>
+        /// Exemple de requête:
+        /// 
+        ///     POST /uninstall
+        ///     {
+        ///         "componentId": 123,
+        ///         "force": false,
+        ///         "uninstallId": "uninstall-20250416-abc123"
+        ///     }
+        /// 
+        /// </remarks>
+        /// <response code="200">Désinstallation réussie ou échec avec informations détaillées</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="500">Erreur serveur lors de la désinstallation</response>
         [HttpPost("uninstall")]
         public async Task<IActionResult> UninstallComponent([FromBody] UninstallRequest request)
         {
@@ -624,17 +675,32 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         }
     }
 
+    /// <summary>
+    /// Représente une demande d'installation de composant
+    /// </summary>
     public class InstallRequest
     {
+        /// <summary>
+        /// Identifiant unique du composant à installer
+        /// </summary>
         [JsonProperty("componentId")]
         public int ComponentId { get; set; }
         
+        /// <summary>
+        /// Version du composant à installer
+        /// </summary>
         [JsonProperty("version")]
         public string Version { get; set; }
         
+        /// <summary>
+        /// URL de téléchargement du package du composant
+        /// </summary>
         [JsonProperty("packageUrl")]
         public string PackageUrl { get; set; }
         
+        /// <summary>
+        /// Identifiant unique de l'opération d'installation (généré automatiquement si non fourni)
+        /// </summary>
         [JsonProperty("installId")]
         public string InstallId { get; set; }
     }

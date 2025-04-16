@@ -10,6 +10,7 @@ namespace AvanteamMarketplace.Core.Models
         public int ApiKeyId { get; set; }
         public string Key { get; set; } = string.Empty;
         public string ClientId { get; set; } = string.Empty;
+        public string BaseUrl { get; set; } = string.Empty;
         public bool IsAdmin { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }

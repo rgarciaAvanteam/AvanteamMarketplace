@@ -52,7 +52,7 @@ namespace AvanteamMarketplace.API.Authentication
             return keyEntity?.IsAdmin ?? false;
         }
 
-        public async Task RegisterApiKeyAsync(string apiKey, string clientId)
+        public async Task RegisterApiKeyAsync(string apiKey, string clientId, string baseUrl)
         {
             var existingKey = await _dbContext.ApiKeys.FirstOrDefaultAsync(k => k.Key == apiKey);
             if (existingKey == null)
@@ -61,15 +61,17 @@ namespace AvanteamMarketplace.API.Authentication
                 {
                     Key = apiKey,
                     ClientId = clientId,
+                    BaseUrl = baseUrl,
                     IsActive = true,
                     IsAdmin = false,
                     CreatedDate = System.DateTime.UtcNow
                 });
                 await _dbContext.SaveChangesAsync();
             }
-            else if (existingKey.ClientId != clientId)
+            else if (existingKey.ClientId != clientId || existingKey.BaseUrl != baseUrl)
             {
                 existingKey.ClientId = clientId;
+                existingKey.BaseUrl = baseUrl;
                 existingKey.LastAccessDate = System.DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
             }

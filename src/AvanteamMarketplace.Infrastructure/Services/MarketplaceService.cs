@@ -1101,8 +1101,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 
             component.UpdatedDate = DateTime.UtcNow;
             
-            // Mettre à jour les tags
-            if (model.Tags != null)
+            // Mettre à jour les tags seulement si explicitement fournis dans le modèle
+            if (model.Tags != null && model.Tags.Any())
             {
                 component.Tags.Clear();
                 foreach (var tag in model.Tags)
@@ -1110,6 +1110,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     component.Tags.Add(new ComponentTag { Component = component, Tag = tag });
                 }
             }
+            // Ne pas supprimer les tags existants si aucun tag n'est fourni
             
             // Mettre à jour les dépendances
             if (model.Dependencies != null)
@@ -1298,6 +1299,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 ApiKeyId = k.ApiKeyId,
                 Key = k.Key,
                 ClientId = k.ClientId,
+                BaseUrl = k.BaseUrl,
                 IsAdmin = k.IsAdmin,
                 IsActive = k.IsActive,
                 CreatedDate = k.CreatedDate,
@@ -1325,6 +1327,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
             {
                 Key = key,
                 ClientId = model.ClientId,
+                BaseUrl = model.BaseUrl,
                 IsAdmin = model.IsAdmin,
                 IsActive = true,
                 CreatedDate = DateTime.UtcNow
@@ -1338,6 +1341,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 ApiKeyId = apiKey.ApiKeyId,
                 Key = apiKey.Key,
                 ClientId = apiKey.ClientId,
+                BaseUrl = apiKey.BaseUrl,
                 IsAdmin = apiKey.IsAdmin,
                 IsActive = apiKey.IsActive,
                 CreatedDate = apiKey.CreatedDate

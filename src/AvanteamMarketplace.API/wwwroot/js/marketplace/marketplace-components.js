@@ -152,6 +152,30 @@ function renderComponents(tabName, components) {
                         <span class="component-version">v${component.isInstalled && component.installedVersion ? component.installedVersion : component.version}</span>
                         <span class="component-category">${component.category}</span>
                         ${component.isInstalled && component.hasUpdate ? '<span class="component-update-badge">Mise à jour disponible</span>' : ''}
+                        ${component.tagsArray && Array.isArray(component.tagsArray) && component.tagsArray.length > 0 ? `
+                        <div class="component-tags">
+                            ${component.tagsArray.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                            ${component.tagsArray.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                        </div>
+                        ` : 
+                        component.tags && Array.isArray(component.tags) && component.tags.length > 0 ? `
+                        <div class="component-tags">
+                            ${component.tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                            ${component.tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                        </div>
+                        ` : 
+                        component.tags && component.tags.$values && Array.isArray(component.tags.$values) ? `
+                        <div class="component-tags">
+                            ${component.tags.$values.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                            ${component.tags.$values.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                        </div>
+                        ` : 
+                        component.Tags && Array.isArray(component.Tags) && component.Tags.length > 0 ? `
+                        <div class="component-tags">
+                            ${component.Tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                            ${component.Tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
                 <div class="component-actions">
@@ -163,6 +187,51 @@ function renderComponents(tabName, components) {
     });
     
     container.innerHTML = html;
+}
+
+/**
+ * Fonction utilitaire pour déboguer les données d'un composant
+ * @param {number} componentId - ID du composant
+ */
+function logComponentData(componentId) {
+    // Trouver le composant dans le cache
+    let component = null;
+    
+    for (const category in componentCache) {
+        if (componentCache[category]) {
+            let components = componentCache[category];
+            
+            // Normaliser les données si nécessaire
+            if (!Array.isArray(components)) {
+                if (components.$values && Array.isArray(components.$values)) {
+                    components = components.$values;
+                } else if (components.components && Array.isArray(components.components)) {
+                    components = components.components;
+                } else if (components.components && components.components.$values && Array.isArray(components.components.$values)) {
+                    components = components.components.$values;
+                } else if (components.items && Array.isArray(components.items)) {
+                    components = components.items;
+                } else if (components.data && Array.isArray(components.data)) {
+                    components = components.data;
+                } else {
+                    continue;
+                }
+            }
+            
+            const found = components.find(c => c.componentId === componentId);
+            if (found) {
+                component = found;
+                break;
+            }
+        }
+    }
+    
+    if (component) {
+        console.log('Données du composant:', component);
+        console.log('Tags:', component.tags);
+    } else {
+        console.log('Composant non trouvé');
+    }
 }
 
 /**
@@ -235,6 +304,19 @@ function showComponentDetails(componentId) {
         console.log("Composant de base:", component);
         console.log("Détails du composant depuis l'API:", detailedComponent);
         
+        // Vérifier si les tags sont présents et les normaliser
+        if (detailedComponent.tags) {
+            console.log("Tags depuis l'API:", detailedComponent.tags);
+            
+            // Si les tags sont au format $values, les extraire
+            if (detailedComponent.tags.$values && Array.isArray(detailedComponent.tags.$values)) {
+                console.log("Tags extraits des $values:", detailedComponent.tags.$values);
+                detailedComponent.tagsArray = detailedComponent.tags.$values;
+            }
+        } else {
+            console.log("Aucun tag trouvé dans la réponse API");
+        }
+        
         // Fusionner les informations en préservant isInstalled, hasUpdate et installedVersion du composant de base
         const isInstalled = component.isInstalled;
         const hasUpdate = component.hasUpdate;
@@ -249,6 +331,9 @@ function showComponentDetails(componentId) {
         };
         
         console.log("Composant fusionné pour l'affichage:", fullComponent);
+        
+        // Déboguer les tags dans le composant fusionné
+        console.log("Tags dans le composant fusionné:", fullComponent.tags);
         
         // Créer la modal de détails
         createComponentDetailsModal(fullComponent);
@@ -310,6 +395,38 @@ function createComponentDetailsModal(component) {
                         <div class="info-label">Date de publication:</div>
                         <div class="info-value">${formatDate(component.updatedDate || new Date().toISOString())}</div>
                     </div>
+                    ${component.tagsArray && Array.isArray(component.tagsArray) && component.tagsArray.length > 0 ? `
+                    <div class="info-item">
+                        <div class="info-label">Tags:</div>
+                        <div class="info-value tags-container">
+                            ${component.tagsArray.map(tag => `<span class="component-tag">${tag}</span>`).join(' ')}
+                        </div>
+                    </div>
+                    ` : 
+                    component.tags && Array.isArray(component.tags) && component.tags.length > 0 ? `
+                    <div class="info-item">
+                        <div class="info-label">Tags:</div>
+                        <div class="info-value tags-container">
+                            ${component.tags.map(tag => `<span class="component-tag">${tag}</span>`).join(' ')}
+                        </div>
+                    </div>
+                    ` : 
+                    component.tags && component.tags.$values && Array.isArray(component.tags.$values) ? `
+                    <div class="info-item">
+                        <div class="info-label">Tags:</div>
+                        <div class="info-value tags-container">
+                            ${component.tags.$values.map(tag => `<span class="component-tag">${tag}</span>`).join(' ')}
+                        </div>
+                    </div>
+                    ` : 
+                    component.Tags && Array.isArray(component.Tags) && component.Tags.length > 0 ? `
+                    <div class="info-item">
+                        <div class="info-label">Tags:</div>
+                        <div class="info-value tags-container">
+                            ${component.Tags.map(tag => `<span class="component-tag">${tag}</span>`).join(' ')}
+                        </div>
+                    </div>
+                    ` : ''}
                 </div>
                 
                 ${component.readmeHtml ? `
@@ -330,7 +447,7 @@ function createComponentDetailsModal(component) {
             </div>
             
             <div class="modal-footer">
-                ${component.repositoryUrl ? `
+                ${component.repositoryUrl && component.repositoryUrl !== 'https://avanteam-online.com/no-repository' ? `
                     <a href="${component.repositoryUrl}" target="_blank" class="btn btn-github">
                         <svg style="width:16px;height:16px;margin-right:6px" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z" /></svg> GitHub
                     </a>

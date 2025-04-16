@@ -9,7 +9,6 @@ document.write('<script src="../js/admin/admin-file-handlers.js"></script>');
 document.write('<script src="../js/admin/admin-components.js"></script>');
 document.write('<script src="../js/admin/admin-versions.js"></script>');
 document.write('<script src="../js/admin/admin-apikeys.js"></script>');
-document.write('<script src="../js/admin/admin-github.js"></script>');
 
 
 // Note: L'utilisation de document.write est uniquement pour la simplicité de ce refactoring

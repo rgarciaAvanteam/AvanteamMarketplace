@@ -55,7 +55,6 @@ builder.Services.AddHttpClient(); // Ajout de HttpClient
 builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
 builder.Services.AddScoped<IProcessStudioVersionDetector, ProcessStudioVersionDetector>();
 builder.Services.AddScoped<IComponentPackageService, ComponentPackageService>();
-builder.Services.AddScoped<IGitHubIntegrationService, GitHubIntegrationService>();
 builder.Services.AddScoped<IComponentInstallerService, ComponentInstallerService>();
 
 // Activer la prise en charge de Razor Pages avec compilation runtime
@@ -78,7 +77,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 

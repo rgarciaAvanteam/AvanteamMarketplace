@@ -95,6 +95,7 @@
                                         <th>Version</th>
                                         <th>Date de publication</th>
                                         <th>Minimum PS</th>
+                                        <th>Maximum PS</th>
                                         <th>Téléchargements</th>
                                         <th>Version actuelle</th>
                                         <th>Actions</th>
@@ -202,6 +203,12 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="txtMaxPlatformVersion">Version max. plateforme:</label>
+                        <input type="text" id="txtMaxPlatformVersion" class="form-control" placeholder="24.5.0" />
+                        <small>Laissez vide si pas de limite de version supérieure</small>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="txtRepositoryUrl">URL du dépôt:</label>
                         <input type="text" id="txtRepositoryUrl" class="form-control" placeholder="https://github.com/avanteam/component-name" />
                     </div>
@@ -267,6 +274,19 @@ component-name.zip
                             <label for="txtPackageVersion"><strong>Version:</strong> <span class="required">*</span></label>
                             <input type="text" id="txtPackageVersion" class="form-control" placeholder="1.0.0" required />
                             <small>Format X.Y.Z (obligatoire)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="txtPackageMinPlatformVersion">Version minimale de Process Studio:</label>
+                            <input type="text" id="txtPackageMinPlatformVersion" class="form-control" placeholder="23.10.0" />
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label for="txtPackageMaxPlatformVersion">Version maximale de Process Studio:</label>
+                            <input type="text" id="txtPackageMaxPlatformVersion" class="form-control" placeholder="24.5.0" />
+                            <small>Laissez vide si pas de limite de version supérieure</small>
                         </div>
                     </div>
                     
@@ -341,6 +361,12 @@ component-name.zip
                     <div class="form-group">
                         <label for="txtVersionMinPlatform">Version minimale de Process Studio:</label>
                         <input type="text" id="txtVersionMinPlatform" class="form-control" placeholder="23.10.0" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="txtVersionMaxPlatform">Version maximale de Process Studio:</label>
+                        <input type="text" id="txtVersionMaxPlatform" class="form-control" placeholder="24.5.0" />
+                        <small>Laissez vide si pas de limite de version supérieure</small>
                     </div>
                     
                     <div class="form-group">

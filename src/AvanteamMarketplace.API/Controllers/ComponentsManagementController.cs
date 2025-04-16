@@ -634,13 +634,19 @@ namespace AvanteamMarketplace.API.Controllers
         /// <param name="componentId">ID du composant</param>
         /// <param name="packageFile">Fichier du package</param>
         /// <param name="version">Version du package (optionnel)</param>
+        /// <param name="minPlatformVersion">Version minimale de la plateforme requise</param>
+        /// <param name="maxPlatformVersion">Version maximale de la plateforme supportée</param>
         /// <returns>Résultat du téléversement</returns>
         [HttpPost("components/{componentId}/package")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> UploadComponentPackage(int componentId, IFormFile packageFile, [FromQuery] string? version = null)
+        public async Task<ActionResult> UploadComponentPackage(int componentId, 
+            IFormFile packageFile, 
+            [FromQuery] string? version = null, 
+            [FromForm] string? minPlatformVersion = null,
+            [FromForm] string? maxPlatformVersion = null)
         {
             try
             {
@@ -688,7 +694,9 @@ namespace AvanteamMarketplace.API.Controllers
                     // Mettre à jour le composant principal avec l'URL générée
                     var updateModel = new ComponentUpdateViewModel
                     {
-                        PackageUrl = packageResult.PackageUrl
+                        PackageUrl = packageResult.PackageUrl,
+                        MinPlatformVersion = !string.IsNullOrEmpty(minPlatformVersion) ? minPlatformVersion : null,
+                        MaxPlatformVersion = !string.IsNullOrEmpty(maxPlatformVersion) ? maxPlatformVersion : null
                     };
                     
                     var success = await _marketplaceService.UpdateComponentAsync(componentId, updateModel);
@@ -706,7 +714,8 @@ namespace AvanteamMarketplace.API.Controllers
                             {
                                 Version = v.VersionNumber,
                                 ChangeLog = v.ChangeLog ?? "",
-                                MinPlatformVersion = v.MinPlatformVersion ?? "",
+                                MinPlatformVersion = !string.IsNullOrEmpty(minPlatformVersion) ? minPlatformVersion : (v.MinPlatformVersion ?? ""),
+                                MaxPlatformVersion = !string.IsNullOrEmpty(maxPlatformVersion) ? maxPlatformVersion : (v.MaxPlatformVersion ?? ""),
                                 IsLatest = true,
                                 PackageUrl = packageResult.PackageUrl
                             };
@@ -939,6 +948,7 @@ namespace AvanteamMarketplace.API.Controllers
             [FromForm] string version,
             [FromForm] string? changeLog = null,
             [FromForm] string? minPlatformVersion = null,
+            [FromForm] string? maxPlatformVersion = null,
             [FromForm] bool isLatest = true)
         {
             try
@@ -983,6 +993,7 @@ namespace AvanteamMarketplace.API.Controllers
                         Version = version,
                         ChangeLog = changeLog ?? "",
                         MinPlatformVersion = !string.IsNullOrEmpty(packageResult.MinPlatformVersion) ? packageResult.MinPlatformVersion : (minPlatformVersion ?? ""),
+                        MaxPlatformVersion = maxPlatformVersion ?? "",
                         IsLatest = isLatest,
                         PackageUrl = packageResult.PackageUrl // Assigner l'URL du package obtenue
                     };

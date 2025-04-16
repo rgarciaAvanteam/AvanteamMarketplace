@@ -23,6 +23,11 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string MinPlatformVersion { get; set; } = string.Empty;
         
         /// <summary>
+        /// Version maximale de la plateforme supportée par cette version
+        /// </summary>
+        public string MaxPlatformVersion { get; set; } = string.Empty;
+        
+        /// <summary>
         /// URL du package (si différente de l'URL de base du composant)
         /// </summary>
         public string PackageUrl { get; set; } = string.Empty;

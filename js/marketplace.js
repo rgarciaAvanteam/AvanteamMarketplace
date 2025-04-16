@@ -263,6 +263,12 @@ function renderComponents(tabName, components) {
             }
         }
         
+        // Préparer le badge de version maximale
+        let maxVersionBadge = '';
+        if (component.maxPlatformVersion && parseFloat(component.maxPlatformVersion) <= parseFloat(platformVersion)) {
+            maxVersionBadge = `<span class="component-max-version-badge">Non supporté après PS ${component.maxPlatformVersion}</span>`;
+        }
+
         // Créer la carte du composant
         html += `
             <div class="component-card${component.isInstalled ? ' installed' : ''}" data-id="${component.componentId}">
@@ -274,7 +280,7 @@ function renderComponents(tabName, components) {
                     <h3 class="component-name">${component.displayName}</h3>
                     <p class="component-description">${component.description}</p>
                     <div class="component-meta">
-                        <span class="component-version">v${component.version}</span>
+                        <span class="component-version">v${component.version}${maxVersionBadge}</span>
                         <span class="component-category">${component.category}</span>
                     </div>
                 </div>
@@ -438,6 +444,97 @@ function showComponentDetails(componentId) {
 }
 
 /**
+ * Détermine la dernière version d'un composant compatible avec la version actuelle de Process Studio
+ * @param {Object} component - Le composant à analyser
+ * @returns {string} La dernière version compatible
+ */
+function getLatestCompatibleVersion(component) {
+    // Si le composant n'a pas de 'eligibleVersions', utiliser la version standard
+    if (!component.eligibleVersions || !Array.isArray(component.eligibleVersions) || component.eligibleVersions.length === 0) {
+        // Si la version actuelle n'est pas compatible (version future), elle ne doit pas être indiquée comme mise à jour
+        if (component.minPlatformVersion && component.minPlatformVersion > platformVersion) {
+            // Retourner une version qui serait compatible, s'il y en a une
+            // Comme nous n'avons pas d'information sur les versions précédentes compatibles, on utilise un fallback
+            return component.installedVersion || "?";
+        }
+        return component.version;
+    }
+
+    // Trier les versions par ordre décroissant (en supposant un format semver x.y.z)
+    const sortedVersions = [...component.eligibleVersions].sort((a, b) => {
+        const partsA = a.split('.').map(Number);
+        const partsB = b.split('.').map(Number);
+        
+        for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+            const partA = i < partsA.length ? partsA[i] : 0;
+            const partB = i < partsB.length ? partsB[i] : 0;
+            
+            if (partA !== partB) {
+                return partB - partA; // Ordre décroissant
+            }
+        }
+        
+        return 0;
+    });
+
+    // Trouver la version la plus récente compatible avec la version actuelle de Process Studio
+    for (const version of sortedVersions) {
+        const versionInfo = component.versionInfos ? component.versionInfos.find(v => v.version === version) : null;
+        if (!versionInfo || 
+            !versionInfo.minPlatformVersion || 
+            versionInfo.minPlatformVersion <= platformVersion) {
+            
+            // Vérifier aussi maxPlatformVersion si disponible
+            if (!versionInfo || 
+                !versionInfo.maxPlatformVersion || 
+                versionInfo.maxPlatformVersion >= platformVersion) {
+                return version;
+            }
+        }
+    }
+
+    // Fallback à la version actuelle si aucune version compatible n'est trouvée
+    return component.version;
+}
+
+/**
+ * Affiche la version d'un composant avec un contexte approprié pour la modal de détails
+ * @param {Object} component - Le composant dont on veut afficher la version
+ * @returns {string} La version formatée avec contexte
+ */
+function getDisplayVersionWithContext(component) {
+    // Préparer une variable pour le badge de version maximale
+    let maxVersionBadge = '';
+    
+    // Ajouter un badge si la version maximale est définie et que cette version est inférieure ou égale à la version actuelle de PS
+    if (component.maxPlatformVersion && parseFloat(component.maxPlatformVersion) <= parseFloat(platformVersion)) {
+        maxVersionBadge = `<span class="component-max-version-badge">Non supporté après PS ${component.maxPlatformVersion}</span>`;
+    }
+
+    // Pour les composants installés
+    if (component.isInstalled) {
+        // Si le composant est installé
+        if (component.hasUpdate) {
+            // Avec une mise à jour disponible - Utiliser la dernière version compatible
+            const latestCompatibleVersion = getLatestCompatibleVersion(component);
+            return `${component.installedVersion} <span class="component-update-badge">Mise à jour disponible (v${latestCompatibleVersion})</span> ${maxVersionBadge}`;
+        } else {
+            // Sans mise à jour
+            return `${component.installedVersion} ${maxVersionBadge}`;
+        }
+    } else {
+        // Si le composant n'est pas installé
+        if (component.minPlatformVersion && component.minPlatformVersion > platformVersion) {
+            // S'il s'agit d'un composant futur
+            return `${component.version} <span class="component-future-badge">Nécessite PS ${component.minPlatformVersion}+</span>`;
+        } else {
+            // S'il s'agit d'un composant disponible
+            return `${component.version} ${maxVersionBadge}`;
+        }
+    }
+}
+
+/**
  * Crée et affiche une modal avec les détails d'un composant
  * @param {Object} component - Composant à afficher
  */
@@ -477,7 +574,7 @@ function createComponentDetailsModal(component) {
                      class="component-detail-icon" />
                 <div class="component-detail-title">
                     <h2>${component.displayName}</h2>
-                    <div class="component-detail-version">Version ${component.version}</div>
+                    <div class="component-detail-version">Version ${getDisplayVersionWithContext(component)}</div>
                 </div>
             </div>
             
@@ -497,6 +594,12 @@ function createComponentDetailsModal(component) {
                         <div class="info-label">Version minimale:</div>
                         <div class="info-value">Process Studio ${component.minPlatformVersion}</div>
                     </div>
+                    ${component.maxPlatformVersion ? `
+                    <div class="info-item">
+                        <div class="info-label">Version maximale:</div>
+                        <div class="info-value">Process Studio ${component.maxPlatformVersion}</div>
+                    </div>
+                    ` : ''}
                     <div class="info-item">
                         <div class="info-label">Date de publication:</div>
                         <div class="info-value">${formatDate(component.updatedDate || new Date().toISOString())}</div>

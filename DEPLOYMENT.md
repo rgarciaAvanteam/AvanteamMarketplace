@@ -2,7 +2,7 @@
 
 Ce guide détaille les étapes pour déployer le module API Avanteam Marketplace sur IIS (Windows Server 2019) et l'intégration client dans Process Studio.
 
-> **Mise à jour** : Nouvelle version incluant l'interface d'administration et la documentation Swagger améliorée.
+> **Mise à jour** : Nouvelle version incluant la gestion des versions maximales compatibles (MaxPlatformVersion) pour les composants, l'interface d'administration et la documentation Swagger améliorée.
 
 ## Prérequis
 
@@ -405,11 +405,13 @@ L'onglet "Composants" permet de:
    - Remplir le formulaire avec les informations du composant
    - Télécharger un logo et des captures d'écran
    - Définir la version, les dépendances et les tags
+   - Spécifier les versions minimales et maximales compatibles de Process Studio
 
 2. **Modifier un composant existant**
    - Mettre à jour les informations, la description ou les captures d'écran
    - Ajouter de nouvelles versions
    - Modifier les métadonnées (visibilité, catégories, etc.)
+   - Gérer les contraintes de compatibilité (MinPlatformVersion et MaxPlatformVersion)
 
 3. **Supprimer un composant**
    - Supprimer définitivement un composant du marketplace

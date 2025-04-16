@@ -182,6 +182,11 @@ namespace AvanteamMarketplace.Core.Services
         public string MinPlatformVersion { get; set; } = string.Empty;
         
         /// <summary>
+        /// Version maximale de Process Studio supportée par cette mise à jour
+        /// </summary>
+        public string? MaxPlatformVersion { get; set; }
+        
+        /// <summary>
         /// URL de téléchargement du package
         /// </summary>
         public string DownloadUrl { get; set; } = string.Empty;

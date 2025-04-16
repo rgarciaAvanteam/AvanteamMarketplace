@@ -25,6 +25,9 @@ namespace AvanteamMarketplace.Core.ViewModels
         [RegularExpression(@"^\d+\.\d+(\.\d+)?$", ErrorMessage = "La version minimale doit être au format X.Y.Z")]
         public string MinPlatformVersion { get; set; } = string.Empty;
         
+        [RegularExpression(@"^\d+\.\d+(\.\d+)?$", ErrorMessage = "La version maximale doit être au format X.Y.Z")]
+        public string MaxPlatformVersion { get; set; } = string.Empty;
+        
         [RegularExpression(@"^\d+\.\d+(\.\d+)?$", ErrorMessage = "La version recommandée doit être au format X.Y.Z")]
         public string RecommendedPlatformVersion { get; set; } = string.Empty;
         

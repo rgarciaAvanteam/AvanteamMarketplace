@@ -176,6 +176,7 @@ function showComponentModal(componentId = null) {
     $("#txtCategory").val("");
     $("#txtAuthor").val("Avanteam");
     $("#txtMinPlatformVersion").val("");
+    $("#txtMaxPlatformVersion").val("");
     $("#txtRepositoryUrl").val("");
     $("#txtTags").val("");
     $("#chkRequiresRestart").prop("checked", false);
@@ -211,6 +212,7 @@ function showComponentModal(componentId = null) {
                 $("#txtCategory").val(component.category);
                 $("#txtAuthor").val(component.author);
                 $("#txtMinPlatformVersion").val(component.minPlatformVersion);
+                $("#txtMaxPlatformVersion").val(component.maxPlatformVersion || "");
                 $("#txtRepositoryUrl").val(component.repositoryUrl);
                 
                 // Gestion sécurisée des tags (peut être un tableau ou un objet avec $values)
@@ -306,6 +308,7 @@ function parseManifestFromPackage() {
             $("#txtCategory").val(componentData.category || "");
             $("#txtAuthor").val(componentData.author || "Avanteam");
             $("#txtMinPlatformVersion").val(componentData.minPlatformVersion || "");
+            $("#txtMaxPlatformVersion").val(componentData.maxPlatformVersion || "");
             
             // Spécifiquement pour l'URL du dépôt, s'assurer qu'il est correctement affiché
             if (componentData.repositoryUrl) {
@@ -415,6 +418,7 @@ $("#btnSaveComponent").click(function(e) {
         category: $("#txtCategory").val(),
         author: $("#txtAuthor").val(),
         minPlatformVersion: $("#txtMinPlatformVersion").val(),
+        maxPlatformVersion: $("#txtMaxPlatformVersion").val(),
         // S'assurer que l'URL du dépôt est valide
         repositoryUrl: repoUrl && repoUrl.trim() !== "" ? repoUrl : "https://avanteam-online.com/no-repository", 
         requiresRestart: $("#chkRequiresRestart").is(":checked"),
@@ -463,6 +467,7 @@ $("#btnSaveComponent").click(function(e) {
             category: newComponent.category,
             author: newComponent.author,
             minPlatformVersion: newComponent.minPlatformVersion,
+            maxPlatformVersion: newComponent.maxPlatformVersion,
             repositoryUrl: newComponent.repositoryUrl,
             requiresRestart: newComponent.requiresRestart,
             tags: newComponent.tags,
@@ -560,6 +565,7 @@ $("#btnSaveComponent").click(function(e) {
             category: newComponent.category,
             author: newComponent.author || "Avanteam",
             minPlatformVersion: newComponent.minPlatformVersion,
+            maxPlatformVersion: newComponent.maxPlatformVersion,
             repositoryUrl: newComponent.repositoryUrl,
             requiresRestart: newComponent.requiresRestart,
             tags: newComponent.tags,
@@ -753,6 +759,14 @@ $("#btnUploadPackage").click(function(e) {
     
     const fileInput = $("#filePackage")[0];
     const version = $("#txtPackageVersion").val();
+    const minPlatformVersion = $("#txtPackageMinPlatformVersion").val();
+    const maxPlatformVersion = $("#txtPackageMaxPlatformVersion").val();
+    
+    console.log("Valeurs du formulaire:", {
+        version,
+        minPlatformVersion,
+        maxPlatformVersion
+    });
     
     if (!fileInput.files || fileInput.files.length === 0) {
         alert("Veuillez sélectionner un fichier ZIP.");
@@ -779,6 +793,10 @@ $("#btnUploadPackage").click(function(e) {
     
     const formData = new FormData();
     formData.append("packageFile", fileInput.files[0]);
+    formData.append("minPlatformVersion", minPlatformVersion);
+    formData.append("maxPlatformVersion", maxPlatformVersion);
+    
+    console.log("Envoi du package avec min/max platform versions:", minPlatformVersion, maxPlatformVersion);
     
     let url = `${apiBaseUrl}/management/components/${currentComponentId}/package`;
     if (version) {
@@ -824,6 +842,8 @@ $("#btnUploadPackage").click(function(e) {
             // Réinitialiser le formulaire
             fileInput.value = '';
             $("#selectedFileName").text('');
+            $("#txtPackageMinPlatformVersion").val('');
+            $("#txtPackageMaxPlatformVersion").val('');
         },
         error: function(xhr, status, error) {
             // Nettoyer les états

@@ -16,6 +16,7 @@ namespace AvanteamMarketplace.Core.Models
         public string Category { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string MinPlatformVersion { get; set; } = string.Empty;
+        public string? MaxPlatformVersion { get; set; } // Version maximale de Process Studio supportée
         public string RecommendedPlatformVersion { get; set; } = string.Empty;
         public string RepositoryUrl { get; set; } = string.Empty;
         public bool RequiresRestart { get; set; }

@@ -32,10 +32,12 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string Category { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public string MinPlatformVersion { get; set; } = string.Empty;
+        public string? MaxPlatformVersion { get; set; }
         public bool RequiresRestart { get; set; }
         public bool HasUpdate { get; set; }
         public bool IsInstalled { get; set; }
         public bool IsCompatible { get; set; }
+        public bool IsNoLongerSupported { get; set; } // Indique si le composant n'est plus supporté par la version de Process Studio
         public List<string> Tags { get; set; } = new List<string>();
         public string IconUrl { get; set; } = string.Empty;
     }

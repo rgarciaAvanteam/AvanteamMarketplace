@@ -1,0 +1,25 @@
+{
+  "name": "my-component",
+  "displayName": "Mon Composant",
+  "description": "Description détaillée de mon composant pour le Marketplace.",
+  "version": "1.0.0",
+  "category": "Analyse",
+  "author": "Avanteam",
+  "minPlatformVersion": "23.0.0",
+  "maxPlatformVersion": "24.5.0",
+  "repositoryUrl": "https://github.com/avanteam/my-component",
+  "requiresRestart": false,
+  "targetPath": "components/my-component",
+  "tags": [
+    "analyse",
+    "reporting",
+    "dashboard"
+  ],
+  "dependencies": [
+    {
+      "name": "core-utilities",
+      "minVersion": "1.2.0",
+      "isRequired": true
+    }
+  ]
+}

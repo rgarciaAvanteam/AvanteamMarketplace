@@ -19,5 +19,10 @@ namespace AvanteamMarketplace.Core.ViewModels
         /// Version minimale de la plateforme requise pour cette version
         /// </summary>
         public string MinPlatformVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Version maximale de la plateforme supportée par cette version
+        /// </summary>
+        public string? MaxPlatformVersion { get; set; }
     }
 }

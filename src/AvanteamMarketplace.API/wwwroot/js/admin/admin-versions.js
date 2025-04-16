@@ -275,6 +275,7 @@ function loadComponentVersions(componentId) {
                 <td>${versionNumber}</td>
                 <td>${releaseDate}</td>
                 <td>${minPlatformVersion}</td>
+                <td>${version.maxPlatformVersion || version.MaxPlatformVersion || "N/A"}</td>
                 <td>${downloadCount}</td>
                 <td>${isLatest ? '<span class="is-latest-badge">Actuelle</span>' : ''}</td>
                 <td class="action-buttons">
@@ -420,6 +421,10 @@ function showVersionModal(versionId = null) {
             const minPlatformVersion = data.minPlatformVersion || data.MinPlatformVersion || data.minplatformversion || '';
             $('#txtVersionMinPlatform').val(minPlatformVersion);
             
+            // Gérer les différentes casses possibles pour maxPlatformVersion
+            const maxPlatformVersion = data.maxPlatformVersion || data.MaxPlatformVersion || data.maxplatformversion || '';
+            $('#txtVersionMaxPlatform').val(maxPlatformVersion);
+            
             $('#chkIsLatestVersion').prop('checked', data.isLatest || data.IsLatest || false);
             
             // Effacer toute sélection de fichier précédente
@@ -438,6 +443,7 @@ function showVersionModal(versionId = null) {
         $('#txtVersionNumber').val('');
         $('#txtVersionChangelog').val('');
         $('#txtVersionMinPlatform').val('');
+        $('#txtVersionMaxPlatform').val('');
         $('#chkIsLatestVersion').prop('checked', true);
         $('#selectedVersionFileName').text('');
         
@@ -471,6 +477,7 @@ function saveVersion() {
         Version: $('#txtVersionNumber').val(),
         ChangeLog: $('#txtVersionChangelog').val(),
         MinPlatformVersion: $('#txtVersionMinPlatform').val(),
+        MaxPlatformVersion: $('#txtVersionMaxPlatform').val(),
         IsLatest: $('#chkIsLatestVersion').is(':checked')
     };
     
@@ -541,6 +548,7 @@ function saveVersion() {
         formData.append('version', versionData.Version);
         formData.append('changeLog', versionData.ChangeLog);
         formData.append('minPlatformVersion', versionData.MinPlatformVersion);
+        formData.append('maxPlatformVersion', versionData.MaxPlatformVersion);
         formData.append('isLatest', versionData.IsLatest);
         
         // Téléversement avec timeout

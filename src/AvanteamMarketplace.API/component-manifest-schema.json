@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "displayName", "version"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom technique du composant (sans espaces, minuscules)",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Nom d'affichage du composant"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description détaillée du composant"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version du composant au format X.Y.Z",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+    },
+    "category": {
+      "type": "string",
+      "description": "Catégorie du composant"
+    },
+    "author": {
+      "type": "string",
+      "description": "Auteur du composant"
+    },
+    "minPlatformVersion": {
+      "type": "string",
+      "description": "Version minimale de Process Studio requise au format X.Y.Z",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+    },
+    "maxPlatformVersion": {
+      "type": "string",
+      "description": "Version maximale de Process Studio supportée au format X.Y.Z (optionnelle)",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+    },
+    "repositoryUrl": {
+      "type": "string",
+      "description": "URL du dépôt Git",
+      "format": "uri"
+    },
+    "requiresRestart": {
+      "type": "boolean",
+      "description": "Indique si l'installation nécessite un redémarrage de Process Studio",
+      "default": false
+    },
+    "targetPath": {
+      "type": "string",
+      "description": "Chemin d'installation cible dans Process Studio"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags du composant",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Dépendances du composant",
+      "items": {
+        "type": "object",
+        "required": ["name", "minVersion"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nom du composant requis"
+          },
+          "minVersion": {
+            "type": "string",
+            "description": "Version minimale requise",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+          },
+          "maxVersion": {
+            "type": "string",
+            "description": "Version maximale supportée (optionnelle)",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$"
+          },
+          "isRequired": {
+            "type": "boolean",
+            "description": "Indique si la dépendance est obligatoire",
+            "default": true
+          }
+        }
+      }
+    }
+  }
+}

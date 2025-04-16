@@ -40,9 +40,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
         {
             try
             {
-                // Récupérer tous les composants
+                // Récupérer tous les composants avec leurs versions
                 var components = await _context.Components
                     .Include(c => c.Tags)
+                    .Include(c => c.Versions)
                     .AsNoTracking()
                     .ToListAsync();
                 
@@ -57,10 +58,94 @@ namespace AvanteamMarketplace.Infrastructure.Services
                         .ToListAsync();
                 }
                 
-                // Filtrer les composants compatibles
-                var compatibleComponents = components
-                    .Where(c => _versionDetector.IsPlatformVersionSufficient(c.MinPlatformVersion, platformVersion))
-                    .ToList();
+                // Liste des composants compatibles à afficher
+                var compatibleComponentsList = new List<ComponentViewModel>();
+                
+                foreach (var component in components)
+                {
+                    // Récupérer la version installée, si elle existe
+                    var installInfo = installedComponents.FirstOrDefault(ic => ic.ComponentId == component.ComponentId);
+                    bool isInstalled = installInfo != null;
+                    string installedVersion = isInstalled ? installInfo?.Version : null;
+                    
+                    // Trouver la meilleure version compatible avec la version de plateforme
+                    var compatibleVersions = component.Versions
+                        .Where(v => 
+                            _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion) && 
+                            _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion ?? component.MaxPlatformVersion, platformVersion))
+                        .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    
+                    // Si aucune version compatible n'est trouvée, vérifier le composant principal
+                    if (!compatibleVersions.Any() && 
+                        _versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion) &&
+                        _versionDetector.IsPlatformVersionNotExceeded(component.MaxPlatformVersion, platformVersion))
+                    {
+                        // Ajouter le composant principal s'il est compatible
+                        compatibleComponentsList.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = component.Version,
+                            InstalledVersion = installedVersion,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = component.MinPlatformVersion,
+                            MaxPlatformVersion = component.MaxPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = isInstalled,
+                            HasUpdate = isInstalled && _versionDetector.CompareVersions(component.Version, installedVersion) > 0,
+                            IsCompatible = true,
+                            IsNoLongerSupported = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
+                        continue;
+                    }
+                    
+                    // Si des versions compatibles existent, prendre la plus récente
+                    if (compatibleVersions.Any())
+                    {
+                        var bestVersion = compatibleVersions.First(); // Version la plus récente compatible
+                        
+                        // Si cette version est déjà installée, ne pas l'afficher dans l'onglet Compatible
+                        // sauf si on n'a pas de mise à jour à proposer
+                        if (isInstalled && installedVersion == bestVersion.Version)
+                        {
+                            // Vérifier s'il y a une mise à jour future (gérée par GetUpdatesForClientAsync)
+                            bool hasFutureUpdate = component.Versions
+                                .Any(v => _versionDetector.CompareVersions(v.Version, installedVersion) > 0 && 
+                                       _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion));
+                            
+                            if (hasFutureUpdate)
+                                continue; // Ne pas afficher dans la liste des compatibles si une mise à jour est disponible
+                        }
+                        
+                        // Ajouter le composant avec sa meilleure version compatible
+                        compatibleComponentsList.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = bestVersion.Version,
+                            InstalledVersion = installedVersion,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = bestVersion.MinPlatformVersion ?? component.MinPlatformVersion,
+                            MaxPlatformVersion = bestVersion.MaxPlatformVersion ?? component.MaxPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = isInstalled,
+                            HasUpdate = isInstalled && _versionDetector.CompareVersions(bestVersion.Version, installedVersion) > 0,
+                            IsCompatible = true,
+                            IsNoLongerSupported = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
+                    }
+                }
                 
                 // Créer le ViewModel
                 var result = new ComponentsViewModel
@@ -69,45 +154,69 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     {
                         Version = platformVersion,
                         ClientId = clientId ?? "",
-                        ComponentsCount = compatibleComponents.Count,
+                        ComponentsCount = compatibleComponentsList.Count,
                         UpdatesCount = 0 // Sera calculé plus tard
                     }
                 };
                 
-                // Ajouter les composants au ViewModel
-                foreach (var component in compatibleComponents)
+                // Calculer le nombre de mises à jour disponibles
+                result.PlatformInfo.UpdatesCount = compatibleComponentsList.Count(c => c.HasUpdate);
+                
+                // Si le clientId est fourni, vérifier les composants installés qui ne sont plus compatibles
+                if (!string.IsNullOrEmpty(clientId))
                 {
-                    // Vérifier si le composant est installé par ce client
-                    var installInfo = installedComponents.FirstOrDefault(ic => ic.ComponentId == component.ComponentId);
-                    bool isInstalled = installInfo != null;
-                    bool hasUpdate = isInstalled && installInfo != null && _versionDetector.CompareVersions(component.Version, installInfo.Version) > 0;
-                    
-                    // Si on a détecté une mise à jour, incrementer le compteur
-                    if (hasUpdate)
+                    foreach (var installInfo in installedComponents)
                     {
-                        result.PlatformInfo.UpdatesCount++;
+                        // Vérifier si le composant est déjà dans la liste des compatibles
+                        if (compatibleComponentsList.Any(c => c.ComponentId == installInfo.ComponentId))
+                            continue;
+                            
+                        // Récupérer le composant correspondant
+                        var component = components.FirstOrDefault(c => c.ComponentId == installInfo.ComponentId);
+                        if (component == null) continue;
+                        
+                        // Récupérer la version installée pour vérifier si elle est encore compatible
+                        var installedVersion = component.Versions.FirstOrDefault(v => v.Version == installInfo.Version);
+                        bool isNoLongerSupported = false;
+                        
+                        if (installedVersion != null)
+                        {
+                            // Vérifier si le composant installé a une version maximale de Process Studio et si
+                            // la version actuelle de Process Studio la dépasse
+                            string? versionMaxPlatform = installedVersion.MaxPlatformVersion ?? component.MaxPlatformVersion;
+                            isNoLongerSupported = !string.IsNullOrEmpty(versionMaxPlatform) && 
+                                                   !_versionDetector.IsPlatformVersionNotExceeded(versionMaxPlatform, platformVersion);
+                            
+                            // Si le composant n'est plus supporté, l'ajouter à la liste avec une indication spéciale
+                            if (isNoLongerSupported)
+                            {
+                                compatibleComponentsList.Add(new ComponentViewModel
+                                {
+                                    ComponentId = component.ComponentId,
+                                    Name = component.Name,
+                                    DisplayName = component.DisplayName,
+                                    Description = component.Description,
+                                    Version = installInfo.Version,
+                                    InstalledVersion = installInfo.Version,
+                                    Category = component.Category,
+                                    Author = component.Author,
+                                    MinPlatformVersion = installedVersion.MinPlatformVersion ?? component.MinPlatformVersion,
+                                    MaxPlatformVersion = versionMaxPlatform,
+                                    RequiresRestart = component.RequiresRestart,
+                                    IsInstalled = true,
+                                    HasUpdate = false, // Il n'y a pas de mise à jour par définition
+                                    IsCompatible = false,
+                                    IsNoLongerSupported = true, // Indicateur important
+                                    Tags = component.Tags.Select(t => t.Tag).ToList(),
+                                    IconUrl = $"/images/{component.Name}.svg"
+                                });
+                            }
+                        }
                     }
-                    
-                    // Ajouter le composant au ViewModel
-                    result.Components.Add(new ComponentViewModel
-                    {
-                        ComponentId = component.ComponentId,
-                        Name = component.Name,
-                        DisplayName = component.DisplayName,
-                        Description = component.Description,
-                        Version = component.Version,
-                        InstalledVersion = isInstalled && installInfo != null ? installInfo.Version : null,
-                        Category = component.Category,
-                        Author = component.Author,
-                        MinPlatformVersion = component.MinPlatformVersion,
-                        RequiresRestart = component.RequiresRestart,
-                        IsInstalled = isInstalled,
-                        HasUpdate = hasUpdate,
-                        IsCompatible = true,
-                        Tags = component.Tags.Select(t => t.Tag).ToList(),
-                        IconUrl = $"/images/{component.Name}.svg"
-                    });
                 }
+                
+                // Ajouter les composants au ViewModel
+                result.Components = compatibleComponentsList;
                 
                 return result;
             }
@@ -139,9 +248,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     };
                 }
                 
-                // Récupérer tous les composants
+                // Récupérer tous les composants avec leurs versions
                 var components = await _context.Components
                     .Include(c => c.Tags)
+                    .Include(c => c.Versions)
                     .AsNoTracking()
                     .ToListAsync();
                 
@@ -152,19 +262,94 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     .AsNoTracking()
                     .ToListAsync();
                 
-                // Filtrer les composants compatibles qui ont des mises à jour
-                var componentsWithUpdates = new List<Component>();
+                // Analyser chaque composant installé pour trouver les mises à jour disponibles et compatibles
+                var componentUpdatesView = new List<ComponentViewModel>();
                 
-                foreach (var component in components)
+                foreach (var installInfo in installedComponents)
                 {
-                    var installInfo = installedComponents.FirstOrDefault(ic => ic.ComponentId == component.ComponentId);
+                    // Récupérer le composant correspondant
+                    var component = components.FirstOrDefault(c => c.ComponentId == installInfo.ComponentId);
+                    if (component == null) continue;
                     
-                    // Si le composant est installé et qu'il y a une mise à jour disponible
-                    if (installInfo != null && 
-                        _versionDetector.CompareVersions(component.Version, installInfo.Version) > 0 &&
-                        _versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion))
+                    // Vérifier si la version installée n'est plus compatible avec la version actuelle de Process Studio
+                    // (si une version maximale est définie et que la version actuelle la dépasse)
+                    var installedVersion = component.Versions.FirstOrDefault(v => v.Version == installInfo.Version);
+                    bool isNoLongerSupported = false;
+                    
+                    if (installedVersion != null)
                     {
-                        componentsWithUpdates.Add(component);
+                        // Vérifier si le composant installé a une version maximale de Process Studio et si
+                        // la version actuelle de Process Studio la dépasse
+                        string? versionMaxPlatform = installedVersion.MaxPlatformVersion ?? component.MaxPlatformVersion;
+                        isNoLongerSupported = !string.IsNullOrEmpty(versionMaxPlatform) && 
+                                               !_versionDetector.IsPlatformVersionNotExceeded(versionMaxPlatform, platformVersion);
+                    }
+                    
+                    // Trouver toutes les versions plus récentes que celle installée et compatibles avec la version de plateforme actuelle
+                    var newerCompatibleVersions = component.Versions
+                        .Where(v => _versionDetector.CompareVersions(v.Version, installInfo.Version) > 0 && 
+                               _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion) &&
+                               _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion ?? component.MaxPlatformVersion, platformVersion))
+                        .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                    
+                    // Si aucune version compatible n'est trouvée dans les versions spécifiques,
+                    // vérifier si la version principale du composant est compatible et plus récente
+                    if (!newerCompatibleVersions.Any() && 
+                        _versionDetector.CompareVersions(component.Version, installInfo.Version) > 0 &&
+                        _versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion) &&
+                        _versionDetector.IsPlatformVersionNotExceeded(component.MaxPlatformVersion, platformVersion))
+                    {
+                        // Ajouter le composant principal car c'est la meilleure mise à jour disponible
+                        componentUpdatesView.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = component.Version,
+                            InstalledVersion = installInfo.Version,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = component.MinPlatformVersion,
+                            MaxPlatformVersion = component.MaxPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = true,
+                            HasUpdate = true,
+                            IsCompatible = true,
+                            IsNoLongerSupported = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
+                        continue;
+                    }
+                    
+                    // Si des versions compatibles plus récentes existent, prendre la plus récente
+                    if (newerCompatibleVersions.Any())
+                    {
+                        var bestUpdate = newerCompatibleVersions.First(); // Version la plus récente compatible
+                        
+                        // Ajouter cette version comme mise à jour disponible
+                        componentUpdatesView.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = bestUpdate.Version,
+                            InstalledVersion = installInfo.Version,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = bestUpdate.MinPlatformVersion ?? component.MinPlatformVersion,
+                            MaxPlatformVersion = bestUpdate.MaxPlatformVersion ?? component.MaxPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = true,
+                            HasUpdate = true,
+                            IsCompatible = true,
+                            IsNoLongerSupported = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
                     }
                 }
                 
@@ -175,35 +360,13 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     {
                         Version = platformVersion,
                         ClientId = clientId,
-                        ComponentsCount = componentsWithUpdates.Count,
-                        UpdatesCount = componentsWithUpdates.Count
+                        ComponentsCount = componentUpdatesView.Count,
+                        UpdatesCount = componentUpdatesView.Count
                     }
                 };
                 
-                // Ajouter les composants au ViewModel
-                foreach (var component in componentsWithUpdates)
-                {
-                    var installInfo = installedComponents.First(ic => ic.ComponentId == component.ComponentId);
-                    
-                    result.Components.Add(new ComponentViewModel
-                    {
-                        ComponentId = component.ComponentId,
-                        Name = component.Name,
-                        DisplayName = component.DisplayName,
-                        Description = component.Description,
-                        Version = component.Version,
-                        InstalledVersion = installInfo.Version,
-                        Category = component.Category,
-                        Author = component.Author,
-                        MinPlatformVersion = component.MinPlatformVersion,
-                        RequiresRestart = component.RequiresRestart,
-                        IsInstalled = true,
-                        HasUpdate = true,
-                        IsCompatible = true,
-                        Tags = component.Tags.Select(t => t.Tag).ToList(),
-                        IconUrl = $"/images/{component.Name}.svg"
-                    });
-                }
+                // Ajouter les composants avec leurs mises à jour au ViewModel
+                result.Components = componentUpdatesView;
                 
                 return result;
             }
@@ -221,16 +384,93 @@ namespace AvanteamMarketplace.Infrastructure.Services
         {
             try
             {
-                // Récupérer tous les composants
+                // Récupérer tous les composants avec leurs versions
                 var components = await _context.Components
                     .Include(c => c.Tags)
+                    .Include(c => c.Versions)
                     .AsNoTracking()
                     .ToListAsync();
                 
-                // Filtrer les composants non compatibles avec la version actuelle
-                var futureComponents = components
-                    .Where(c => !_versionDetector.IsPlatformVersionSufficient(c.MinPlatformVersion, platformVersion))
-                    .ToList();
+                // Récupérer les installations du client si un ID client est fourni
+                var installedComponents = new List<InstalledComponent>();
+                if (!string.IsNullOrEmpty(clientId))
+                {
+                    installedComponents = await _context.InstalledComponents
+                        .Include(ic => ic.Installation)
+                        .Where(ic => ic.Installation.ClientIdentifier == clientId && ic.IsActive)
+                        .AsNoTracking()
+                        .ToListAsync();
+                }
+                
+                // Collecter tous les composants et versions qui nécessitent une version future
+                var futureComponentViews = new List<ComponentViewModel>();
+                
+                foreach (var component in components)
+                {
+                    // Récupérer la version installée, si elle existe
+                    var installInfo = installedComponents.FirstOrDefault(ic => ic.ComponentId == component.ComponentId);
+                    bool isInstalled = installInfo != null;
+                    string installedVersion = isInstalled ? installInfo?.Version : null;
+                    
+                    // Vérifier si le composant principal nécessite une version future de Process Studio
+                    bool componentRequiresFutureVersion = !_versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion);
+                    
+                    // Trouver toutes les versions futures (qui nécessitent une version plus récente de la plateforme)
+                    var futureVersions = component.Versions
+                        .Where(v => !_versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion))
+                        .OrderBy(v => v.MinPlatformVersion ?? component.MinPlatformVersion) // Ordre croissant des versions requises
+                        .ToList();
+                    
+                    // Si aucune version future spécifique n'est trouvée, mais que le composant principal nécessite une version future
+                    if (!futureVersions.Any() && componentRequiresFutureVersion)
+                    {
+                        // Ajouter le composant principal comme version future
+                        futureComponentViews.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = component.Version,
+                            InstalledVersion = installedVersion,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = component.MinPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = isInstalled,
+                            HasUpdate = false,
+                            IsCompatible = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
+                    }
+                    else if (futureVersions.Any())
+                    {
+                        // Prendre la version future nécessitant la version minimale de plateforme la plus basse
+                        // (la plus proche de la version actuelle du client)
+                        var nearestFutureVersion = futureVersions.First();
+                        
+                        // Ajouter cette version future
+                        futureComponentViews.Add(new ComponentViewModel
+                        {
+                            ComponentId = component.ComponentId,
+                            Name = component.Name,
+                            DisplayName = component.DisplayName,
+                            Description = component.Description,
+                            Version = nearestFutureVersion.Version,
+                            InstalledVersion = installedVersion,
+                            Category = component.Category,
+                            Author = component.Author,
+                            MinPlatformVersion = nearestFutureVersion.MinPlatformVersion ?? component.MinPlatformVersion,
+                            RequiresRestart = component.RequiresRestart,
+                            IsInstalled = isInstalled,
+                            HasUpdate = false,
+                            IsCompatible = false,
+                            Tags = component.Tags.Select(t => t.Tag).ToList(),
+                            IconUrl = $"/images/{component.Name}.svg"
+                        });
+                    }
+                }
                 
                 // Créer le ViewModel
                 var result = new ComponentsViewModel
@@ -239,32 +479,13 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     {
                         Version = platformVersion,
                         ClientId = clientId ?? "",
-                        ComponentsCount = futureComponents.Count,
+                        ComponentsCount = futureComponentViews.Count,
                         UpdatesCount = 0
                     }
                 };
                 
                 // Ajouter les composants au ViewModel
-                foreach (var component in futureComponents)
-                {
-                    result.Components.Add(new ComponentViewModel
-                    {
-                        ComponentId = component.ComponentId,
-                        Name = component.Name,
-                        DisplayName = component.DisplayName,
-                        Description = component.Description,
-                        Version = component.Version,
-                        Category = component.Category,
-                        Author = component.Author,
-                        MinPlatformVersion = component.MinPlatformVersion,
-                        RequiresRestart = component.RequiresRestart,
-                        IsInstalled = false,
-                        HasUpdate = false,
-                        IsCompatible = false,
-                        Tags = component.Tags.Select(t => t.Tag).ToList(),
-                        IconUrl = $"/images/{component.Name}.svg"
-                    });
-                }
+                result.Components = futureComponentViews;
                 
                 return result;
             }
@@ -1081,6 +1302,9 @@ namespace AvanteamMarketplace.Infrastructure.Services
             if (!string.IsNullOrEmpty(model.MinPlatformVersion))
                 component.MinPlatformVersion = model.MinPlatformVersion;
                 
+            if (!string.IsNullOrEmpty(model.MaxPlatformVersion))
+                component.MaxPlatformVersion = model.MaxPlatformVersion;
+                
             if (!string.IsNullOrEmpty(model.RecommendedPlatformVersion))
                 component.RecommendedPlatformVersion = model.RecommendedPlatformVersion;
                 
@@ -1464,7 +1688,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
             
             // Récupérer la dernière version compatible avec le client
             var latestVersion = component.Versions
-                .Where(v => _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion, platformVersion))
+                .Where(v => _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion, platformVersion) &&
+                       _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion, platformVersion))
                 .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
                 .FirstOrDefault();
                 
@@ -1515,6 +1740,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 AvailableVersion = latestVersion.Version,
                 InstalledVersion = installedVersion,
                 MinPlatformVersion = latestVersion.MinPlatformVersion ?? component.MinPlatformVersion,
+                MaxPlatformVersion = latestVersion.MaxPlatformVersion ?? component.MaxPlatformVersion,
                 DownloadUrl = latestVersion.PackageUrl ?? component.PackageUrl,
                 ChangeLog = latestVersion.ChangeLog ?? latestVersion.ReleaseNotes ?? "Mise à jour disponible",
                 RequiresRestart = component.RequiresRestart,
@@ -1553,7 +1779,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 DownloadUrl = v.PackageUrl ?? "",
                 DownloadCount = _context.ComponentDownloads.Count(cd => cd.ComponentId == componentId && cd.Version == v.Version),
                 IsLatest = v.IsLatest,
-                MinPlatformVersion = v.MinPlatformVersion ?? ""
+                MinPlatformVersion = v.MinPlatformVersion ?? "",
+                MaxPlatformVersion = v.MaxPlatformVersion
             }).OrderByDescending(v => v.ReleaseDate).ToList();
         }
         catch (Exception ex)
@@ -1587,7 +1814,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 DownloadUrl = version.PackageUrl ?? "",
                 DownloadCount = _context.ComponentDownloads.Count(cd => cd.ComponentId == version.ComponentId && cd.Version == version.Version),
                 IsLatest = version.IsLatest,
-                MinPlatformVersion = version.MinPlatformVersion ?? ""
+                MinPlatformVersion = version.MinPlatformVersion ?? "",
+                MaxPlatformVersion = version.MaxPlatformVersion
             };
         }
         catch (Exception ex)
@@ -1733,6 +1961,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
             version.Version = model.Version;
             version.ChangeLog = model.ChangeLog;
             version.MinPlatformVersion = model.MinPlatformVersion;
+            version.MaxPlatformVersion = model.MaxPlatformVersion;
             
             if (!string.IsNullOrEmpty(model.PackageUrl))
             {
@@ -1750,6 +1979,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 var component = version.Component;
                 component.Version = model.Version;
                 component.MinPlatformVersion = model.MinPlatformVersion;
+                component.MaxPlatformVersion = model.MaxPlatformVersion;
                 component.UpdatedDate = DateTime.UtcNow;
                 
                 // IMPORTANT: Ne mettre à jour PackageUrl que si le modèle a une valeur non vide

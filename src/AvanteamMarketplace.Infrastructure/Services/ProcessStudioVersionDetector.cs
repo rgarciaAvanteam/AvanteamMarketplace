@@ -31,6 +31,19 @@ namespace AvanteamMarketplace.Infrastructure.Services
         }
         
         /// <summary>
+        /// Vérifie si une version de plateforme ne dépasse pas la version maximale supportée par un composant
+        /// </summary>
+        public bool IsPlatformVersionNotExceeded(string? maxPlatformVersion, string platformVersion)
+        {
+            // Si pas de version max définie, le composant n'a pas de limite supérieure
+            if (string.IsNullOrEmpty(maxPlatformVersion))
+                return true;
+                
+            // La version de plateforme ne doit pas être supérieure à la version max
+            return CompareVersions(platformVersion, maxPlatformVersion) <= 0;
+        }
+        
+        /// <summary>
         /// Vérifie si une version de plateforme est recommandée pour un composant
         /// </summary>
         public bool IsPlatformVersionRecommended(string recommendedPlatformVersion, string platformVersion)

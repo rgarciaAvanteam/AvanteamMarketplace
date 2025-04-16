@@ -18,6 +18,11 @@ namespace AvanteamMarketplace.Core.Services
         bool IsPlatformVersionSufficient(string minPlatformVersion, string platformVersion);
         
         /// <summary>
+        /// Vérifie si une version de plateforme ne dépasse pas la version maximale supportée par un composant
+        /// </summary>
+        bool IsPlatformVersionNotExceeded(string? maxPlatformVersion, string platformVersion);
+        
+        /// <summary>
         /// Vérifie si une version de plateforme est recommandée pour un composant
         /// </summary>
         bool IsPlatformVersionRecommended(string recommendedPlatformVersion, string platformVersion);

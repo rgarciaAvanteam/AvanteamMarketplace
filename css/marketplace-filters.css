@@ -1,0 +1,364 @@
+/**
+ * Avanteam Marketplace - Styles pour le système de filtrage amélioré
+ * Design optimisé pour réduire l'espace vertical occupé
+ */
+
+/* Container principal - utilisation de grid pour avoir les filtres à droite */
+.marketplace-container {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Barre de filtrage horizontale */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+    min-height: 36px;
+}
+
+/* Bouton de filtrage */
+.filter-toggle {
+    padding: 8px 15px;
+    background-color: #e8f0fe;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    color: #1a73e8;
+    user-select: none;
+    margin-left: 10px;
+    white-space: nowrap;
+    height: 34px; /* Hauteur fixe pour correspondre au champ de recherche */
+}
+
+.filter-toggle i {
+    margin-right: 8px;
+}
+
+.filter-toggle:hover {
+    background-color: #d4e3fc;
+}
+
+.filter-toggle.active {
+    background-color: #d4e3fc;
+    color: #0d66d0;
+}
+
+/* Panneau de filtres (latéral) */
+.filter-panel {
+    position: absolute;
+    top: 0;
+    right: -350px;
+    width: 300px;
+    height: 100%;
+    background-color: #fff;
+    border-left: 1px solid #ddd;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: right 0.3s ease;
+    z-index: 1000;
+}
+
+.filter-panel.active {
+    right: 0;
+}
+
+.filter-panel-header {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+}
+
+.filter-panel-header h3 {
+    margin: 0;
+    color: #1a73e8;
+    font-size: 18px;
+}
+
+.filter-count {
+    color: #666;
+    font-size: 14px;
+}
+
+.filter-close {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+}
+
+.filter-close:hover {
+    color: #1a73e8;
+}
+
+/* Onglets du panneau de filtres */
+.filter-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+}
+
+.filter-tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s ease;
+    border-bottom: 3px solid transparent;
+    flex: 1;
+    text-align: center;
+}
+
+.filter-tab:hover {
+    color: #1a73e8;
+}
+
+.filter-tab.active {
+    color: #1a73e8;
+    border-bottom-color: #1a73e8;
+    background-color: #fff;
+}
+
+/* Contenu des onglets */
+.filter-tab-content {
+    display: none;
+    padding: 15px;
+    height: calc(100vh - 190px);
+    overflow-y: auto;
+}
+
+.filter-tab-content.active {
+    display: block;
+}
+
+.filter-empty {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px 0;
+}
+
+/* Liste des filtres */
+.filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-item {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.filter-item:hover {
+    background-color: #e4eaf4;
+}
+
+.filter-item.active {
+    background-color: #e4eaf4;
+    color: #0d66d0;
+    border-left: 3px solid #1a73e8;
+}
+
+.filter-item i {
+    margin-right: 8px;
+    color: #1a73e8;
+}
+
+.filter-label {
+    flex: 1;
+}
+
+.filter-item-count {
+    font-size: 12px;
+    color: #666;
+    background: #e8e8e8;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+/* Puces de filtres actifs */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e8f0fe;
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: #1a73e8;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    user-select: none;
+}
+
+.filter-chip .filter-type {
+    font-weight: 500;
+    margin-right: 5px;
+    color: #666;
+}
+
+.filter-chip .filter-value {
+    font-weight: 500;
+}
+
+.filter-chip .remove-filter {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 8px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-chip .remove-filter:hover {
+    color: #dc3545;
+}
+
+/* Style spécifique pour chaque type de filtre */
+.filter-chip.category {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.filter-chip.tag {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.filter-chip.version {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* Bouton pour effacer tous les filtres */
+.clear-filters-btn {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Overlay pour le panneau latéral sur mobile */
+.filter-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+.filter-overlay.active {
+    display: block;
+}
+
+/* Puces pour indiquer le nombre de filtres actifs */
+.active-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #1a73e8;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+/* Ajuster l'espacement entre le bouton de filtres et la recherche */
+.marketplace-search {
+    flex: 1;
+    margin: 0;
+}
+
+/* Ajustements pour le champ de recherche */
+.marketplace-search input[type="text"] {
+    height: 34px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filter-panel {
+        width: 85%;
+        right: -100%;
+    }
+    
+    .filter-toggle {
+        padding: 6px 12px;
+        font-size: 13px;
+        height: 32px;
+    }
+
+    .filter-bar {
+        flex-wrap: wrap;
+    }
+    
+    .filter-chips-container {
+        width: 100%;
+        margin-bottom: 8px;
+        order: 2;
+    }
+    
+    .marketplace-search {
+        flex: none;
+        width: 60%;
+        order: 1;
+    }
+    
+    .marketplace-search input[type="text"] {
+        height: 32px;
+    }
+    
+    .filter-toggle {
+        order: 1;
+        margin-left: auto;
+    }
+}

@@ -136,13 +136,29 @@ function getDisplayVersionWithContext(component) {
  * @param {number} componentId - ID du composant
  */
 function loadComponentIcon(componentId) {
+    // Vérifier si l'icône est déjà chargée
+    const existingIcon = document.getElementById(`icon-${componentId}`);
+    if (existingIcon && existingIcon.complete && existingIcon.naturalWidth > 0 && 
+        !existingIcon.src.includes('data:image/svg+xml;base64')) {
+        // L'icône est déjà chargée correctement et n'est pas l'icône par défaut
+        return;
+    }
+    
+    // Utiliser le ConfigManager pour obtenir les configurations
+    const url = ConfigManager.getApiUrl();
+    const key = ConfigManager.getApiKey();
+    
+    if (!url || !key) {
+        return;
+    }
+    
     // Construire l'URL de l'icône du composant
-    const iconUrl = `${apiUrl}/components/${componentId}/icon`;
+    const iconUrl = `${url}/components/${componentId}/icon`;
     
     // Effectuer la requête avec l'en-tête d'autorisation
     fetch(iconUrl, {
         headers: {
-            'Authorization': `Bearer ${apiKey}`
+            'Authorization': `Bearer ${key}`
         }
     })
     .then(response => {
@@ -159,166 +175,281 @@ function loadComponentIcon(componentId) {
             const iconElement = document.getElementById(`icon-${componentId}`);
             if (iconElement) {
                 iconElement.src = reader.result;
-                console.log(`Icône chargée avec succès pour le composant ${componentId}`);
             }
         };
         reader.readAsDataURL(blob);
     })
     .catch(error => {
-        console.error(`Erreur lors du chargement de l'icône pour le composant ${componentId}:`, error);
         // En cas d'échec, laisser l'icône par défaut
     });
 }
 
 /**
- * Affiche les composants dans un onglet
+ * Module MarketplaceComponents pour gérer les composants et les filtres
+ */
+const MarketplaceComponents = (function() {
+    // Variable interne pour stocker les composants filtrés par onglet
+    let filteredComponents = {
+        compatible: [],
+        updates: [],
+        future: []
+    };
+    
+    // Stocke les composants originaux pour pouvoir réinitialiser les filtres
+    let originalComponents = {
+        compatible: [],
+        updates: [],
+        future: []
+    };
+    
+    /**
+     * Initialise le module avec les données des composants
+     * @param {string} tabName - Nom de l'onglet
+     * @param {Array} components - Liste des composants
+     */
+    function initComponents(tabName, components) {
+        // Normaliser les composants
+        let normalizedComponents = normalizeComponentData(components);
+        
+        // Stocker les composants originaux
+        originalComponents[tabName] = [...normalizedComponents];
+        
+        // Initialiser les composants filtrés avec tous les composants
+        filteredComponents[tabName] = [...normalizedComponents];
+        
+        // Si c'est l'onglet compatible (principal), initialiser les filtres
+        if (tabName === 'compatible' && typeof MarketplaceFilters !== 'undefined') {
+            try {
+                // Initialiser l'interface des filtres
+                MarketplaceFilters.init();
+                
+                // Extraire les filtres après un court délai pour s'assurer que le DOM est prêt
+                setTimeout(() => {
+                    MarketplaceFilters.extractFilters(normalizedComponents);
+                }, 300);
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation des filtres:", error);
+            }
+        }
+        
+        // Render les composants
+        renderComponentsInternal(tabName, normalizedComponents);
+    }
+    
+    /**
+     * Normalise les données des composants en fonction du format de l'API
+     * @param {Array|Object} components - Données des composants à normaliser
+     * @returns {Array} - Tableau normalisé de composants
+     */
+    function normalizeComponentData(components) {
+        // Vérification et conversion des données si nécessaire
+        if (!components) {
+            return [];
+        }
+        
+        // Si l'API renvoie un objet avec une propriété 'items' ou similaire, essayer de l'extraire
+        if (!Array.isArray(components)) {
+            console.log('Normalisation des données (non tableau):', components);
+            
+            // Format spécifique de .NET avec $values
+            if (components.components && components.components.$values && Array.isArray(components.components.$values)) {
+                console.log("Utilisation du format .NET $values");
+                return components.components.$values;
+            }
+            // Autres formats courants
+            else if (components.items && Array.isArray(components.items)) {
+                return components.items;
+            } else if (components.components && Array.isArray(components.components)) {
+                return components.components;
+            } else if (components.data && Array.isArray(components.data)) {
+                return components.data;
+            } else {
+                console.error('Format de réponse API non pris en charge:', components);
+                return [];
+            }
+        }
+        
+        return components;
+    }
+    
+    /**
+     * Filtre les composants selon une fonction de filtre personnalisée
+     * @param {Function} filterFunc - Fonction de filtrage qui prend un composant et retourne un booléen
+     */
+    function filterComponents(filterFunc) {
+        // Appliquer le filtre à chaque onglet
+        for (const tabName in filteredComponents) {
+            filteredComponents[tabName] = originalComponents[tabName].filter(filterFunc);
+            
+            // Render les composants filtrés
+            renderComponentsInternal(tabName, filteredComponents[tabName]);
+        }
+    }
+    
+    /**
+     * Réinitialise les filtres et affiche tous les composants
+     */
+    function resetComponentsFilter() {
+        // Réinitialiser les composants filtrés
+        for (const tabName in filteredComponents) {
+            filteredComponents[tabName] = [...originalComponents[tabName]];
+            
+            // Render les composants originaux
+            renderComponentsInternal(tabName, originalComponents[tabName]);
+        }
+    }
+    
+    /**
+     * Retourne le nombre de composants visibles dans l'onglet actif
+     * @returns {number} - Nombre de composants visibles
+     */
+    function getVisibleComponentsCount() {
+        // Déterminer l'onglet actif
+        const activeTab = document.querySelector('.tab-content.active');
+        if (!activeTab) return 0;
+        
+        const tabId = activeTab.id;
+        const tabName = tabId.replace('-tab', '');
+        
+        return filteredComponents[tabName] ? filteredComponents[tabName].length : 0;
+    }
+    
+    /**
+     * Version interne de renderComponents qui utilise les composants filtrés
+     * @param {string} tabName - Nom de l'onglet
+     * @param {Array} components - Liste des composants à afficher
+     */
+    function renderComponentsInternal(tabName, components) {
+        const container = document.getElementById(`${tabName}-components`);
+        
+        if (!container) {
+            console.error(`Conteneur pour l'onglet ${tabName} non trouvé`);
+            return;
+        }
+        
+        if (!components || components.length === 0) {
+            container.innerHTML = '<div class="empty-message">Aucun composant disponible dans cette catégorie</div>';
+            return;
+        }
+        
+        let html = '';
+        
+        components.forEach(component => {
+            // Pour les icônes, nous allons utiliser une méthode alternative - URL de données encodées en base64
+            // car les images ne peuvent pas envoyer d'en-têtes d'autorisation
+            const iconPath = `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSIxMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMjggMzUgTDcyIDM1IiBzdHJva2U9IiMwZDZlZmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI4IDUwIEw3MiA1MCIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCA2NSBMNTIgNjUiIHN0cm9rZT0iIzBkNmVmZCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI3NSIgY3k9IjY1IiByPSI1IiBmaWxsPSIjMGQ2ZWZkIi8+PC9zdmc+`;
+            
+            // Parallèlement, nous allons essayer de charger dynamiquement l'icône du composant
+            loadComponentIcon(component.componentId);
+            
+            // Utiliser l'icône par défaut intégrée en attendant
+            const icon = iconPath;
+            
+            // Déterminer le bouton d'action en fonction du statut d'installation
+            let actionButton = '';
+            let statusBadge = '';
+            
+            if (component.isInstalled) {
+                // Composant déjà installé
+                statusBadge = `<span class="component-status installed">Installé</span>`;
+                
+                if (tabName === 'updates') {
+                    // Mise à jour disponible pour un composant installé
+                    // Utiliser la dernière version compatible avec la version actuelle de Process Studio
+                    const latestCompatibleVersion = getLatestCompatibleVersion(component);
+                    actionButton = `
+                        <button type="button" class="btn btn-update" data-id="${component.componentId}" onclick="installComponent(${component.componentId}, '${latestCompatibleVersion}')">Mettre à jour</button>
+                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
+                    `;
+                } else {
+                    // Composant installé sans mise à jour disponible
+                    actionButton = `
+                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
+                    `;
+                }
+            } else {
+                // Composant non installé
+                if (tabName === 'compatible') {
+                    actionButton = `<button type="button" class="btn btn-install" data-id="${component.componentId}" onclick="installComponent(${component.componentId}, '${component.version}')">Installer</button>`;
+                } else if (tabName === 'future') {
+                    actionButton = `<button type="button" class="btn btn-disabled" disabled>Nécessite PS ${component.minPlatformVersion}+</button>`;
+                }
+            }
+            
+            // Créer la carte du composant
+            html += `
+                <div class="component-card${component.isInstalled ? ' installed' : ''}" data-id="${component.componentId}">
+                    <div class="component-icon">
+                        <img src="${icon}" alt="${component.displayName}" id="icon-${component.componentId}" class="component-icon-img" />
+                        ${statusBadge}
+                    </div>
+                    <div class="component-details">
+                        <div class="component-title-wrapper">
+                            <h3 class="component-name">${component.displayName}</h3>
+                            ${component.isInstalled ? `<button type="button" class="btn-icon help-icon" title="Voir la documentation" data-id="${component.componentId}" onclick="showComponentReadme(${component.componentId})"><i class="fas fa-question-circle"></i></button>` : ''}
+                        </div>
+                        <p class="component-description">${component.description}</p>
+                        <div class="component-meta">
+                            <span class="component-version">v${getDisplayVersion(component, tabName)}</span>
+                            <span class="component-category">${component.category}</span>
+                            ${component.isInstalled && component.hasUpdate ? '<span class="component-update-badge">Mise à jour disponible</span>' : ''}
+                            ${component.maxPlatformVersion && parseFloat(component.maxPlatformVersion) <= parseFloat(platformVersion) ? 
+                              `<span class="component-max-version-badge">Non supporté après PS ${component.maxPlatformVersion}</span>` : 
+                              ''}
+                            ${component.tagsArray && Array.isArray(component.tagsArray) && component.tagsArray.length > 0 ? `
+                            <div class="component-tags">
+                                ${component.tagsArray.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                                ${component.tagsArray.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                            </div>
+                            ` : 
+                            component.tags && Array.isArray(component.tags) && component.tags.length > 0 ? `
+                            <div class="component-tags">
+                                ${component.tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                                ${component.tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                            </div>
+                            ` : 
+                            component.tags && component.tags.$values && Array.isArray(component.tags.$values) ? `
+                            <div class="component-tags">
+                                ${component.tags.$values.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                                ${component.tags.$values.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                            </div>
+                            ` : 
+                            component.Tags && Array.isArray(component.Tags) && component.Tags.length > 0 ? `
+                            <div class="component-tags">
+                                ${component.Tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
+                                ${component.Tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="component-actions">
+                        <button type="button" class="btn btn-info" data-id="${component.componentId}" onclick="showComponentDetails(${component.componentId})">Détails</button>
+                        ${actionButton}
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    // API publique
+    return {
+        initComponents: initComponents,
+        filterComponents: filterComponents,
+        resetComponentsFilter: resetComponentsFilter,
+        getVisibleComponentsCount: getVisibleComponentsCount
+    };
+})();
+
+/**
+ * Affiche les composants dans un onglet (fonction de compatibilité)
  * @param {string} tabName - Nom de l'onglet
  * @param {Array} components - Liste des composants à afficher
  */
 function renderComponents(tabName, components) {
-    const container = document.getElementById(`${tabName}-components`);
-    
-    // Vérification et conversion des données si nécessaire
-    if (!components) {
-        container.innerHTML = '<div class="empty-message">Aucun composant disponible dans cette catégorie</div>';
-        return;
-    }
-    
-    // Si l'API renvoie un objet avec une propriété 'items' ou similaire, essayer de l'extraire
-    if (!Array.isArray(components)) {
-        console.log('Réponse API (non tableau):', components);
-        
-        // Format spécifique de .NET avec $values
-        if (components.components && components.components.$values && Array.isArray(components.components.$values)) {
-            console.log("Utilisation du format .NET $values");
-            components = components.components.$values;
-        }
-        // Autres formats courants
-        else if (components.items && Array.isArray(components.items)) {
-            components = components.items;
-        } else if (components.components && Array.isArray(components.components)) {
-            components = components.components;
-        } else if (components.data && Array.isArray(components.data)) {
-            components = components.data;
-        } else {
-            // Si on ne peut pas trouver de tableau, afficher un message plus informatif
-            console.error('Format de réponse API non pris en charge:', components);
-            
-            // Afficher un message plus convivial indiquant que le système fonctionne mais qu'il n'y a pas de composants
-            if (components.platformInfo && components.platformInfo.componentsCount === 0) {
-                container.innerHTML = '<div class="empty-message">Aucun composant disponible dans cette catégorie.</div>';
-            } else {
-                container.innerHTML = '<div class="error-message">Format de données non reconnu</div>';
-            }
-            return;
-        }
-    }
-    
-    if (components.length === 0) {
-        container.innerHTML = '<div class="empty-message">Aucun composant disponible dans cette catégorie</div>';
-        return;
-    }
-    
-    let html = '';
-    
-    components.forEach(component => {
-        // Pour les icônes, nous allons utiliser une méthode alternative - URL de données encodées en base64
-        // car les images ne peuvent pas envoyer d'en-têtes d'autorisation
-        const iconPath = `data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSIxMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMjggMzUgTDcyIDM1IiBzdHJva2U9IiMwZDZlZmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI4IDUwIEw3MiA1MCIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCA2NSBMNTIgNjUiIHN0cm9rZT0iIzBkNmVmZCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI3NSIgY3k9IjY1IiByPSI1IiBmaWxsPSIjMGQ2ZWZkIi8+PC9zdmc+`;
-        console.log("Utilisation d'une icône SVG par défaut intégrée");
-        
-        // Parallèlement, nous allons essayer de charger dynamiquement l'icône du composant
-        loadComponentIcon(component.componentId);
-        
-        // Utiliser l'icône par défaut intégrée en attendant
-        const icon = iconPath;
-        
-        // Déterminer le bouton d'action en fonction du statut d'installation
-        let actionButton = '';
-        let statusBadge = '';
-        
-        if (component.isInstalled) {
-            // Composant déjà installé
-            statusBadge = `<span class="component-status installed">Installé</span>`;
-            
-            if (tabName === 'updates') {
-                // Mise à jour disponible pour un composant installé
-                // Utiliser la dernière version compatible avec la version actuelle de Process Studio
-                const latestCompatibleVersion = getLatestCompatibleVersion(component);
-                actionButton = `
-                    <button type="button" class="btn btn-update" data-id="${component.componentId}" onclick="installComponent(${component.componentId}, '${latestCompatibleVersion}')">Mettre à jour</button>
-                    <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
-                `;
-            } else {
-                // Composant installé sans mise à jour disponible
-                actionButton = `
-                    <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
-                `;
-            }
-        } else {
-            // Composant non installé
-            if (tabName === 'compatible') {
-                actionButton = `<button type="button" class="btn btn-install" data-id="${component.componentId}" onclick="installComponent(${component.componentId}, '${component.version}')">Installer</button>`;
-            } else if (tabName === 'future') {
-                actionButton = `<button type="button" class="btn btn-disabled" disabled>Nécessite PS ${component.minPlatformVersion}+</button>`;
-            }
-        }
-        
-        // Créer la carte du composant
-        html += `
-            <div class="component-card${component.isInstalled ? ' installed' : ''}" data-id="${component.componentId}">
-                <div class="component-icon">
-                    <img src="${icon}" alt="${component.displayName}" id="icon-${component.componentId}" class="component-icon-img" />
-                    ${statusBadge}
-                </div>
-                <div class="component-details">
-                    <div class="component-title-wrapper">
-                        <h3 class="component-name">${component.displayName}</h3>
-                        ${component.isInstalled ? `<button type="button" class="btn-icon help-icon" title="Voir la documentation" data-id="${component.componentId}" onclick="showComponentReadme(${component.componentId})"><i class="fas fa-question-circle"></i></button>` : ''}
-                    </div>
-                    <p class="component-description">${component.description}</p>
-                    <div class="component-meta">
-                        <span class="component-version">v${getDisplayVersion(component, tabName)}</span>
-                        <span class="component-category">${component.category}</span>
-                        ${component.isInstalled && component.hasUpdate ? '<span class="component-update-badge">Mise à jour disponible</span>' : ''}
-                        ${component.maxPlatformVersion && parseFloat(component.maxPlatformVersion) <= parseFloat(platformVersion) ? 
-                          `<span class="component-max-version-badge">Non supporté après PS ${component.maxPlatformVersion}</span>` : 
-                          ''}
-                        ${component.tagsArray && Array.isArray(component.tagsArray) && component.tagsArray.length > 0 ? `
-                        <div class="component-tags">
-                            ${component.tagsArray.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
-                            ${component.tagsArray.length > 2 ? '<span class="component-tag">...</span>' : ''}
-                        </div>
-                        ` : 
-                        component.tags && Array.isArray(component.tags) && component.tags.length > 0 ? `
-                        <div class="component-tags">
-                            ${component.tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
-                            ${component.tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
-                        </div>
-                        ` : 
-                        component.tags && component.tags.$values && Array.isArray(component.tags.$values) ? `
-                        <div class="component-tags">
-                            ${component.tags.$values.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
-                            ${component.tags.$values.length > 2 ? '<span class="component-tag">...</span>' : ''}
-                        </div>
-                        ` : 
-                        component.Tags && Array.isArray(component.Tags) && component.Tags.length > 0 ? `
-                        <div class="component-tags">
-                            ${component.Tags.slice(0, 2).map(tag => `<span class="component-tag">${tag}</span>`).join('')}
-                            ${component.Tags.length > 2 ? '<span class="component-tag">...</span>' : ''}
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="component-actions">
-                    <button type="button" class="btn btn-info" data-id="${component.componentId}" onclick="showComponentDetails(${component.componentId})">Détails</button>
-                    ${actionButton}
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
+    // Utiliser le module MarketplaceComponents pour initialiser les composants
+    MarketplaceComponents.initComponents(tabName, components);
 }
 
 /**
@@ -634,13 +765,11 @@ function createComponentDetailsModal(component) {
             const iconElement = document.getElementById(`modal-icon-${component.componentId}`);
             if (iconElement) {
                 iconElement.src = reader.result;
-                console.log(`Icône modale chargée avec succès pour le composant ${component.componentId}`);
             }
         };
         reader.readAsDataURL(blob);
     })
     .catch(error => {
-        console.error(`Erreur lors du chargement de l'icône modale pour le composant ${component.componentId}:`, error);
         // En cas d'échec, laisser l'icône par défaut
     });
 }
@@ -695,10 +824,9 @@ function showComponentReadme(componentId) {
         // Tentative d'accès à la variable BaseSite du parent
         if (window.top && typeof window.top.BaseSite !== 'undefined') {
             basePath = window.top.BaseSite;
-            console.log("Utilisation de window.top.BaseSite:", basePath);
         }
     } catch (e) {
-        console.error("Erreur lors de l'accès à window.top.BaseSite:", e);
+        // Erreur silencieuse - utiliser le chemin par défaut
     }
     
     // Supprimer le slash final s'il existe pour éviter les doubles slashes

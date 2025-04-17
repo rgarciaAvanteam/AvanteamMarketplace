@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title><asp:Literal runat="server" Text="<%$ Resources:MarketplaceTitle %>" /></title>
     <link href="css/marketplace.css" rel="stylesheet" type="text/css" />
+    <link href="css/marketplace-filters.css" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -50,17 +51,40 @@
         </div>
         
         <!-- Valeurs pour JavaScript -->
-        <asp:HiddenField ID="hfPlatformVersion" runat="server" />
-        <asp:HiddenField ID="hfApiUrl" runat="server" />
-        <asp:HiddenField ID="hfApiKey" runat="server" />
-        <asp:HiddenField ID="hfClientId" runat="server" />
+        <asp:HiddenField ID="hfPlatformVersion" runat="server" Value="<%= PlatformVersion %>" />
+        <asp:HiddenField ID="hfApiUrl" runat="server" Value="<%= ApiUrl %>" />
+        <asp:HiddenField ID="hfApiKey" runat="server" Value="<%= ApiKey %>" />
+        <asp:HiddenField ID="hfClientId" runat="server" Value="<%= ClientId %>" />
         
+        <!-- Stocker la configuration dans localStorage pour prévenir les pertes dans les iframes -->
         <script type="text/javascript">
             // Configuration pour le JavaScript
             var platformVersion = '<%= PlatformVersion %>';
             var apiUrl = '<%= ApiUrl %>';
             var apiKey = '<%= ApiKey %>';
             var clientId = '<%= ClientId %>';
+            
+            // IMMÉDIATEMENT stocker les valeurs dans l'objet window
+            window.platformVersion = platformVersion;
+            window.apiUrl = apiUrl;
+            window.apiKey = apiKey;
+            window.clientId = clientId;
+            
+            // Stocker également dans localStorage pour récupération entre les rechargements/iframes
+            try {
+                // Vérifier que localStorage est disponible
+                if (window.localStorage) {
+                    localStorage.setItem('marketplace_platformVersion', platformVersion);
+                    localStorage.setItem('marketplace_apiUrl', apiUrl);
+                    localStorage.setItem('marketplace_apiKey', apiKey);
+                    localStorage.setItem('marketplace_clientId', clientId);
+                    localStorage.setItem('marketplace_configTimestamp', new Date().getTime());
+                }
+            } catch (e) {
+                // Erreur silencieuse
+            }
+            
+            // Configuration chargée, nous n'avons plus besoin d'indicateur visuel
         </script>
         <script src="js/marketplace/marketplace.js" type="text/javascript"></script>
     </form>

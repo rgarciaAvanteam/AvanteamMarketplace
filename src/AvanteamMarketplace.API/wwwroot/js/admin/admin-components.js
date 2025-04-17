@@ -139,6 +139,24 @@ function displayComponents(components) {
         const componentName = $(this).data("name");
         showVersionPanel(componentId, componentName);
     });
+    
+    // Gérer le clic sur une ligne du tableau des composants pour rafraîchir le panneau des versions
+    $("#componentsTable tbody tr").click(function(e) {
+        // Ne pas déclencher si on a cliqué sur un bouton d'action
+        if ($(e.target).hasClass('action-btn') || $(e.target).closest('.action-buttons').length) {
+            return;
+        }
+        
+        // Si le panneau des versions est ouvert, le rafraîchir avec le composant sélectionné
+        if ($("#versionManagementPanel").hasClass("active") && currentComponentId) {
+            const componentId = $(this).find(".action-btn-versions").data("id");
+            const componentName = $(this).find(".action-btn-versions").data("name");
+            
+            if (componentId && componentName) {
+                showVersionPanel(componentId, componentName);
+            }
+        }
+    });
 }
 
 // Recherche de composants

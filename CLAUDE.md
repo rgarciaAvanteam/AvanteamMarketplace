@@ -19,6 +19,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Implemented version editing functionality (previously broken)
 - Improved UI responsiveness for file selection dialogs
 - Added documentation for resolving path-related deployment errors
+- Added version panel refresh when selecting different components in admin UI
+- Implemented graphical chart showing version distribution by client
+- Fixed search field icon display issues in version usage table
 
 ## Code Style Guidelines
 - C# Code:

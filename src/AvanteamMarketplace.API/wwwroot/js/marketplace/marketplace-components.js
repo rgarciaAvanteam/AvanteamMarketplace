@@ -393,6 +393,7 @@ const MarketplaceComponents = (function() {
                             <span class="component-version">v${getDisplayVersion(component, tabName)}</span>
                             <span class="component-category">${component.category}</span>
                             ${component.isInstalled && component.hasUpdate ? '<span class="component-update-badge">Mise à jour disponible</span>' : ''}
+                            ${tabName === 'future' && component.minPlatformVersion ? `<span class="component-future-badge">Nécessite PS ${component.minPlatformVersion}+</span>` : ''}
                             ${component.maxPlatformVersion && parseFloat(component.maxPlatformVersion) <= parseFloat(platformVersion) ? 
                               `<span class="component-max-version-badge">Non supporté après PS ${component.maxPlatformVersion}</span>` : 
                               ''}

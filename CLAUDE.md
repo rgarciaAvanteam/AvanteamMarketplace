@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Update CORS config: `.\scripts\update-cors-config.ps1`
 
 ## Recent Improvements (April 2025)
+- Fixed minimum version badge display on component cards in "Prochainement" tab
 - Fixed MinPlatformVersion property display in component versions table
 - Added missing CSS styles for action buttons in versions table
 - Implemented version editing functionality (previously broken)
@@ -22,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Added version panel refresh when selecting different components in admin UI
 - Implemented graphical chart showing version distribution by client
 - Fixed search field icon display issues in version usage table
+- Added advanced filtering system for marketplace components by category, tags, and version
 
 ## Code Style Guidelines
 - C# Code:

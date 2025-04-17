@@ -52,7 +52,7 @@ namespace AvanteamMarketplace.API.Authentication
             return keyEntity?.IsAdmin ?? false;
         }
 
-        public async Task RegisterApiKeyAsync(string apiKey, string clientId, string baseUrl)
+        public async Task RegisterApiKeyAsync(string apiKey, string clientId, string baseUrl, string platformVersion = null)
         {
             var existingKey = await _dbContext.ApiKeys.FirstOrDefaultAsync(k => k.Key == apiKey);
             if (existingKey == null)
@@ -62,16 +62,25 @@ namespace AvanteamMarketplace.API.Authentication
                     Key = apiKey,
                     ClientId = clientId,
                     BaseUrl = baseUrl,
+                    PlatformVersion = platformVersion,
                     IsActive = true,
                     IsAdmin = false,
                     CreatedDate = System.DateTime.UtcNow
                 });
                 await _dbContext.SaveChangesAsync();
             }
-            else if (existingKey.ClientId != clientId || existingKey.BaseUrl != baseUrl)
+            else if (existingKey.ClientId != clientId || existingKey.BaseUrl != baseUrl || 
+                    (platformVersion != null && existingKey.PlatformVersion != platformVersion))
             {
                 existingKey.ClientId = clientId;
                 existingKey.BaseUrl = baseUrl;
+                
+                // Mettre à jour la version seulement si elle est fournie
+                if (!string.IsNullOrEmpty(platformVersion))
+                {
+                    existingKey.PlatformVersion = platformVersion;
+                }
+                
                 existingKey.LastAccessDate = System.DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
             }

@@ -224,6 +224,7 @@ namespace AvanteamMarketplace.API.Controllers
                         category = manifest.TryGetProperty("category", out var category) ? category.GetString() : "",
                         author = manifest.TryGetProperty("author", out var author) ? author.GetString() : "Avanteam",
                         minPlatformVersion = manifest.TryGetProperty("minPlatformVersion", out var minPlatformVersion) ? minPlatformVersion.GetString() : "",
+                        maxPlatformVersion = manifest.TryGetProperty("maxPlatformVersion", out var maxPlatformVersion) ? maxPlatformVersion.GetString() : "",
                         requiresRestart = manifest.TryGetProperty("requiresRestart", out var requiresRestart) && requiresRestart.ValueKind == JsonValueKind.True,
                         repositoryUrl = repoUrl,
                         targetPath = targetPath,
@@ -778,10 +779,33 @@ namespace AvanteamMarketplace.API.Controllers
                 if (component == null)
                     return NotFound(new { error = "Composant non trouvé" });
 
-                // TODO: Implémenter la logique de sauvegarde de l'icône
-                // Pour l'instant, nous simulons une opération réussie
+                try
+                {
+                    // Créer le répertoire des icônes s'il n'existe pas
+                    string iconDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images");
+                    if (!Directory.Exists(iconDirectory))
+                    {
+                        Directory.CreateDirectory(iconDirectory);
+                    }
 
-                return Ok(new { success = true, message = "Icône téléversée avec succès" });
+                    // Créer le nom du fichier basé sur le nom du composant
+                    string iconFileName = $"{component.Name.ToLowerInvariant()}.svg";
+                    string filePath = Path.Combine(iconDirectory, iconFileName);
+
+                    // Sauvegarder le fichier
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await iconFile.CopyToAsync(stream);
+                    }
+
+                    _logger.LogInformation($"Icône enregistrée avec succès pour le composant {componentId} à {filePath}");
+                    return Ok(new { success = true, message = "Icône téléversée avec succès" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Erreur lors de l'enregistrement de l'icône pour le composant {componentId}");
+                    return StatusCode(500, new { error = "Une erreur est survenue lors de l'enregistrement de l'icône", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
@@ -808,16 +832,27 @@ namespace AvanteamMarketplace.API.Controllers
                 if (component == null)
                     return NotFound(new { error = "Composant non trouvé" });
 
-                // TODO: Implémenter la logique de récupération de l'icône
-                // Pour l'instant, nous retournons une icône par défaut
+                // Vérifier si l'icône personnalisée existe
+                string iconDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images");
+                string iconFileName = $"{component.Name.ToLowerInvariant()}.svg";
+                string iconPath = Path.Combine(iconDirectory, iconFileName);
 
-                var defaultIconPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "default-component.svg");
+                if (System.IO.File.Exists(iconPath))
+                {
+                    _logger.LogInformation($"Icône personnalisée trouvée pour le composant {componentId}: {iconPath}");
+                    return PhysicalFile(iconPath, "image/svg+xml");
+                }
+                
+                // Si pas d'icône personnalisée, retourner l'icône par défaut
+                var defaultIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "default-component.svg");
                 if (System.IO.File.Exists(defaultIconPath))
                 {
+                    _logger.LogInformation($"Utilisation de l'icône par défaut pour le composant {componentId}");
                     return PhysicalFile(defaultIconPath, "image/svg+xml");
                 }
                 else
                 {
+                    _logger.LogWarning($"Aucune icône par défaut trouvée à {defaultIconPath}");
                     return NotFound(new { error = "Icône non trouvée" });
                 }
             }
@@ -1232,6 +1267,35 @@ namespace AvanteamMarketplace.API.Controllers
             {
                 _logger.LogError(ex, $"Erreur lors de la définition de la version {versionId} comme actuelle pour le composant {componentId}");
                 return StatusCode(500, new { error = "Une erreur est survenue lors de la définition de la version comme actuelle", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Récupère la liste des clients qui utilisent une version spécifique d'un composant
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="version">Numéro de version</param>
+        /// <returns>Liste des clients utilisant cette version</returns>
+        [HttpGet("components/{componentId}/versions/{version}/clients")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<ClientInstallationViewModel>>> GetClientsByVersion(int componentId, string version)
+        {
+            try
+            {
+                // Vérifier que le composant existe
+                var component = await _marketplaceService.GetComponentAdminDetailAsync(componentId);
+                if (component == null)
+                    return NotFound(new { error = "Composant non trouvé" });
+
+                var clients = await _marketplaceService.GetClientsByComponentVersionAsync(componentId, version);
+                return Ok(clients);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la récupération des clients utilisant la version {version} du composant {componentId}: {ex.Message}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération des clients", details = ex.Message });
             }
         }
 

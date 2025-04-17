@@ -120,6 +120,7 @@
             <div class="tab-content" id="apikeys-tab">
                 <div class="admin-actions">
                     <a href="#" id="btnAddApiKey" class="btn btn-success">Ajouter une clé API</a>
+                    <input type="text" id="searchApiKeys" placeholder="Rechercher une clé API..." class="search-input" />
                 </div>
                 
                 <div class="apikeys-list">
@@ -129,6 +130,7 @@
                                 <th>ID</th>
                                 <th>Client ID</th>
                                 <th>URL de base</th>
+                                <th>Version PS</th>
                                 <th>Clé API</th>
                                 <th>Administrateur</th>
                                 <th>Date de création</th>
@@ -311,6 +313,12 @@ component-name.zip
                         <label for="txtBaseUrl">URL de base:</label>
                         <input type="url" id="txtBaseUrl" class="form-control" placeholder="https://exemple.com" />
                         <small>L'URL de base du client qui va utiliser cette clé API</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="txtPlatformVersion">Version Process Studio:</label>
+                        <input type="text" id="txtPlatformVersion" class="form-control" placeholder="23.10.0" />
+                        <small>La version de Process Studio du client</small>
                     </div>
                     
                     <div class="form-group">

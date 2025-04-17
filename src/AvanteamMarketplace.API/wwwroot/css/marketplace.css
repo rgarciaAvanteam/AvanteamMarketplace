@@ -692,8 +692,25 @@ body {
     margin-right: 5px;
 }
 
+.log-level {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
 .log-error {
     color: #d32f2f;
+}
+
+.log-warning {
+    color: #ffc107;
+}
+
+.log-success {
+    color: #28a745;
+}
+
+.log-info {
+    color: #1a73e8;
 }
 
 /* Styles pour les tags */

@@ -5,7 +5,7 @@
 
 // Charger la liste des clés API
 function loadApiKeys() {
-    $("#apiKeysTable tbody").html('<tr><td colspan="6" class="loading">Chargement des clés API...</td></tr>');
+    $("#apiKeysTable tbody").html('<tr><td colspan="8" class="loading">Chargement des clés API...</td></tr>');
     
     $.ajax({
         url: `${apiBaseUrl}/management/apikeys`,
@@ -18,15 +18,44 @@ function loadApiKeys() {
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors du chargement des clés API:", error);
-            $("#apiKeysTable tbody").html(`<tr><td colspan="6" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
+            $("#apiKeysTable tbody").html(`<tr><td colspan="8" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
         }
     });
 }
 
+// Variable pour stocker toutes les clés API
+let allApiKeys = [];
+
+// Fonction pour filtrer les clés API
+function filterApiKeys() {
+    const searchTerm = $("#searchApiKeys").val().toLowerCase();
+    
+    if (!allApiKeys || allApiKeys.length === 0) {
+        return;
+    }
+    
+    const filteredKeys = allApiKeys.filter(apiKey => {
+        const id = apiKey.apiKeyId || apiKey.id || '';
+        const clientId = apiKey.clientId || '';
+        const baseUrl = apiKey.baseUrl || '';
+        const platformVersion = apiKey.platformVersion || '';
+        
+        return id.toString().toLowerCase().includes(searchTerm) || 
+               clientId.toString().toLowerCase().includes(searchTerm) || 
+               baseUrl.toLowerCase().includes(searchTerm) || 
+               platformVersion.toLowerCase().includes(searchTerm);
+    });
+    
+    renderApiKeysTable(filteredKeys);
+}
+
+// Écouteur d'événement pour le champ de recherche
+$(document).on('input', '#searchApiKeys', filterApiKeys);
+
 // Afficher les clés API dans le tableau
 function displayApiKeys(apiKeys) {
     if (!apiKeys) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="6">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -44,21 +73,32 @@ function displayApiKeys(apiKeys) {
             keysArray = apiKeys.data;
         } else {
             console.error("Format de réponse inattendu pour les clés API:", apiKeys);
-            $("#apiKeysTable tbody").html('<tr><td colspan="6">Erreur: format de données non reconnu</td></tr>');
+            $("#apiKeysTable tbody").html('<tr><td colspan="8">Erreur: format de données non reconnu</td></tr>');
             return;
         }
     }
     
+    // Stocker les clés API dans la variable globale
+    allApiKeys = keysArray;
+    
     if (keysArray.length === 0) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="6">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
+        return;
+    }
+    
+    // Afficher les clés API
+    renderApiKeysTable(keysArray);
+}
+
+// Fonction pour afficher les clés API dans le tableau
+function renderApiKeysTable(keysArray) {
+    if (!keysArray || keysArray.length === 0) {
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
         return;
     }
     
     let html = '';
     keysArray.forEach(function(apiKey) {
-        // Debug pour voir la structure exacte de l'objet apiKey
-        console.log("Structure de l'objet apiKey:", apiKey);
-        
         // Normaliser les noms de propriétés
         const id = apiKey.apiKeyId || apiKey.id || 'N/A';
         const clientId = apiKey.clientId || 'N/A';
@@ -67,10 +107,13 @@ function displayApiKeys(apiKeys) {
         const createdDate = apiKey.createdDate ? new Date(apiKey.createdDate).toLocaleDateString() : 'N/A';
         
         const baseUrl = apiKey.baseUrl || 'N/A';
+        const platformVersion = apiKey.platformVersion || 'N/A';
+        
         html += `<tr>
             <td>${id}</td>
             <td>${clientId}</td>
             <td>${baseUrl}</td>
+            <td>${platformVersion}</td>
             <td>${keyValue !== 'N/A' ? keyValue.substring(0, 10) + '...' : 'N/A'}</td>
             <td>${isAdmin ? 'Oui' : 'Non'}</td>
             <td>${createdDate}</td>
@@ -95,6 +138,7 @@ $("#btnAddApiKey").click(function(e) {
     e.preventDefault();
     $("#txtClientId").val("");
     $("#txtBaseUrl").val("");
+    $("#txtPlatformVersion").val("");
     $("#chkIsAdmin").prop("checked", false);
     $("#apiKeyModal").css("display", "block");
 });
@@ -104,11 +148,20 @@ $(".close, #btnCancelApiKey").click(function() {
     $("#apiKeyModal").css("display", "none");
 });
 
+// Réinitialiser le filtre des clés API
+function resetApiKeyFilter() {
+    $("#searchApiKeys").val("");
+    if (allApiKeys && allApiKeys.length > 0) {
+        renderApiKeysTable(allApiKeys);
+    }
+}
+
 // Créer une nouvelle clé API
 $("#btnSaveApiKey").click(function() {
     const apiKey = {
         clientId: $("#txtClientId").val(),
         baseUrl: $("#txtBaseUrl").val(),
+        platformVersion: $("#txtPlatformVersion").val(),
         isAdmin: $("#chkIsAdmin").is(":checked")
     };
     
@@ -207,8 +260,9 @@ $("#btnSaveApiKey").click(function() {
                 $('#apiKeyResultModal').remove();
             });
             
-            // Recharger la liste des clés API
+            // Recharger la liste des clés API et réinitialiser le filtre
             loadApiKeys();
+            resetApiKeyFilter();
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors de la création de la clé API:", error);
@@ -237,6 +291,7 @@ function deleteApiKey(apiKeyId) {
         success: function() {
             $("#confirmDeleteModal").css("display", "none");
             loadApiKeys();
+            resetApiKeyFilter();
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors de la suppression de la clé API:", error);

@@ -48,7 +48,7 @@ namespace AvanteamMarketplace.Core.Services
         /// <summary>
         /// Enregistre l'installation d'un composant
         /// </summary>
-        Task LogComponentInstallationAsync(int componentId, string clientId, string? version = null);
+        Task LogComponentInstallationAsync(int componentId, string clientId, string? version = null, string? platformVersion = null);
         
         /// <summary>
         /// Désinstalle un composant pour un client spécifique

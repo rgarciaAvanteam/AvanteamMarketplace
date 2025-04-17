@@ -33,6 +33,11 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string? Version { get; set; }
         
         /// <summary>
+        /// Version de Process Studio du client
+        /// </summary>
+        public string? PlatformVersion { get; set; }
+        
+        /// <summary>
         /// Chemin de destination où le composant a été installé
         /// </summary>
         public string? DestinationPath { get; set; }

@@ -19,12 +19,26 @@ function updateProgress(progressBar, progressText, percent) {
  * @param {HTMLElement} logContainer - Conteneur de log
  * @param {string} message - Message à ajouter
  * @param {boolean} isError - Si le message est une erreur
+ * @param {string} level - Niveau de log (INFO, WARNING, ERROR, SUCCESS)
  */
-function addLogMessage(logContainer, message, isError = false) {
+function addLogMessage(logContainer, message, isError = false, level = 'INFO') {
     const timestamp = new Date().toLocaleTimeString();
     const logItem = document.createElement('div');
-    logItem.className = `log-item ${isError ? 'log-error' : ''}`;
-    logItem.innerHTML = `<span class="log-time">[${timestamp}]</span> ${message}`;
+    
+    // Déterminer la classe CSS basée sur le niveau
+    let logClass = '';
+    if (isError || level === 'ERROR') {
+        logClass = 'log-error';
+    } else if (level === 'WARNING') {
+        logClass = 'log-warning';
+    } else if (level === 'SUCCESS') {
+        logClass = 'log-success';
+    } else {
+        logClass = 'log-info';
+    }
+    
+    logItem.className = `log-item ${logClass}`;
+    logItem.innerHTML = `<span class="log-time">[${timestamp}]</span> <span class="log-level">[${level}]</span> ${message}`;
     logContainer.appendChild(logItem);
     logContainer.scrollTop = logContainer.scrollHeight;
 }
@@ -111,7 +125,7 @@ function installComponent(componentId, version) {
     const logContainer = modal.querySelector('.installation-log');
     
     // Ajouter le premier message au log
-    addLogMessage(logContainer, `Démarrage de l'installation de ${component.displayName} v${version}...`);
+    addLogMessage(logContainer, `Démarrage de l'installation de ${component.displayName} v${version}...`, false, 'INFO');
     
     // Lancer le téléchargement avec le paramètre urlOnly=true pour obtenir toujours une URL
     fetch(`${apiUrl}/components/${componentId}/download?clientId=${encodeURIComponent(clientId)}&version=${encodeURIComponent(version)}&urlOnly=true`, {
@@ -130,22 +144,24 @@ function installComponent(componentId, version) {
     .then(data => {
         // Mettre à jour la progression
         updateProgress(progressBar, progressText, 20);
-        addLogMessage(logContainer, `Téléchargement réussi...`);
+        addLogMessage(logContainer, `Téléchargement réussi...`, false, 'SUCCESS');
         
         // Vérifier que nous avons une URL de téléchargement
         if (!data || !data.downloadUrl) {
+            addLogMessage(logContainer, `Réponse de l'API invalide: URL de téléchargement manquante`, true, 'ERROR');
             throw new Error("Réponse de l'API invalide: URL de téléchargement manquante");
         }
         
         console.log("URL de téléchargement obtenue:", data.downloadUrl);
+        addLogMessage(logContainer, `URL de téléchargement obtenue`, false, 'INFO');
         
         // Vérifier si l'URL est valide et utilisable
         if (!data.downloadUrl || 
             data.downloadUrl.includes("avanteam-online.com/no-package") || 
             data.downloadUrl.includes("avanteam-online.com/placeholder")) {
             
-            addLogMessage(logContainer, `Attention: URL de package non valide détectée.`, true);
-            addLogMessage(logContainer, `Tentative d'utilisation d'une URL alternative...`, false);
+            addLogMessage(logContainer, `Attention: URL de package non valide détectée.`, true, 'WARNING');
+            addLogMessage(logContainer, `Tentative d'utilisation d'une URL alternative...`, false, 'INFO');
             
             // Échec du téléchargement, montrer un message d'erreur
             throw new Error("L'URL de téléchargement n'est pas valide. Veuillez contacter l'administrateur du système.");
@@ -157,7 +173,7 @@ function installComponent(componentId, version) {
     .then((installResult) => {
         // Enregistrer l'installation avec les résultats du script PowerShell
         updateProgress(progressBar, progressText, 90);
-        addLogMessage(logContainer, `Finalisation de l'installation...`);
+        addLogMessage(logContainer, `Finalisation de l'installation...`, false, 'INFO');
         
         // Collecter les informations sur le résultat de l'installation
         // Si installResult est défini, il vient de installComponentPackage et a déjà été enregistré
@@ -196,7 +212,7 @@ function installComponent(componentId, version) {
             return response.json().then(data => {
                 // Installation terminée
                 updateProgress(progressBar, progressText, 100);
-                addLogMessage(logContainer, `Installation terminée avec succès!`);
+                addLogMessage(logContainer, `Installation terminée avec succès!`, false, 'SUCCESS');
                 
                 // Fermer la modal après un délai
                 setTimeout(() => {
@@ -204,13 +220,13 @@ function installComponent(componentId, version) {
                     
                     // Actualiser la liste des composants
                     refreshComponentLists();
-                }, 2000);
+                }, 3000);
             });
         } else {
             // Déjà un objet JSON (cas où installResult était défini)
             // Installation terminée
             updateProgress(progressBar, progressText, 100);
-            addLogMessage(logContainer, `Installation terminée avec succès!`);
+            addLogMessage(logContainer, `Installation terminée avec succès!`, false, 'SUCCESS');
             
             // Fermer la modal après un délai
             setTimeout(() => {
@@ -218,7 +234,7 @@ function installComponent(componentId, version) {
                 
                 // Actualiser la liste des composants
                 refreshComponentLists();
-            }, 2000);
+            }, 3000);
         }
     })
     .catch(error => {
@@ -234,8 +250,8 @@ function installComponent(componentId, version) {
             console.log("Erreur de communication avec l'API, mais l'installation locale pourrait avoir réussi");
             
             // Essayer de déterminer si l'installation locale a réussi
-            addLogMessage(logContainer, `Avertissement: La communication avec l'API a échoué.`, true);
-            addLogMessage(logContainer, `L'installation locale a probablement réussi, mais n'a pas pu être enregistrée.`, false);
+            addLogMessage(logContainer, `Avertissement: La communication avec l'API a échoué.`, true, 'WARNING');
+            addLogMessage(logContainer, `L'installation locale a probablement réussi, mais n'a pas pu être enregistrée.`, false, 'INFO');
             
             // Mettre à jour la barre de progression
             updateProgress(progressBar, progressText, 100);
@@ -256,7 +272,7 @@ function installComponent(componentId, version) {
         }
         
         // Échec complet de l'installation
-        addLogMessage(logContainer, `Erreur: ${errorMessage}`, true);
+        addLogMessage(logContainer, `Erreur: ${errorMessage}`, true, 'ERROR');
         
         // Mettre à jour la barre de progression en rouge
         progressBar.style.backgroundColor = '#dc3545';
@@ -287,7 +303,7 @@ function installComponent(componentId, version) {
 function installComponentPackage(downloadUrl, componentId, version, progressBar, progressText, logContainer) {
     return new Promise((resolve, reject) => {
         updateProgress(progressBar, progressText, 30);
-        addLogMessage(logContainer, `Préparation de l'installation...`);
+        addLogMessage(logContainer, `Préparation de l'installation...`, false, 'INFO');
         
         // Générer un ID d'installation unique
         const installId = `install-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
@@ -300,7 +316,7 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
         // Cette API est sur le même serveur que Process Studio, donc aucun problème CORS
         const localInstallEndpoint = `${localApiUrl}install`;
         
-        addLogMessage(logContainer, `Lancement de l'installation du composant ${componentId} v${version}...`);
+        addLogMessage(logContainer, `Lancement de l'installation du composant ${componentId} v${version}...`, false, 'INFO');
         
         // Préparer les données pour l'API locale
         let packageUrl = downloadUrl;
@@ -309,7 +325,7 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
         if (!packageUrl || packageUrl.includes("avanteam-online.com/no-package") || packageUrl.includes("avanteam-online.com/placeholder")) {
             const errorMessage = `URL de package non valide: ${packageUrl || 'URL vide'}`;
             console.error(errorMessage);
-            addLogMessage(logContainer, `Erreur: ${errorMessage}`, true);
+            addLogMessage(logContainer, `Erreur: ${errorMessage}`, true, 'ERROR');
             throw new Error(errorMessage);
         }
         
@@ -340,7 +356,7 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
             // Afficher les logs si disponibles
             if (result.logs && Array.isArray(result.logs)) {
                 result.logs.forEach(log => {
-                    addLogMessage(logContainer, log.message, log.level === "ERROR");
+                    addLogMessage(logContainer, log.message, log.level === "ERROR", log.level);
                 });
             }
             
@@ -393,9 +409,9 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
             
             // Si l'installation semble avoir réussi malgré des avertissements
             if (isSuccess || filesCopied) {
-                addLogMessage(logContainer, `Installation réussie!`);
+                addLogMessage(logContainer, `Installation réussie!`, false, 'SUCCESS');
                 if (result.destinationPath) {
-                    addLogMessage(logContainer, `Composant installé dans: ${result.destinationPath}`);
+                    addLogMessage(logContainer, `Composant installé dans: ${result.destinationPath}`, false, 'INFO');
                 }
                 
                 // Enregistrer l'installation auprès de l'API Marketplace comme réussie
@@ -430,11 +446,11 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
                 if (onlyPostInstallError) {
                     console.log("Seul le script post-installation a échoué, mais les fichiers sont correctement installés");
                     
-                    addLogMessage(logContainer, `Installation réussie (avec avertissement)!`, false);
+                    addLogMessage(logContainer, `Installation réussie (avec avertissement)!`, false, 'SUCCESS');
                     if (result.destinationPath) {
-                        addLogMessage(logContainer, `Composant installé dans: ${result.destinationPath}`, false);
+                        addLogMessage(logContainer, `Composant installé dans: ${result.destinationPath}`, false, 'INFO');
                     }
-                    addLogMessage(logContainer, `Note: Le script de post-installation n'a pas pu être exécuté, mais les fichiers ont été correctement copiés.`, true);
+                    addLogMessage(logContainer, `Note: Le script de post-installation n'a pas pu être exécuté, mais les fichiers ont été correctement copiés.`, true, 'WARNING');
                     
                     // Enregistrer comme un succès
                     reportInstallationToMarketplaceAPI(
@@ -467,7 +483,7 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
                     }
                 }
                 
-                addLogMessage(logContainer, `Échec de l'installation: ${errorMessage}`, true);
+                addLogMessage(logContainer, `Échec de l'installation: ${errorMessage}`, true, 'ERROR');
                 
                 // Enregistrer l'échec auprès de l'API Marketplace
                 reportInstallationToMarketplaceAPI(
@@ -491,7 +507,7 @@ function installComponentPackage(downloadUrl, componentId, version, progressBar,
             
             // Gérer le cas où l'API locale n'est pas disponible ou a échoué
             updateProgress(progressBar, progressText, 100);
-            addLogMessage(logContainer, `Erreur: ${error.message}`, true);
+            addLogMessage(logContainer, `Erreur: ${error.message}`, true, 'ERROR');
             
             // Proposer une installation manuelle en dernier recours
             const fallbackContainer = document.createElement('div');
@@ -576,12 +592,12 @@ function reportInstallationToMarketplaceAPI(success, componentId, version, clien
         updateProgress(progressBar, progressText, 100);
         
         if (success) {
-            addLogMessage(logContainer, `Installation terminée et enregistrée avec succès!`);
+            addLogMessage(logContainer, `Installation terminée et enregistrée avec succès!`, false, 'SUCCESS');
             resolve(installationResult);
         } else {
             // Si nous avons un message d'erreur dans la réponse, l'utiliser
             const errorText = errorMessage || (data && data.error) || "Erreur inconnue";
-            addLogMessage(logContainer, `Échec d'installation enregistré.`, true);
+            addLogMessage(logContainer, `Échec d'installation enregistré.`, true, 'ERROR');
             reject(new Error(errorText));
         }
     })
@@ -594,10 +610,10 @@ function reportInstallationToMarketplaceAPI(success, componentId, version, clien
         
         // Si l'installation a réussi localement, ne pas afficher d'erreur malgré le problème d'enregistrement
         if (success) {
-            addLogMessage(logContainer, `Avertissement: L'enregistrement de l'installation a rencontré un problème, mais l'installation a réussi.`, false);
+            addLogMessage(logContainer, `Avertissement: L'enregistrement de l'installation a rencontré un problème, mais l'installation a réussi.`, false, 'WARNING');
             resolve(installationResult);
         } else {
-            addLogMessage(logContainer, `Avertissement: L'installation a échoué et l'enregistrement a rencontré un problème: ${errorText}`, true);
+            addLogMessage(logContainer, `Avertissement: L'installation a échoué et l'enregistrement a rencontré un problème: ${errorText}`, true, 'ERROR');
             reject(new Error(errorText));
         }
     });

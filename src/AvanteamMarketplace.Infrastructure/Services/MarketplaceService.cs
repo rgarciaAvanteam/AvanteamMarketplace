@@ -751,7 +751,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
         /// <summary>
         /// Enregistre l'installation d'un composant
         /// </summary>
-        public async Task LogComponentInstallationAsync(int componentId, string clientId, string? version = null)
+        public async Task LogComponentInstallationAsync(int componentId, string clientId, string? version = null, string? platformVersion = null)
         {
             try
             {
@@ -775,6 +775,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     clientInstallation = new ClientInstallation
                     {
                         ClientIdentifier = clientId,
+                        PlatformVersion = platformVersion,
                         RegisteredDate = DateTime.UtcNow,
                         LastCheckinDate = DateTime.UtcNow
                     };
@@ -786,6 +787,13 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 {
                     // Mettre à jour la date de dernière vérification
                     clientInstallation.LastCheckinDate = DateTime.UtcNow;
+                    
+                    // Mettre à jour la version de la plateforme si fournie
+                    if (!string.IsNullOrEmpty(platformVersion))
+                    {
+                        clientInstallation.PlatformVersion = platformVersion;
+                    }
+                    
                     _context.ClientInstallations.Update(clientInstallation);
                 }
                 
@@ -1524,6 +1532,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 Key = k.Key,
                 ClientId = k.ClientId,
                 BaseUrl = k.BaseUrl,
+                PlatformVersion = k.PlatformVersion,
                 IsAdmin = k.IsAdmin,
                 IsActive = k.IsActive,
                 CreatedDate = k.CreatedDate,
@@ -1566,6 +1575,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 Key = apiKey.Key,
                 ClientId = apiKey.ClientId,
                 BaseUrl = apiKey.BaseUrl,
+                PlatformVersion = apiKey.PlatformVersion,
                 IsAdmin = apiKey.IsAdmin,
                 IsActive = apiKey.IsActive,
                 CreatedDate = apiKey.CreatedDate
@@ -2029,12 +2039,30 @@ namespace AvanteamMarketplace.Infrastructure.Services
             
             foreach (var ic in installedComponents)
             {
+                // Récupérer l'URL de base et la version de Process Studio à partir des clés API pour ce client, si disponible
+                var apiKey = await _context.ApiKeys
+                    .Where(k => k.ClientId == ic.Installation.ClientIdentifier && k.IsActive)
+                    .FirstOrDefaultAsync();
+                
+                // Déterminer la version de Process Studio en privilégiant la version de la clé API
+                string platformVersion = "Inconnue";
+                if (!string.IsNullOrEmpty(apiKey?.PlatformVersion))
+                {
+                    // Utiliser la version de la clé API qui est plus à jour
+                    platformVersion = apiKey.PlatformVersion;
+                }
+                else if (!string.IsNullOrEmpty(ic.Installation.PlatformVersion))
+                {
+                    // Fallback sur la version de l'installation
+                    platformVersion = ic.Installation.PlatformVersion;
+                }
+                
                 var clientInfo = new ClientInstallationViewModel
                 {
                     InstallationId = ic.InstallationId,
                     ClientIdentifier = ic.Installation.ClientIdentifier,
-                    ClientName = ic.Installation.ClientIdentifier, // Utiliser l'identifiant comme nom
-                    PlatformVersion = ic.Installation.PlatformVersion ?? "Inconnue",
+                    ClientName = apiKey?.BaseUrl ?? ic.Installation.ClientIdentifier, // Utiliser l'URL de base comme nom si disponible
+                    PlatformVersion = platformVersion,
                     InstalledVersion = ic.Version,
                     InstallDate = ic.InstallDate,
                     LastUpdateDate = ic.LastUpdateDate ?? DateTime.UtcNow,

@@ -95,7 +95,8 @@ namespace AvanteamMarketplace.API.Controllers
                             baseUrl = Request.Headers["Origin"].ToString();
                         }
                         
-                        await _apiKeyValidator.RegisterApiKeyAsync(apiKey, clientId, baseUrl);
+                        // Enregistrer la clé API avec la version de la plateforme
+                        await _apiKeyValidator.RegisterApiKeyAsync(apiKey, clientId, baseUrl, version);
                     }
                 }
                 
@@ -606,8 +607,16 @@ namespace AvanteamMarketplace.API.Controllers
                     return BadRequest(new { error = "L'identifiant du client est requis" });
                 }
                 
-                // Enregistrer l'installation
-                await _marketplaceService.LogComponentInstallationAsync(componentId, clientId, version);
+                // Récupérer la version de Process Studio
+                string? platformVersion = null;
+                // Vérifier si la requête contient des informations sur la version de la plateforme
+                if (installRequest?.PlatformVersion != null)
+                {
+                    platformVersion = installRequest.PlatformVersion;
+                }
+                
+                // Enregistrer l'installation avec la version de la plateforme
+                await _marketplaceService.LogComponentInstallationAsync(componentId, clientId, version, platformVersion);
                 
                 // Journaliser les détails de l'installation si disponibles
                 if (installRequest != null)
@@ -779,7 +788,11 @@ namespace AvanteamMarketplace.API.Controllers
                 if (result.Success)
                 {
                     // Enregistrer l'installation dans la base de données
-                    await _marketplaceService.LogComponentInstallationAsync(componentId, clientId, version ?? downloadInfo.Version);
+                    await _marketplaceService.LogComponentInstallationAsync(
+                        componentId, 
+                        clientId, 
+                        version ?? downloadInfo.Version
+                    );
                     
                     _logger.LogInformation($"Installation du composant {componentId} réussie: {result.DestinationPath}");
                 }

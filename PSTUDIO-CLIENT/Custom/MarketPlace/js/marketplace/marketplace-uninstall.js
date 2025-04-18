@@ -32,112 +32,78 @@ function showConfirmModal(title, message, onConfirm, onCancel = () => {}) {
     document.body.appendChild(confirmModal);
     
     // Ajouter les gestionnaires d'événements
-    confirmModal.querySelector('#confirm-btn').addEventListener('click', () => {
+    confirmModal.querySelector('#confirm-btn').addEventListener('click', (e) => {
+        // Prévenir tout comportement par défaut qui pourrait causer un postback
+        e.preventDefault();
+        e.stopPropagation();
+        
         document.body.removeChild(confirmModal);
+        
+        // Vérification d'authentification au moment du clic sur Confirmer
+        if (typeof MarketplaceAuth !== 'undefined' && !MarketplaceAuth.isAvanteamAdmin()) {
+            // Afficher une notification
+            MarketplaceAuth.showNotification("Vous devez être connecté en tant qu'administrateur pour désinstaller un composant", "error");
+            
+            // Créer le dialogue d'authentification
+            const authPrompt = document.createElement("div");
+            authPrompt.className = "auth-modal";
+            authPrompt.innerHTML = `
+                <div class="auth-modal-backdrop"></div>
+                <div class="auth-modal-content">
+                    <h3>Authentification requise</h3>
+                    <p>La désinstallation de composants est réservée aux administrateurs Avanteam.</p>
+                    <p>Veuillez vous connecter avec votre compte Avanteam pour continuer.</p>
+                    <div class="auth-modal-buttons">
+                        <button type="button" class="btn btn-secondary auth-modal-cancel">Annuler</button>
+                        <button type="button" class="btn btn-primary auth-modal-login">Se connecter</button>
+                    </div>
+                </div>
+            `;
+            
+            // Ajouter au DOM
+            document.body.appendChild(authPrompt);
+            
+            // Gestionnaires d'événements
+            authPrompt.querySelector(".auth-modal-cancel").addEventListener("click", (e) => {
+                e.preventDefault();
+                document.body.removeChild(authPrompt);
+            });
+            
+            authPrompt.querySelector(".auth-modal-login").addEventListener("click", (e) => {
+                e.preventDefault();
+                document.body.removeChild(authPrompt);
+                MarketplaceAuth.login();
+            });
+            
+            authPrompt.querySelector(".auth-modal-backdrop").addEventListener("click", (e) => {
+                e.preventDefault();
+                document.body.removeChild(authPrompt);
+            });
+            return;
+        }
+
+        // Si l'utilisateur est authentifié, exécuter l'action de confirmation
         onConfirm();
     });
     
-    confirmModal.querySelector('#cancel-btn').addEventListener('click', () => {
+    confirmModal.querySelector('#cancel-btn').addEventListener('click', (e) => {
+        // Prévenir tout comportement par défaut qui pourrait causer un postback
+        e.preventDefault();
+        e.stopPropagation();
+        
         document.body.removeChild(confirmModal);
         onCancel();
     });
     
     // Permettre de fermer la modal en cliquant sur l'arrière-plan
-    confirmModal.querySelector('.modal-backdrop').addEventListener('click', () => {
+    confirmModal.querySelector('.modal-backdrop').addEventListener('click', (e) => {
+        // Prévenir tout comportement par défaut qui pourrait causer un postback
+        e.preventDefault();
+        e.stopPropagation();
+        
         document.body.removeChild(confirmModal);
         onCancel();
     });
-}
-
-// Variable globale pour suivre si les écouteurs d'événements ont été attachés
-let uninstallButtonsInitialized = false;
-
-/**
- * Initialise les écouteurs d'événements sur les boutons de désinstallation
- * Cette fonction est appelée au chargement de la page et après les rafraîchissements
- */
-function initUninstallButtons() {
-    console.log("Initialisation des boutons de désinstallation");
-    
-    // Sélectionner tous les boutons de désinstallation
-    const uninstallButtons = document.querySelectorAll(".btn-uninstall");
-    
-    uninstallButtons.forEach(button => {
-        // S'assurer que nous n'attachons pas l'écouteur deux fois au même bouton
-        if (button.getAttribute("uninstall-listener-initialized") === "true") {
-            return;
-        }
-        
-        // Récupérer le gestionnaire onclick original
-        const originalOnClick = button.getAttribute("onclick");
-        
-        // Supprimer l'attribut onclick original
-        button.removeAttribute("onclick");
-        
-        // Stocker l'action originale dans un attribut data
-        button.setAttribute("data-original-onclick", originalOnClick);
-        
-        // Ajouter notre propre gestionnaire d'événements
-        button.addEventListener("click", function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            // Vérifier si l'utilisateur est authentifié et administrateur
-            if (typeof MarketplaceAuth !== 'undefined' && !MarketplaceAuth.isAvanteamAdmin()) {
-                // L'utilisateur n'est pas authentifié ou n'a pas les droits d'administrateur
-                MarketplaceAuth.showNotification("Vous devez être connecté en tant qu'administrateur pour désinstaller un composant", "error");
-                
-                // Afficher le dialogue d'authentification
-                const authPrompt = document.createElement("div");
-                authPrompt.className = "auth-modal";
-                authPrompt.innerHTML = `
-                    <div class="auth-modal-backdrop"></div>
-                    <div class="auth-modal-content">
-                        <h3>Authentification requise</h3>
-                        <p>La désinstallation de composants est réservée aux administrateurs Avanteam.</p>
-                        <p>Veuillez vous connecter avec votre compte Avanteam pour continuer.</p>
-                        <div class="auth-modal-buttons">
-                            <button class="btn btn-secondary auth-modal-cancel">Annuler</button>
-                            <button class="btn btn-primary auth-modal-login">Se connecter</button>
-                        </div>
-                    </div>
-                `;
-                
-                // Ajouter au DOM
-                document.body.appendChild(authPrompt);
-                
-                // Gestionnaires d'événements
-                authPrompt.querySelector(".auth-modal-cancel").addEventListener("click", () => {
-                    document.body.removeChild(authPrompt);
-                });
-                
-                authPrompt.querySelector(".auth-modal-login").addEventListener("click", () => {
-                    document.body.removeChild(authPrompt);
-                    MarketplaceAuth.login();
-                });
-                
-                authPrompt.querySelector(".auth-modal-backdrop").addEventListener("click", () => {
-                    document.body.removeChild(authPrompt);
-                });
-            } else {
-                // L'utilisateur est authentifié, exécuter l'action originale
-                // Extraire l'ID du composant à partir de l'action originale
-                const originalAction = button.getAttribute("data-original-onclick");
-                const componentIdMatch = originalAction.match(/uninstallComponent\((\d+)\)/);
-                
-                if (componentIdMatch && componentIdMatch[1]) {
-                    const componentId = parseInt(componentIdMatch[1]);
-                    // Appeler la fonction de désinstallation avec l'ID extrait
-                    internalUninstallComponent(componentId);
-                }
-            }
-        });
-        
-        // Marquer ce bouton comme initialisé
-        button.setAttribute("uninstall-listener-initialized", "true");
-    });
-    
-    uninstallButtonsInitialized = true;
 }
 
 /**
@@ -145,55 +111,8 @@ function initUninstallButtons() {
  * @param {number} componentId - ID du composant à désinstaller
  */
 function uninstallComponent(componentId) {
-    console.log("=== uninstallComponent ===");
-    console.log("uninstallComponent appelé pour componentId:", componentId);
-    console.trace("Trace d'appel de uninstallComponent");
-    
-    // ATTENTION: Cette fonction est maintenant appelée directement par checkAuthAndUninstall
-    // après vérification de l'authentification
-    
-    // En cas d'appel direct sans passer par checkAuthAndUninstall (c'est notre problème actuel),
-    // nous devons vérifier l'authentification ici aussi
-    
-    if (typeof window !== 'undefined' && 
-        typeof window.checkAuthAndUninstallCalled === 'undefined' &&
-        typeof MarketplaceAuth !== 'undefined') {
-        
-        console.log("uninstallComponent appelé directement, vérification d'authentification de secours");
-        
-        // Si l'utilisateur n'est pas authentifié, rediriger vers checkAuthAndUninstall
-        if (!MarketplaceAuth.isAvanteamAdmin()) {
-            console.log("Utilisateur non authentifié, redirection vers checkAuthAndUninstall");
-            checkAuthAndUninstall(componentId);
-            return;
-        }
-    }
-    
-    // Si l'authentification est vérifiée, procéder à la désinstallation
-    console.log("Poursuite de la désinstallation, appel de internalUninstallComponent");
-    internalUninstallComponent(componentId);
-}
-
-/**
- * Implémentation interne de la désinstallation d'un composant
- * @param {number} componentId - ID du composant à désinstaller
- */
-function internalUninstallComponent(componentId) {
-    console.log("=== internalUninstallComponent ===");
-    console.log("internalUninstallComponent appelé pour componentId:", componentId);
-    
-    // Vérification finale d'authentification pour éviter d'éventuels appels non autorisés
-    if (typeof MarketplaceAuth !== 'undefined' && !MarketplaceAuth.isAvanteamAdmin()) {
-        console.error("ERREUR: Tentative de désinstallation par un utilisateur non authentifié");
-        // Rediriger vers la méthode principale qui gère l'authentification
-        checkAuthAndUninstall(componentId);
-        return;
-    }
-    
     // Trouver le composant dans le cache
     let component = null;
-    
-    console.log("Recherche du composant dans le cache...");
     
     for (const category in componentCache) {
         if (componentCache[category]) {
@@ -236,54 +155,19 @@ function internalUninstallComponent(componentId) {
     }
     
     if (!component) {
-        console.error("Composant non trouvé dans le cache pour l'ID:", componentId);
         alert('Composant non trouvé');
         return;
     }
     
-    console.log("Composant trouvé:", component.displayName);
-    
     // Demander confirmation à l'utilisateur avec une belle modal
-    console.log("Affichage de la boîte de dialogue de confirmation");
     showConfirmModal(
         'Confirmation de désinstallation', 
         `Êtes-vous sûr de vouloir désinstaller le composant <strong>"${component.displayName}"</strong> ?<br><br>Cette action ne peut pas être annulée.`,
         () => { // Fonction exécutée si l'utilisateur confirme
-            console.log("Utilisateur a confirmé la désinstallation");
             proceedWithUninstall();
         }
     );
     
-// Inclure cette fonction pour initialiser les boutons lors du chargement de la page
-document.addEventListener("DOMContentLoaded", function() {
-    // Initialiser les boutons de désinstallation au chargement de la page
-    setTimeout(initUninstallButtons, 1000); // Délai pour s'assurer que tous les boutons sont rendus
-});
-
-// Intercepter les ajouts au DOM pour gérer les nouveaux boutons de désinstallation
-// Utiliser un MutationObserver pour détecter les changements dans le DOM
-const observer = new MutationObserver(function(mutations) {
-    for (let mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            // Vérifier si de nouveaux boutons de désinstallation ont été ajoutés
-            const needsInit = Array.from(mutation.addedNodes).some(node => {
-                return node.nodeType === 1 && (
-                    node.classList?.contains('btn-uninstall') || 
-                    node.querySelector?.('.btn-uninstall')
-                );
-            });
-            
-            if (needsInit) {
-                // Réinitialiser les boutons de désinstallation
-                setTimeout(initUninstallButtons, 100);
-            }
-        }
-    }
-});
-
-// Démarrer l'observation du DOM pour les nouveaux boutons
-observer.observe(document.body, { childList: true, subtree: true });
-
     // Fonction interne pour procéder à la désinstallation après confirmation
     function proceedWithUninstall() {
         // Créer la modal de désinstallation
@@ -357,8 +241,6 @@ observer.observe(document.body, { childList: true, subtree: true });
                 });
             }
             
-            console.log("Résultat complet de la désinstallation:", result);
-            
             // Vérifier le résultat de la désinstallation
             const success = result.success === true || result.Success === true;
             
@@ -372,13 +254,21 @@ observer.observe(document.body, { childList: true, subtree: true });
                 updateProgress(progressBar, progressText, 90);
                 addLogMessage(logContainer, `Finalisation de la désinstallation...`);
                 
+                // Préparer les en-têtes avec l'authentification si disponible
+                const headers = {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                };
+                
+                // Ajouter le token d'authentification si disponible
+                if (typeof MarketplaceAuth !== 'undefined' && MarketplaceAuth.getToken()) {
+                    headers['X-Marketplace-Token'] = MarketplaceAuth.getToken();
+                }
+                
                 // Appeler l'API pour désinstaller le composant
                 fetch(`${apiUrl}/components/${componentId}/uninstall?clientId=${encodeURIComponent(clientId)}`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: headers,
                     body: JSON.stringify({
                         ComponentId: componentId.toString(),
                         Success: true,
@@ -412,8 +302,6 @@ observer.observe(document.body, { childList: true, subtree: true });
                     modal.querySelector('.modal-content').appendChild(closeButton);
                 })
                 .catch(error => {
-                    console.error('Erreur lors de l\'enregistrement de la désinstallation:', error);
-                    
                     // La désinstallation locale a réussi mais l'enregistrement a échoué
                     updateProgress(progressBar, progressText, 100);
                     addLogMessage(logContainer, `Avertissement: La désinstallation a réussi localement, mais l'enregistrement a rencontré un problème: ${error.message}`, true);
@@ -455,8 +343,6 @@ observer.observe(document.body, { childList: true, subtree: true });
             }
         })
         .catch(error => {
-            console.error("Erreur de désinstallation:", error);
-            
             // Gérer le cas où l'API locale n'est pas disponible ou a échoué
             updateProgress(progressBar, progressText, 100);
             addLogMessage(logContainer, `Erreur: ${error.message}`, true);
@@ -467,13 +353,21 @@ observer.observe(document.body, { childList: true, subtree: true });
             // Utiliser la méthode de désinstallation de secours via l'API Marketplace
             addLogMessage(logContainer, `Tentative de désinstallation via l'API Marketplace...`, false);
             
+            // Préparer les en-têtes avec l'authentification si disponible
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
+            
+            // Ajouter le token d'authentification si disponible
+            if (typeof MarketplaceAuth !== 'undefined' && MarketplaceAuth.getToken()) {
+                headers['X-Marketplace-Token'] = MarketplaceAuth.getToken();
+            }
+            
             // Appeler l'API pour désinstaller le composant (méthode de secours)
             fetch(`${apiUrl}/components/${componentId}/uninstall?clientId=${encodeURIComponent(clientId)}`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: headers
             })
             .then(response => {
                 if (!response.ok) {
@@ -500,8 +394,6 @@ observer.observe(document.body, { childList: true, subtree: true });
                 modal.querySelector('.modal-content').appendChild(closeButton);
             })
             .catch(fallbackError => {
-                console.error('Erreur lors de la désinstallation de secours:', fallbackError);
-                
                 // Échec de la désinstallation de secours
                 addLogMessage(logContainer, `Échec de la désinstallation de secours: ${fallbackError.message}`, true);
                 

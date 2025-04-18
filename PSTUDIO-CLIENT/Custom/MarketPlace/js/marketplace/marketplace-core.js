@@ -107,8 +107,18 @@ const ConfigManager = (function() {
      */
     function getValue(key) {
         // Si la valeur n'est pas dans currentValues, essayer de la récupérer à nouveau
-        if (!currentValues[key]) {
+        if (!currentValues[key] || key === 'platformVersion') {
             initialize();
+        }
+        
+        // Si platformVersion est toujours vide, essayer d'autres sources
+        if (key === 'platformVersion' && !currentValues[key]) {
+            // Essayer de lire directement depuis l'élément d'affichage de version s'il existe
+            const versionDisplay = document.querySelector('.marketplace-version .version-value');
+            if (versionDisplay && versionDisplay.textContent.trim()) {
+                console.log("Récupération de platformVersion depuis l'élément d'affichage dans le DOM");
+                currentValues[key] = versionDisplay.textContent.trim();
+            }
         }
         
         return currentValues[key];
@@ -189,6 +199,33 @@ function initVersionsDisplay() {
             }
         `;
         document.head.appendChild(style);
+    }
+}
+
+/**
+ * Rafraîchit toutes les listes de composants
+ * Utile après une authentification ou un changement d'état majeur
+ */
+function refreshComponentLists() {
+    console.log("Rafraîchissement des listes de composants");
+    
+    // Réinitialiser le cache pour forcer le rechargement complet
+    for (const category in componentCacheTime) {
+        componentCacheTime[category] = 0;
+    }
+    
+    // Récupérer l'onglet actif
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab) {
+        const tabId = activeTab.id;
+        const tabName = tabId.replace('-tab', '');
+        console.log(`Onglet actif: ${tabName}`)
+        
+        // Forcer le chargement de l'onglet actif
+        loadTabContent(tabName);
+    } else {
+        // Fallback - charger l'onglet compatible par défaut
+        loadTabContent('compatible');
     }
 }
 

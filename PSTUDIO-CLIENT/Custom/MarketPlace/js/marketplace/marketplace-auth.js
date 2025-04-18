@@ -124,8 +124,26 @@ const MarketplaceAuth = (function() {
                         };
                         
                         console.log("Token validé avec succès. Admin:", result.isAdmin);
+                        
+                        // Sauvegarder le token dans sessionStorage
+                        sessionStorage.setItem("marketplaceAuthToken", state.token);
+
+                        // Réinitialiser aussi la configuration pour assurer que tout est synchronisé
+                        if (typeof ConfigManager !== 'undefined') {
+                            ConfigManager.initialize();
+                            console.log("Configuration réinitialisée après authentification, platformVersion =", ConfigManager.getPlatformVersion());
+                        }
+                        
                         showNotification("Authentification réussie", "success");
+                        
+                        // Mettre à jour l'interface
                         updateUI();
+                        
+                        // Rafraîchir les composants pour assurer que toutes les données sont cohérentes
+                        if (typeof refreshComponentLists === 'function') {
+                            console.log("Rafraîchissement des listes de composants après authentification");
+                            refreshComponentLists();
+                        }
                     } else {
                         console.log("Token invalidé par l'API");
                         showNotification("Échec de validation du token", "error");
@@ -187,98 +205,24 @@ const MarketplaceAuth = (function() {
         
         console.log("Ajout du bouton de connexion");
         
-        // Créer le style CSS
-        const style = document.createElement("style");
-        style.textContent = `
-            .auth-button {
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 50%;
-                width: 36px;
-                height: 36px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                margin-left: 10px;
-                transition: all 0.2s;
-            }
-            .auth-button:hover {
-                background-color: #e9ecef;
-            }
-            .auth-button.authenticated {
-                background-color: #28a745;
-                color: white;
-                border-color: #28a745;
-            }
-            .auth-modal {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .auth-modal-backdrop {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-            }
-            .auth-modal-content {
-                position: relative;
-                background-color: white;
-                padding: 20px;
-                border-radius: 5px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-                max-width: 400px;
-                width: 90%;
-            }
-            .auth-modal-buttons {
-                display: flex;
-                justify-content: flex-end;
-                margin-top: 20px;
-                gap: 10px;
-            }
-            .active-filter-count {
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background-color: #dc3545;
-                color: white;
-                border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                font-size: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-        `;
-        document.head.appendChild(style);
+        // Tous les styles ont été déplacés dans marketplace.css
         
         // Créer le bouton
         loginButton = document.createElement("button");
         loginButton.className = "auth-button";
+        loginButton.type = "button"; // Spécifier le type pour éviter les soumissions de formulaire
         loginButton.innerHTML = '<i class="fas fa-user-lock"></i>';
         loginButton.title = "Connexion administrateur Avanteam";
         
-        // Ajouter au DOM (à côté de la barre de recherche)
-        const searchContainer = document.querySelector(".marketplace-search");
-        if (searchContainer) {
-            searchContainer.parentNode.insertBefore(loginButton, searchContainer.nextSibling);
-        } else {
-            // Fallback
-            const tabs = document.querySelector(".marketplace-tabs");
-            if (tabs) {
-                tabs.appendChild(loginButton);
-            }
-        }
+        // Créer un conteneur pour le bouton en bas à droite
+        const loginButtonContainer = document.createElement("div");
+        loginButtonContainer.className = "login-button-container";
+        
+        // Ajouter le bouton au conteneur
+        loginButtonContainer.appendChild(loginButton);
+        
+        // Ajouter le conteneur au body
+        document.body.appendChild(loginButtonContainer);
         
         // Gestionnaire d'événement
         loginButton.addEventListener("click", handleLoginButtonClick);
@@ -289,8 +233,15 @@ const MarketplaceAuth = (function() {
     
     /**
      * Gère le clic sur le bouton de connexion
+     * @param {Event} event - L'événement de clic
      */
-    function handleLoginButtonClick() {
+    function handleLoginButtonClick(event) {
+        // Empêcher le comportement par défaut pour éviter tout postback
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
         if (state.isAuthenticated) {
             // Déjà connecté, proposer de se déconnecter
             const modal = document.createElement("div");
@@ -305,24 +256,27 @@ const MarketplaceAuth = (function() {
                         <p><strong>Rôle:</strong> ${state.isAvanteamAdmin ? 'Administrateur' : 'Utilisateur'}</p>
                     ` : ''}
                     <div class="auth-modal-buttons">
-                        <button class="btn btn-secondary auth-modal-cancel">Fermer</button>
-                        <button class="btn btn-danger auth-modal-logout">Se déconnecter</button>
+                        <button type="button" class="btn btn-secondary auth-modal-cancel">Fermer</button>
+                        <button type="button" class="btn btn-danger auth-modal-logout">Se déconnecter</button>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
             
-            modal.querySelector(".auth-modal-cancel").addEventListener("click", () => {
+            modal.querySelector(".auth-modal-cancel").addEventListener("click", (e) => {
+                e.preventDefault();
                 document.body.removeChild(modal);
             });
             
-            modal.querySelector(".auth-modal-logout").addEventListener("click", () => {
+            modal.querySelector(".auth-modal-logout").addEventListener("click", (e) => {
+                e.preventDefault();
                 document.body.removeChild(modal);
                 logout();
             });
             
-            modal.querySelector(".auth-modal-backdrop").addEventListener("click", () => {
+            modal.querySelector(".auth-modal-backdrop").addEventListener("click", (e) => {
+                e.preventDefault();
                 document.body.removeChild(modal);
             });
         } else {
@@ -337,15 +291,19 @@ const MarketplaceAuth = (function() {
     function login() {
         console.log("Démarrage de l'authentification...");
         
-        // Ouvrir une popup pour l'authentification
-        const width = 600;
-        const height = 700;
+        // Montrer une notification pour informer l'utilisateur
+        showNotification("Ouverture de la fenêtre d'authentification...", "info");
+        
+        // Ouvrir une popup pour l'authentification, avec des dimensions adaptées à l'écran
+        const width = Math.min(600, window.innerWidth * 0.9);
+        const height = Math.min(700, window.innerHeight * 0.9);
         const left = (window.innerWidth - width) / 2;
         const top = (window.innerHeight - height) / 2;
         
         const authUrl = `${config.apiUrl.replace(/\/api\/marketplace$/, "")}/api/auth/login?redirectUri=${encodeURIComponent(config.callbackUrl)}`;
         console.log("URL d'authentification:", authUrl);
         
+        // Ouvrir la fenêtre d'authentification au centre de l'écran
         const authWindow = window.open(
             authUrl,
             "marketplace_auth",
@@ -356,6 +314,13 @@ const MarketplaceAuth = (function() {
         if (!authWindow || authWindow.closed || typeof authWindow.closed == 'undefined') {
             console.error("Fenêtre de connexion bloquée par le navigateur");
             showNotification("Fenêtre de connexion bloquée par le navigateur. Veuillez autoriser les popups pour ce site.", "error");
+        } else {
+            // Si possible, donner le focus à la fenêtre d'authentification
+            try {
+                authWindow.focus();
+            } catch (e) {
+                console.log("Impossible de donner le focus à la fenêtre d'authentification:", e);
+            }
         }
     }
     
@@ -372,8 +337,19 @@ const MarketplaceAuth = (function() {
         // Supprimer de la session
         sessionStorage.removeItem("marketplaceAuthToken");
         
+        // Réinitialiser la configuration pour s'assurer que tout est synchronisé
+        if (typeof ConfigManager !== 'undefined') {
+            ConfigManager.initialize();
+        }
+        
         // Mettre à jour l'interface
         updateUI();
+        
+        // Rafraîchir les composants pour assurer que toutes les données sont cohérentes
+        if (typeof refreshComponentLists === 'function') {
+            console.log("Rafraîchissement des listes de composants après déconnexion");
+            refreshComponentLists();
+        }
         
         showNotification("Déconnexion réussie", "success");
     }
@@ -403,6 +379,21 @@ const MarketplaceAuth = (function() {
         
         // Mettre à jour les boutons d'installation/désinstallation
         updateActionButtons();
+        
+        // Vérifier que la version de la plateforme est toujours affichée correctement
+        const versionDisplay = document.querySelector('.marketplace-version .version-value');
+        if (versionDisplay) {
+            const currentVersion = versionDisplay.textContent.trim();
+            // Si la version est vide ou ne correspond pas à la configuration, la réinitialiser
+            if (!currentVersion || currentVersion === "") {
+                console.log("Version affichée vide, réinitialisation depuis ConfigManager");
+                const configVersion = ConfigManager.getPlatformVersion();
+                if (configVersion) {
+                    versionDisplay.textContent = configVersion;
+                    console.log("Version réinitialisée à", configVersion);
+                }
+            }
+        }
     }
     
     /**
@@ -459,7 +450,11 @@ const MarketplaceAuth = (function() {
      * tente d'utiliser une fonctionnalité restreinte
      */
     function showAuthPrompt(event) {
-        event.preventDefault();
+        // Empêcher le comportement par défaut pour éviter tout postback
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         
         console.log("Affichage de l'invite d'authentification");
         
@@ -473,8 +468,8 @@ const MarketplaceAuth = (function() {
                 <p>L'installation et la désinstallation de composants sont réservées aux administrateurs Avanteam.</p>
                 <p>Veuillez vous connecter avec votre compte Avanteam pour continuer.</p>
                 <div class="auth-modal-buttons">
-                    <button class="btn btn-secondary auth-modal-cancel">Annuler</button>
-                    <button class="btn btn-primary auth-modal-login">Se connecter</button>
+                    <button type="button" class="btn btn-secondary auth-modal-cancel">Annuler</button>
+                    <button type="button" class="btn btn-primary auth-modal-login">Se connecter</button>
                 </div>
             </div>
         `;
@@ -483,16 +478,19 @@ const MarketplaceAuth = (function() {
         document.body.appendChild(modal);
         
         // Gestionnaires d'événements
-        modal.querySelector(".auth-modal-cancel").addEventListener("click", () => {
+        modal.querySelector(".auth-modal-cancel").addEventListener("click", (e) => {
+            e.preventDefault();
             document.body.removeChild(modal);
         });
         
-        modal.querySelector(".auth-modal-login").addEventListener("click", () => {
+        modal.querySelector(".auth-modal-login").addEventListener("click", (e) => {
+            e.preventDefault();
             document.body.removeChild(modal);
             login();
         });
         
-        modal.querySelector(".auth-modal-backdrop").addEventListener("click", () => {
+        modal.querySelector(".auth-modal-backdrop").addEventListener("click", (e) => {
+            e.preventDefault();
             document.body.removeChild(modal);
         });
     }
@@ -509,44 +507,10 @@ const MarketplaceAuth = (function() {
             document.body.removeChild(notification);
         }
         
-        // Créer la notification
+        // Créer la notification (styles dans marketplace.css)
         notification = document.createElement('div');
         notification.className = `auth-notification ${type}`;
         notification.textContent = message;
-        
-        // Ajouter le style
-        const style = document.createElement('style');
-        style.textContent = `
-            .auth-notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 10px 15px;
-                border-radius: 4px;
-                color: white;
-                z-index: 9999;
-                animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            }
-            .auth-notification.success {
-                background-color: #28a745;
-            }
-            .auth-notification.error {
-                background-color: #dc3545;
-            }
-            .auth-notification.info {
-                background-color: #17a2b8;
-            }
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
         
         // Ajouter au DOM
         document.body.appendChild(notification);

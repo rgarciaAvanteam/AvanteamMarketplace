@@ -16,6 +16,27 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.Infrast
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvanteamMarketplace.LocalInstaller", "src\AvanteamMarketplace.LocalInstaller\AvanteamMarketplace.LocalInstaller.csproj", "{E4EAA308-7AD4-4D33-8224-4234A66C110C}"
 EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "PSTUDIO-CLIENT", "PSTUDIO-CLIENT\", "{1B9B0EA3-C3C3-46A8-9FDB-A8A4802F0D22}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8.1"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_13164"
+		Debug.AspNetCompiler.PhysicalPath = "PSTUDIO-CLIENT\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_13164\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_13164"
+		Release.AspNetCompiler.PhysicalPath = "PSTUDIO-CLIENT\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_13164\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "13164"
+		SlnRelativePath = "PSTUDIO-CLIENT\"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +59,10 @@ Global
 		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4EAA308-7AD4-4D33-8224-4234A66C110C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B9B0EA3-C3C3-46A8-9FDB-A8A4802F0D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B9B0EA3-C3C3-46A8-9FDB-A8A4802F0D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B9B0EA3-C3C3-46A8-9FDB-A8A4802F0D22}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B9B0EA3-C3C3-46A8-9FDB-A8A4802F0D22}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

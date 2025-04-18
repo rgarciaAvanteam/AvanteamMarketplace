@@ -369,12 +369,12 @@ const MarketplaceComponents = (function() {
                     const latestCompatibleVersion = getLatestCompatibleVersion(component);
                     actionButton = `
                         <button type="button" class="btn btn-update" data-id="${component.componentId}" onclick="installComponent(${component.componentId}, '${latestCompatibleVersion}')">Mettre à jour</button>
-                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
+                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="checkAuthAndUninstall(${component.componentId})">Désinstaller</button>
                     `;
                 } else {
                     // Composant installé sans mise à jour disponible
                     actionButton = `
-                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="uninstallComponent(${component.componentId})">Désinstaller</button>
+                        <button type="button" class="btn btn-uninstall" data-id="${component.componentId}" onclick="checkAuthAndUninstall(${component.componentId})">Désinstaller</button>
                     `;
                 }
             } else {
@@ -506,6 +506,93 @@ function logComponentData(componentId) {
     } else {
         console.log('Composant non trouvé');
     }
+}
+
+/**
+ * Vérifie l'authentification avant d'appeler la désinstallation
+ * @param {number} componentId - ID du composant à désinstaller
+ */
+function checkAuthAndUninstall(componentId) {
+    console.log("=== DÉBOGAGE DÉSINSTALLATION ===");
+    console.log("checkAuthAndUninstall appelé pour componentId:", componentId);
+    
+    // Définir une variable globale pour indiquer que checkAuthAndUninstall a été appelé
+    // Cela permet à uninstallComponent de savoir s'il est appelé directement ou via cette fonction
+    if (typeof window !== 'undefined') {
+        window.checkAuthAndUninstallCalled = true;
+        // Réinitialiser cette variable après un court délai pour éviter les effets de bord
+        setTimeout(() => { window.checkAuthAndUninstallCalled = undefined; }, 1000);
+    }
+    
+    // Vérifier si le module d'authentification est disponible
+    console.log("MarketplaceAuth est défini:", typeof MarketplaceAuth !== 'undefined');
+    
+    // Afficher une trace de la stack pour voir d'où vient l'appel
+    console.trace("Trace d'appel pour checkAuthAndUninstall");
+    
+    // Vérifier immédiatement l'authentification avant toute action
+    if (typeof MarketplaceAuth === 'undefined') {
+        console.error("ERREUR: Module d'authentification (MarketplaceAuth) non disponible");
+        alert("Module d'authentification non disponible. Contactez l'administrateur.");
+        return; // Arrêter l'exécution
+    }
+    
+    console.log("État d'authentification:", MarketplaceAuth.isAvanteamAdmin() ? "Authentifié en tant qu'admin" : "Non authentifié ou non admin");
+    
+    // Vérifier l'authentification
+    if (!MarketplaceAuth.isAvanteamAdmin()) {
+        console.log("Utilisateur non authentifié: affichage du dialogue d'authentification");
+        
+        // Afficher une notification
+        MarketplaceAuth.showNotification("Vous devez être connecté en tant qu'administrateur pour désinstaller un composant", "error");
+        
+        // Créer le dialogue d'authentification
+        const authPrompt = document.createElement("div");
+        authPrompt.id = "auth-modal-" + Date.now(); // ID unique pour faciliter le débogage
+        authPrompt.className = "auth-modal";
+        authPrompt.innerHTML = `
+            <div class="auth-modal-backdrop"></div>
+            <div class="auth-modal-content">
+                <h3>Authentification requise</h3>
+                <p>La désinstallation de composants est réservée aux administrateurs Avanteam.</p>
+                <p>Veuillez vous connecter avec votre compte Avanteam pour continuer.</p>
+                <div class="auth-modal-buttons">
+                    <button class="btn btn-secondary auth-modal-cancel">Annuler</button>
+                    <button class="btn btn-primary auth-modal-login">Se connecter</button>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter au DOM
+        document.body.appendChild(authPrompt);
+        console.log("Dialogue d'authentification ajouté au DOM avec ID:", authPrompt.id);
+        
+        // Gestionnaires d'événements
+        const cancelBtn = authPrompt.querySelector(".auth-modal-cancel");
+        cancelBtn.addEventListener("click", () => {
+            console.log("Bouton Annuler cliqué dans le dialogue d'authentification");
+            document.body.removeChild(authPrompt);
+        });
+        
+        const loginBtn = authPrompt.querySelector(".auth-modal-login");
+        loginBtn.addEventListener("click", () => {
+            console.log("Bouton Se connecter cliqué dans le dialogue d'authentification");
+            document.body.removeChild(authPrompt);
+            MarketplaceAuth.login();
+        });
+        
+        const backdrop = authPrompt.querySelector(".auth-modal-backdrop");
+        backdrop.addEventListener("click", () => {
+            console.log("Arrière-plan cliqué dans le dialogue d'authentification");
+            document.body.removeChild(authPrompt);
+        });
+        
+        return; // Arrêter l'exécution
+    }
+    
+    // Si l'utilisateur est authentifié, continuer avec la désinstallation
+    console.log("Utilisateur authentifié, appel de uninstallComponent");
+    uninstallComponent(componentId);
 }
 
 /**

@@ -10,8 +10,10 @@ using AvanteamMarketplace.API.Authentication;
 using System.Text.Json.Serialization;
 using System;
 using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 
 // Désactiver complètement le chargement des StaticWebAssets
 Environment.SetEnvironmentVariable("ASPNETCORE_HOSTINGSTARTUPASSEMBLIES", "");
@@ -79,6 +81,11 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Désactiver la validation automatique du modèle qui peut causer problème avec le paramètre 'error'
+        options.SuppressModelStateInvalidFilter = true;
     });
 
 // Configuration de Swagger
@@ -199,10 +206,33 @@ if (!builder.Environment.IsDevelopment())
     }
 }
 
-// Configuration de l'authentification par clé API
+// Ajouter le service de cache mémoire pour la gestion des sessions d'authentification
+builder.Services.AddMemoryCache();
+
+// Configuration de l'authentification
 builder.Services.AddAuthentication("ApiKey")
     .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options => { });
 builder.Services.AddScoped<IApiKeyValidator, ApiKeyValidator>();
+
+// Ajouter la configuration pour l'authentification Azure AD et Marketplace
+builder.Services.Configure<TokenValidationParameters>(options => 
+{
+    var secretKeyString = builder.Configuration["MarketplaceAuth:SecretKey"];
+    if (!string.IsNullOrEmpty(secretKeyString))
+    {
+        var secretKeyBytes = Encoding.UTF8.GetBytes(secretKeyString);
+        var issuer = builder.Configuration["MarketplaceAuth:Issuer"] ?? "AvanteamMarketplace";
+        var audience = builder.Configuration["MarketplaceAuth:Audience"] ?? "MarketplaceClients";
+        
+        options.ValidateIssuer = true;
+        options.ValidateAudience = true;
+        options.ValidateLifetime = true;
+        options.ValidateIssuerSigningKey = true;
+        options.ValidIssuer = issuer;
+        options.ValidAudience = audience;
+        options.IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes);
+    }
+});
 
 var app = builder.Build();
 
@@ -297,6 +327,9 @@ app.UseCors("AllowProcessStudioOrigins");
 
 // Activer la session pour l'administration
 app.UseSession();
+
+// Activer le middleware de validation des tokens Marketplace
+app.UseMarketplaceTokenValidation();
 
 app.UseAuthentication();
 app.UseAuthorization();

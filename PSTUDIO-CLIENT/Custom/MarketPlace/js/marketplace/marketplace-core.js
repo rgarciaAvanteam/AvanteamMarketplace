@@ -205,6 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialiser l'affichage des versions
     initVersionsDisplay();
     
+    // Initialiser l'authentification si disponible
+    if (typeof MarketplaceAuth !== 'undefined') {
+        MarketplaceAuth.init(ConfigManager.getApiUrl());
+    }
+    
     // Charger les composants pour l'onglet actif (avec délai pour s'assurer que tout est prêt)
     setTimeout(() => {
         loadTabContent('compatible');

@@ -127,13 +127,37 @@ function installComponent(componentId, version) {
     // Ajouter le premier message au log
     addLogMessage(logContainer, `Démarrage de l'installation de ${component.displayName} v${version}...`, false, 'INFO');
     
+    // Vérifier l'authentification si le module est disponible
+    if (typeof MarketplaceAuth !== 'undefined') {
+        const isAdmin = MarketplaceAuth.isAvanteamAdmin();
+        if (!isAdmin) {
+            // Cette vérification est généralement gérée par l'UI, mais c'est une bonne sécurité supplémentaire
+            if (typeof MarketplaceAuth.showNotification === 'function') {
+                MarketplaceAuth.showNotification("Authentification requise pour installer des composants", "error");
+            }
+            
+            // Fermer la modal et annuler l'installation
+            document.body.removeChild(modal);
+            return;
+        }
+    }
+
+    // Préparer les en-têtes avec authentification
+    const headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+    };
+    
+    // Ajouter le token Marketplace si disponible
+    if (typeof MarketplaceAuth !== 'undefined' && MarketplaceAuth.getToken()) {
+        headers['X-Marketplace-Token'] = MarketplaceAuth.getToken();
+        addLogMessage(logContainer, `Authentification utilisateur ajoutée à la requête`, false, 'INFO');
+    }
+    
     // Lancer le téléchargement avec le paramètre urlOnly=true pour obtenir toujours une URL
     fetch(`${apiUrl}/components/${componentId}/download?clientId=${encodeURIComponent(clientId)}&version=${encodeURIComponent(version)}&urlOnly=true`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        }
+        headers: headers
     })
     .then(response => {
         if (!response.ok) {

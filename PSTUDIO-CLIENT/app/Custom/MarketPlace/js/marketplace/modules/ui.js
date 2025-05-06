@@ -1059,6 +1059,8 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 '</div>' +
                 
                 '<div class="installation-log"></div>' +
+                
+                '<div class="installation-animation"></div>' +
             '</div>';
         
         // Les styles CSS pour les modales d'installation sont maintenant dans le fichier marketplace.css
@@ -1559,6 +1561,8 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 '</div>' +
                 
                 '<div class="installation-log"></div>' +
+                
+                '<div class="installation-animation"></div>' +
             '</div>';
         
         // Ajouter la modal au document

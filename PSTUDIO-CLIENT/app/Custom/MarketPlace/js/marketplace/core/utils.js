@@ -278,9 +278,32 @@ MarketplaceMediator.defineModule('utils', [], function() {
                 };
                 
                 this.eventSource.onerror = (error) => {
+                    // Vérifier si l'erreur est due à une déconnexion normale ou à un problème réel
+                    if (this.eventSource.readyState === EventSource.CLOSED) {
+                        console.log('MarketplaceStream: Connexion SSE fermée normalement');
+                        // Aucune action n'est nécessaire car c'est une fermeture normale
+                        return;
+                    }
+                    
+                    // Pour les erreurs de connexion, essayer automatiquement de se reconnecter
+                    if (this.eventSource.readyState === EventSource.CONNECTING) {
+                        console.warn('MarketplaceStream: Tentative de reconnexion SSE en cours...');
+                        // Ne pas afficher d'erreur pour les tentatives de reconnexion automatiques
+                        return;
+                    }
+                    
                     console.error('MarketplaceStream: Erreur SSE', error);
-                    this.addLogMessage("Erreur de connexion au flux de logs", "ERROR");
-                    this.updateStatus("error");
+                    
+                    // Vérifier si l'opération est déjà terminée pour éviter les messages d'erreur confus
+                    const isAlreadyComplete = this.statusContainer && 
+                        (this.statusContainer.textContent === 'Terminé' || 
+                         this.statusContainer.textContent === 'Erreur' ||
+                         this.statusContainer.textContent === 'Terminé avec avertissements');
+                    
+                    if (!isAlreadyComplete) {
+                        this.addLogMessage("Erreur de connexion au flux de logs", "WARNING");
+                        this.updateStatus("warning");
+                    }
                 };
                 
                 return true;

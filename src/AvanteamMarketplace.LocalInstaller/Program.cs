@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +71,13 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Ajouter la prise en charge des Server-Sent Events (SSE)
+builder.Services.AddResponseCompression(options =>
+{
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "text/event-stream" });
+});
+
 var app = builder.Build();
 
 // Configurer le routing
@@ -83,6 +92,9 @@ else
 {
     app.UseExceptionHandler("/Error");
 }
+
+// Activer la compression de réponse
+app.UseResponseCompression();
 
 // Activer Swagger
 app.UseSwagger();

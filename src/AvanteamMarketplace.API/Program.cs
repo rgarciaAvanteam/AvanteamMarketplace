@@ -14,6 +14,8 @@ using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.IIS;
 
 // Désactiver complètement le chargement des StaticWebAssets
 Environment.SetEnvironmentVariable("ASPNETCORE_HOSTINGSTARTUPASSEMBLIES", "");
@@ -81,12 +83,29 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        // Permettre des propriétés plus grandes pour les packages volumineux
+        options.JsonSerializerOptions.DefaultBufferSize = 1024 * 1024 * 4; // 4 MB buffer
     })
     .ConfigureApiBehaviorOptions(options =>
     {
         // Désactiver la validation automatique du modèle qui peut causer problème avec le paramètre 'error'
         options.SuppressModelStateInvalidFilter = true;
     });
+
+// Configurer les limites de taille pour les requêtes HTTP et formulaires
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = int.MaxValue; // Illimité (limité par web.config)
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue; // Définir une limite élevée pour les fichiers multipart
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = int.MaxValue; // Définir une limite élevée pour les fichiers multipart
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
 
 // Configuration de Swagger
 builder.Services.AddEndpointsApiExplorer();

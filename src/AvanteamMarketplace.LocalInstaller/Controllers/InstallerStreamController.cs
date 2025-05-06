@@ -1,0 +1,227 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
+namespace AvanteamMarketplace.LocalInstaller.Controllers
+{
+    /// <summary>
+    /// Contrôleur qui fournit un streaming en temps réel des logs d'installation
+    /// via Server-Sent Events (SSE)
+    /// </summary>
+    [ApiController]
+    [Route("stream")]
+    public class InstallerStreamController : ControllerBase
+    {
+        private readonly ILogger<InstallerStreamController> _logger;
+        private static readonly Dictionary<string, List<LogMessage>> _messageQueues = new Dictionary<string, List<LogMessage>>();
+        private static readonly object _lockObject = new object();
+
+        public InstallerStreamController(ILogger<InstallerStreamController> logger)
+        {
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Point de terminaison SSE qui renvoie un flux en temps réel des logs pour un ID d'installation spécifique
+        /// </summary>
+        /// <param name="installId">ID unique de l'installation</param>
+        /// <returns>Flux SSE des messages de log</returns>
+        [HttpGet("{installId}")]
+        public async Task GetLogStream(string installId, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation($"Client connecté au flux de logs pour l'installation {installId}");
+
+            Response.Headers.Add("Content-Type", "text/event-stream");
+            Response.Headers.Add("Cache-Control", "no-cache");
+            Response.Headers.Add("Connection", "keep-alive");
+
+            // Garantir que le stream ID existe
+            EnsureStreamExists(installId);
+
+            // Envoyer les logs existants immédiatement
+            await SendExistingLogs(installId);
+
+            int lastSentIndex = GetCurrentLogCount(installId);
+            
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                // Vérifier s'il y a de nouveaux messages
+                int currentCount = GetCurrentLogCount(installId);
+                
+                if (currentCount > lastSentIndex)
+                {
+                    // Envoyer les nouveaux messages
+                    await SendLogsFromIndex(installId, lastSentIndex);
+                    lastSentIndex = currentCount;
+                }
+
+                // Attendre un peu avant la prochaine vérification
+                await Task.Delay(100, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// Méthode API pour ajouter un message au flux
+        /// </summary>
+        [HttpPost("log")]
+        public IActionResult AddLogMessage([FromBody] LogStreamRequest request)
+        {
+            if (string.IsNullOrEmpty(request.InstallId) || request.Message == null)
+            {
+                return BadRequest("InstallId et Message sont requis");
+            }
+
+            // Ajouter le message à la file d'attente
+            AddMessageToQueue(request.InstallId, request.Message.Level, request.Message.Text);
+            
+            return Ok();
+        }
+
+        private void EnsureStreamExists(string streamId)
+        {
+            lock (_lockObject)
+            {
+                if (!_messageQueues.ContainsKey(streamId))
+                {
+                    _messageQueues[streamId] = new List<LogMessage>();
+                }
+            }
+        }
+
+        private int GetCurrentLogCount(string streamId)
+        {
+            lock (_lockObject)
+            {
+                if (_messageQueues.TryGetValue(streamId, out var queue))
+                {
+                    return queue.Count;
+                }
+                return 0;
+            }
+        }
+
+        public static void AddMessageToQueue(string streamId, string level, string message)
+        {
+            // Ne pas ajouter de messages vides
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            // Supprimer le préfixe de timestamp si présent
+            if (message.Length > 20 && message.StartsWith("[") && message.Substring(0, 20).Contains("]"))
+            {
+                // Format probable [XX:XX:XX]
+                int closeBracketPos = message.IndexOf(']');
+                if (closeBracketPos > 0 && closeBracketPos < 20)
+                {
+                    message = message.Substring(closeBracketPos + 1).Trim();
+                }
+            }
+
+            // Supprimer les préfixes de niveau si présents (pour éviter la duplication)
+            string[] levelPrefixes = new[] { "[INFO]", "[ERROR]", "[WARNING]", "[SUCCESS]", "[SCRIPT]" };
+            foreach (var prefix in levelPrefixes)
+            {
+                if (message.StartsWith(prefix))
+                {
+                    message = message.Substring(prefix.Length).Trim();
+                    break;
+                }
+            }
+
+            // Si le message est toujours vide après nettoyage, ne pas l'ajouter
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+
+            lock (_lockObject)
+            {
+                if (!_messageQueues.ContainsKey(streamId))
+                {
+                    _messageQueues[streamId] = new List<LogMessage>();
+                }
+
+                _messageQueues[streamId].Add(new LogMessage
+                {
+                    Level = level,
+                    Text = message,
+                    Timestamp = DateTime.Now
+                });
+            }
+        }
+
+        private async Task SendExistingLogs(string streamId)
+        {
+            List<LogMessage> messages;
+            
+            lock (_lockObject)
+            {
+                if (!_messageQueues.TryGetValue(streamId, out var queue))
+                {
+                    return;
+                }
+                
+                messages = new List<LogMessage>(queue);
+            }
+            
+            foreach (var message in messages)
+            {
+                await SendSseEvent(message);
+            }
+        }
+
+        private async Task SendLogsFromIndex(string streamId, int fromIndex)
+        {
+            List<LogMessage> messages;
+            
+            lock (_lockObject)
+            {
+                if (!_messageQueues.TryGetValue(streamId, out var queue) || fromIndex >= queue.Count)
+                {
+                    return;
+                }
+                
+                messages = queue.GetRange(fromIndex, queue.Count - fromIndex);
+            }
+            
+            foreach (var message in messages)
+            {
+                await SendSseEvent(message);
+            }
+        }
+
+        private async Task SendSseEvent(LogMessage message)
+        {
+            var data = System.Text.Json.JsonSerializer.Serialize(message);
+            var buffer = Encoding.UTF8.GetBytes($"event: log\ndata: {data}\n\n");
+            await Response.Body.WriteAsync(buffer, 0, buffer.Length);
+            await Response.Body.FlushAsync();
+        }
+    }
+
+    public class LogMessage
+    {
+        public string Level { get; set; }
+        public string Text { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class LogStreamRequest
+    {
+        public string InstallId { get; set; }
+        public LogMessageRequest Message { get; set; }
+    }
+
+    public class LogMessageRequest
+    {
+        public string Level { get; set; }
+        public string Text { get; set; }
+    }
+}

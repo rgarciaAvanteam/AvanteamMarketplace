@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization; // Ajouté pour la sérialisation JSON
 
 namespace AvanteamMarketplace.LocalInstaller.Controllers
 {
@@ -247,7 +248,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                         error = errorMessage,
                         logs = new List<LogEntry>
                         {
-                            new LogEntry { Level = "ERROR", Message = errorMessage }
+                            new LogEntry { level = "ERROR", message = errorMessage }
                         }
                     });
                 }
@@ -292,24 +293,72 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             
                             // Ajouter aux logs avec détection du niveau
                             var logLevel = "INFO";
-                            if (e.Data.Contains("[ERROR]") || e.Data.Contains("ERREUR"))
+                            var outputLine = e.Data;
+                            
+                            // Nettoyer la ligne si nécessaire
+                            if (string.IsNullOrEmpty(outputLine))
+                            {
+                                outputLine = "";
+                            }
+
+                            // Détection avancée du niveau et formatage
+                            if (outputLine.Contains("[ERROR]") || outputLine.Contains("ERREUR"))
                             {
                                 logLevel = "ERROR";
+                                // Supprimer le préfixe [ERROR] s'il existe pour éviter les doublons
+                                outputLine = outputLine.Replace("[ERROR] ", "").Replace("[ERROR]", "");
                             }
-                            else if (e.Data.Contains("[WARNING]") || e.Data.Contains("AVERTISSEMENT"))
+                            else if (outputLine.Contains("[WARNING]") || outputLine.Contains("AVERTISSEMENT"))
                             {
                                 logLevel = "WARNING";
+                                // Supprimer le préfixe [WARNING] s'il existe
+                                outputLine = outputLine.Replace("[WARNING] ", "").Replace("[WARNING]", "");
                             }
-                            else if (e.Data.Contains("[SUCCESS]"))
+                            else if (outputLine.Contains("[SUCCESS]"))
                             {
                                 logLevel = "SUCCESS";
+                                // Supprimer le préfixe [SUCCESS] s'il existe
+                                outputLine = outputLine.Replace("[SUCCESS] ", "").Replace("[SUCCESS]", "");
+                            }
+                            else if (outputLine.Contains("[SCRIPT]"))
+                            {
+                                // Faire ressortir les logs des scripts post-installation
+                                logLevel = "SCRIPT";
+                                // Supprimer le préfixe [SCRIPT] s'il existe
+                                outputLine = outputLine.Replace("[SCRIPT] ", "").Replace("[SCRIPT]", "");
+                            }
+                            
+                            // Ajouter un contenu par défaut si le message est vide
+                            if (string.IsNullOrWhiteSpace(outputLine))
+                            {
+                                outputLine = "Traitement en cours...";
                             }
                             
                             // Ajouter à la liste des logs pour la réponse
-                            output.Add(new LogEntry { Level = logLevel, Message = e.Data });
+                            var logEntry = new LogEntry { level = logLevel, message = outputLine };
+                            output.Add(logEntry);
+                            
+                            // Envoyer le log immédiatement au stream en temps réel
+                            try {
+                                // Ne pas envoyer de lignes vides au stream
+                                if (!string.IsNullOrWhiteSpace(outputLine))
+                                {
+                                    _logger.LogDebug($"Envoi au stream: [{logLevel}] {outputLine}");
+                                    
+                                    // Utiliser le nouveau contrôleur de streaming pour envoyer les logs en temps réel
+                                    InstallerStreamController.AddMessageToQueue(
+                                        request.InstallId ?? installId,
+                                        logLevel,
+                                        outputLine
+                                    );
+                                }
+                            }
+                            catch (Exception ex) { 
+                                _logger.LogWarning($"Erreur lors de l'envoi au stream: {ex.Message}");
+                            }
                             
                             // Écrire dans le fichier de log
-                            AppendToLog(logFilePath, logLevel, e.Data);
+                            AppendToLog(logFilePath, logLevel, outputLine);
                             
                             // Extraire des informations importantes
                             if (e.Data.Contains("Chemin de destination complet:"))
@@ -319,6 +368,14 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                                 {
                                     destinationPath = parts[1].Trim();
                                 }
+                            }
+                            
+                            // Détection spécifique des sections de script post-installation
+                            if (e.Data.Contains("DÉBUT DU SCRIPT POST-INSTALLATION:") || 
+                                e.Data.Contains("======================================================================"))
+                            {
+                                // Ajouter un marqueur spécial pour bien distinguer les sections de script
+                                output.Add(new LogEntry { level = "SCRIPT_SECTION", message = e.Data });
                             }
                         }
                     };
@@ -331,7 +388,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             error.AppendLine(e.Data);
                             
                             // Ajouter à la liste des logs pour la réponse
-                            output.Add(new LogEntry { Level = "ERROR", Message = e.Data });
+                            output.Add(new LogEntry { level = "ERROR", message = e.Data });
                             
                             // Écrire dans le fichier de log
                             AppendToLog(logFilePath, "ERROR", e.Data);
@@ -360,7 +417,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             var timeoutError = "L'installation a été annulée car elle a dépassé le délai maximal (10 minutes)";
                             _logger.LogError(timeoutError);
                             AppendToLog(logFilePath, "ERROR", timeoutError);
-                            output.Add(new LogEntry { Level = "ERROR", Message = timeoutError });
+                            output.Add(new LogEntry { level = "ERROR", message = timeoutError });
                             error.AppendLine(timeoutError);
                         }
                         catch (Exception ex)
@@ -385,20 +442,62 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     }
                     
                     // Préparer la réponse
-                    var result = new InstallResponse
+                    // IMPORTANT: Nous utilisons un sérialiseur personnalisé pour assurer la compatibilité camelCase avec JavaScript
+                    var serializerSettings = new JsonSerializerSettings 
                     {
-                        Success = success,
-                        ComponentId = request.ComponentId,
-                        Version = request.Version,
-                        InstallId = installId,
-                        Logs = output,
-                        DestinationPath = destinationPath,
-                        LogFile = logFilePath
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                        Formatting = Formatting.Indented
                     };
                     
+                    // Traitement additionnel des logs pour assurer qu'ils sont visibles dans l'UI
+                    // Utilisation de camelCase pour les propriétés JSON
+                    var processedLogs = output.Select(log => new LogEntry 
+                    { 
+                        level = log.level, // Utiliser explicitement la casse camelCase
+                        message = log.message
+                    }).ToList();
+                    
+                    // Ajouter un log de diagnostic
+                    processedLogs.Add(new LogEntry 
+                    { 
+                        level = "SCRIPT", 
+                        message = "-- Log de diagnostic: " + processedLogs.Count + " logs générés --" 
+                    });
+                    
+                    var result = new 
+                    {
+                        success = success, // Utiliser explicitement la casse camelCase
+                        componentId = request.ComponentId,
+                        version = request.Version,
+                        installId = installId,
+                        logs = processedLogs, // Utiliser logs traités
+                        destinationPath = destinationPath,
+                        logFile = logFilePath
+                    };
+                    
+                    // Journalisation détaillée pour le débogage 
+                    _logger.LogInformation($"Nombre de logs capturés: {processedLogs.Count}");
+                    _logger.LogInformation($"Types de logs: {string.Join(", ", processedLogs.Select(l => l.level).Distinct().ToArray())}");
+                    
+                    // Journaliser un exemple de log
+                    if (processedLogs.Any())
+                    {
+                        _logger.LogInformation($"Exemple de log: Level={processedLogs[0].level}, Message={processedLogs[0].message.Substring(0, Math.Min(50, processedLogs[0].message.Length))}...");
+                    }
+                    
+                    // Cette partie est modifiée pour utiliser un objet dynamique (le compilateur ne connaît pas la propriété error)
                     if (!success)
                     {
-                        result.Error = error.Length > 0 ? error.ToString() : "Une erreur est survenue lors de l'installation";
+                        // Stocker l'erreur dans le dictionnaire
+                        var resultDict = new Dictionary<string, object>(result.GetType()
+                            .GetProperties()
+                            .ToDictionary(p => p.Name, p => p.GetValue(result, null)));
+                        
+                        resultDict["error"] = error.Length > 0 ? error.ToString() : "Une erreur est survenue lors de l'installation";
+                        
+                        // Sérialiser manuellement avec les bons paramètres
+                        var json = JsonConvert.SerializeObject(resultDict, serializerSettings);
+                        return Content(json, "application/json");
                     }
                     
                     return Ok(result);
@@ -414,7 +513,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     error = $"Erreur serveur: {ex.Message}",
                     logs = new List<LogEntry>
                     {
-                        new LogEntry { Level = "ERROR", Message = $"Exception: {ex.Message}" }
+                        new LogEntry { level = "ERROR", message = $"Exception: {ex.Message}" }
                     }
                 });
             }
@@ -470,7 +569,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                         error = errorMessage,
                         logs = new List<LogEntry>
                         {
-                            new LogEntry { Level = "ERROR", Message = errorMessage }
+                            new LogEntry { level = "ERROR", message = errorMessage }
                         }
                     });
                 }
@@ -518,24 +617,52 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             
                             // Ajouter aux logs avec détection du niveau
                             var logLevel = "INFO";
-                            if (e.Data.Contains("[ERROR]") || e.Data.Contains("ERREUR"))
+                            var outputLine = e.Data;
+                            
+                            // Nettoyer la ligne si nécessaire
+                            if (string.IsNullOrEmpty(outputLine))
+                            {
+                                outputLine = "";
+                            }
+
+                            // Détection avancée du niveau et formatage
+                            if (outputLine.Contains("[ERROR]") || outputLine.Contains("ERREUR"))
                             {
                                 logLevel = "ERROR";
+                                // Supprimer le préfixe [ERROR] s'il existe pour éviter les doublons
+                                outputLine = outputLine.Replace("[ERROR] ", "").Replace("[ERROR]", "");
                             }
-                            else if (e.Data.Contains("[WARNING]") || e.Data.Contains("AVERTISSEMENT"))
+                            else if (outputLine.Contains("[WARNING]") || outputLine.Contains("AVERTISSEMENT"))
                             {
                                 logLevel = "WARNING";
+                                // Supprimer le préfixe [WARNING] s'il existe
+                                outputLine = outputLine.Replace("[WARNING] ", "").Replace("[WARNING]", "");
                             }
-                            else if (e.Data.Contains("[SUCCESS]"))
+                            else if (outputLine.Contains("[SUCCESS]"))
                             {
                                 logLevel = "SUCCESS";
+                                // Supprimer le préfixe [SUCCESS] s'il existe
+                                outputLine = outputLine.Replace("[SUCCESS] ", "").Replace("[SUCCESS]", "");
+                            }
+                            else if (outputLine.Contains("[SCRIPT]"))
+                            {
+                                // Faire ressortir les logs des scripts post-installation
+                                logLevel = "SCRIPT";
+                                // Supprimer le préfixe [SCRIPT] s'il existe
+                                outputLine = outputLine.Replace("[SCRIPT] ", "").Replace("[SCRIPT]", "");
+                            }
+                            
+                            // Ajouter un contenu par défaut si le message est vide
+                            if (string.IsNullOrWhiteSpace(outputLine))
+                            {
+                                outputLine = "Traitement en cours...";
                             }
                             
                             // Ajouter à la liste des logs pour la réponse
-                            output.Add(new LogEntry { Level = logLevel, Message = e.Data });
+                            output.Add(new LogEntry { level = logLevel, message = outputLine });
                             
                             // Écrire dans le fichier de log
-                            AppendToLog(logFilePath, logLevel, e.Data);
+                            AppendToLog(logFilePath, logLevel, outputLine);
                             
                             // Extraire des informations importantes
                             if (e.Data.Contains("Création d'une sauvegarde dans:"))
@@ -545,6 +672,14 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                                 {
                                     backupPath = parts[1].Trim();
                                 }
+                            }
+                            
+                            // Détection spécifique des sections de script post-uninstallation
+                            if (e.Data.Contains("DÉBUT DU SCRIPT POST-DÉSINSTALLATION:") || 
+                                e.Data.Contains("======================================================================"))
+                            {
+                                // Ajouter un marqueur spécial pour bien distinguer les sections de script
+                                output.Add(new LogEntry { level = "SCRIPT_SECTION", message = e.Data });
                             }
                         }
                     };
@@ -557,7 +692,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             error.AppendLine(e.Data);
                             
                             // Ajouter à la liste des logs pour la réponse
-                            output.Add(new LogEntry { Level = "ERROR", Message = e.Data });
+                            output.Add(new LogEntry { level = "ERROR", message = e.Data });
                             
                             // Écrire dans le fichier de log
                             AppendToLog(logFilePath, "ERROR", e.Data);
@@ -586,7 +721,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             var timeoutError = "La désinstallation a été annulée car elle a dépassé le délai maximal (5 minutes)";
                             _logger.LogError(timeoutError);
                             AppendToLog(logFilePath, "ERROR", timeoutError);
-                            output.Add(new LogEntry { Level = "ERROR", Message = timeoutError });
+                            output.Add(new LogEntry { level = "ERROR", message = timeoutError });
                             error.AppendLine(timeoutError);
                         }
                         catch (Exception ex)
@@ -638,7 +773,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     error = $"Erreur serveur: {ex.Message}",
                     logs = new List<LogEntry>
                     {
-                        new LogEntry { Level = "ERROR", Message = $"Exception: {ex.Message}" }
+                        new LogEntry { level = "ERROR", message = $"Exception: {ex.Message}" }
                     }
                 });
             }
@@ -770,10 +905,29 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
 
     public class LogEntry
     {
-        [JsonProperty("level")]
-        public string Level { get; set; }
+        // Changement de la casse des propriétés pour utiliser le style camelCase de JavaScript
+        // [JsonProperty] n'est plus nécessaire car nous utilisons CamelCasePropertyNamesContractResolver
+        public string level { get; set; }
         
-        [JsonProperty("message")]
-        public string Message { get; set; }
+        public string message { get; set; }
+        
+        /// <summary>
+        /// Retourne true si ce log est une sortie de script post-installation
+        /// </summary>
+        public bool isScriptOutput => level == "SCRIPT";
+        
+        /// <summary>
+        /// Constructeur par défaut
+        /// </summary>
+        public LogEntry() { }
+        
+        /// <summary>
+        /// Crée une entrée de log avec le niveau et message spécifiés
+        /// </summary>
+        public LogEntry(string level, string message)
+        {
+            this.level = level;
+            this.message = message;
+        }
     }
 }

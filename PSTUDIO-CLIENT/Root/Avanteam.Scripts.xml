@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Scripts</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Scripts.DataSource.DataSets.DSScripting">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Scripts.DataSource.DataSets.DSScripting.ScriptsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Scripts.DataSource.DataSets.DSScripting.ScriptsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Scripts.DataSource.DataSets.DSScripting.ScriptsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Scripts.DataSource.DataSets.DSScriptingTableAdapters.ScriptsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.IScriptsDataSource.GetScriptByKey(System.String)">
+            <summary>
+            Get one Script row by key.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.IScriptsDataSource.Load">
+            <summary>
+            Load all scripts.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.IScriptsDataSource.Update(Avanteam.Scripts.DataSource.DataSets.DSScripting)">
+            <summary>
+            Update Scripts.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.ScriptsDataSource.GetScriptByKey(System.String)">
+            <summary>
+            Get one Script Row by key.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.ScriptsDataSource.Load">
+            <summary>
+            Load all Scripts in one DataSet.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.DataSource.ScriptsDataSource.Update(Avanteam.Scripts.DataSource.DataSets.DSScripting)">
+            <summary>
+            Update the database from the Scripts DataSet.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Scripts.ScriptsService.GetMethodParameterValues(System.Reflection.MethodInfo,System.Collections.Generic.IReadOnlyCollection{Avanteam.Kernel.MethodParameter},System.Collections.Hashtable)">
+            <summary>
+            construit la liste des paramètres d'un AssemblyCall.
+            </summary>
+            <param name="targetMethod">la méthode à appeler.</param>
+            <param name="targetParameters">les valeurs des paramètres de type string.</param>
+            <param name="scriptParameters">si un des paramètres est de type Hashtable, alors c'est celui-là qui sera passé.
+            Sinon sert pour le biding des paramètre de types autres tel que Avanteam.Workflow.Runtime.Instance.</param>
+            <returns>tableau des valeurs à passer en paramètre à la méthode.</returns>
+        </member>
+    </members>
+</doc>

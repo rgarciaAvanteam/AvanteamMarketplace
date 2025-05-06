@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Application.Pool</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.CreateApplication(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Déclaration d'une nouvelle application.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.CreateOrUpdateApplication(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Mise à jour d'une application (création si elle n'existe pas).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.GetApplications">
+            <summary>
+            Retourne la liste des applications déclarées.
+            A l'opposé de la propriété Applications, cette méthode force une relecture de la table.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.Applications">
+            <summary>
+            Retourne la liste des applications déclarées.
+            A l'opposée de la méthode GetApplications(), cette propriétés conserve les données lues d'un appel sur l'autre.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.Exists(System.String)">
+            <summary>
+            Vérifier l'existance d'une application.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.GetUrl(System.String)">
+            <summary>
+            Retourne la composante url d'une application enregistrée.
+            Si l'application n'existe pas, retourne null.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.GetSQLQuery(System.String)">
+            <summary>
+            Crée et retourne un objet SQLQuery pour effectuer des requetes SQL sur la base ciblée
+            retourne null si l'application est non trouvée.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.DataTableName">
+            <summary>
+            Nom de la table dans la base de donnée (par défaut RegisteredApplications).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.SQLDataSource">
+            <summary>
+            Création du wrapper pour l'exécution des requetes.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Pool.DataSource.ApplicationPoolDataSource.ConnectionStrings">
+            <summary>
+            Recherche de la ConnectionString, soit dans le profil (Application.xml) soit dans le fichier de config.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Interfaces</name>
+    </assembly>
+    <members>
+        <member name="P:Avanteam.Interfaces.GlobalUtils.IsOracle">
+            <summary>
+            Est-ce que la base est Oracle.
+            </summary>
+        </member>
+    </members>
+</doc>

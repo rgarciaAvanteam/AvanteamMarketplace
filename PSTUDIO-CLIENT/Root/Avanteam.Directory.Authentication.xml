@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Directory.Authentication</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Directory.Authentication.AuthenticationSchemeMetadataManagerBase.GetConfigurationFromMetadata(System.String,System.String)">
+            <summary>
+            Gets an updated serialized idp configuration from raw metadata.
+            </summary>
+            <param name="currentConfiguration">
+            The currently serialized idp configuration.
+            Can be empty is there is nothing configured yet.
+            In that case that method will build a default one based on the metadata.
+            </param>
+            <param name="rawMetadata">
+            The serialized metadata of the idp.
+            </param>
+            <returns>
+            An object that contains a new serialized idp configuration that is
+            conform to the <paramref name="rawMetadata"/>, and some structured
+            metadata relative to that configuration.
+            </returns>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpConfigurationAndMetadata.EntityUri">
+            <summary>
+            The identifier of the identity provider.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpConfigurationAndMetadata.Configuration">
+            <summary>
+            Gets the serialized representation of the IDP configuration.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpConfigurationAndMetadata.ValidUntilUtc">
+            <summary>
+            Gets a value indicating the date before the configuration becomes invalid.
+            Or null if that date is not provided in the meta-data.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpMetadataOptions.DefaultValidityDurationInDays">
+            <summary>
+            Number of days metadata are considered as valid before we try to auto
+            read them again from an identity provider, if that identity provider
+            do not specify itself a duration.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpMetadataOptions.EndValidityMarginInDays">
+            <summary>
+            Number of days before the end of the validity of the metadata of an
+            identity provider, from which we will start to try to refresh them.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Directory.Authentication.IdpMetadataOptions.WindowBetweenAutoRefreshAttemptsInMinutes">
+            <summary>
+            Number of minutes between each auto refresh attempt.
+            This allow to avoid to perform too much requests on the identity
+            provider when we reach the end of the validity of the configuration an
+            that we are waiting for a new configuration to be published.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Formulars.Schema</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Oracle.SchemaDataSource.SQLFormatCreateTable(Avanteam.Kernel.Schema.APSTable)">
+            <summary>
+            Format the SQL CREATE TABLE statement.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Oracle.SchemaDataSource.SQLFormatComment(System.String)">
+            <summary>
+            Format a SQL comment line.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Oracle.SchemaDataSource.SQLFormatColumnType(Avanteam.Kernel.Schema.APSColumn)">
+            <summary>
+            Format the column SQL type.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.SchemaDataSource.#ctor(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Formulars.Schema.DataSource.SchemaDataSource"/> class.
+            Constructor with an Application profile.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.SchemaDataSource.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Formulars.Schema.DataSource.SchemaDataSource"/> class.
+            Default constructor for backward compatibility.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.SchemaDataSource.GenerateDefaultSchema(Avanteam.Formulars.FormularDocHelper)">
+            <summary>
+            Generate the default schema of a form.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.SchemaDataSource.UpdateSchema(Avanteam.Formulars.FormularDocHelper,Avanteam.Kernel.Schema.APSSchema)">
+            <summary>
+            Update the APSSchema object with new/modified or deleted fields of the form.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Sql.SchemaDataSource.SQLFormatCreateTable(Avanteam.Kernel.Schema.APSTable)">
+            <summary>
+            Format the SQL CREATE TABLE statement.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Sql.SchemaDataSource.SQLFormatComment(System.String)">
+            <summary>
+            Format a SQL comment line.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Formulars.Schema.DataSource.Sql.SchemaDataSource.SQLFormatColumnType(Avanteam.Kernel.Schema.APSColumn)">
+            <summary>
+            Format the column SQL type.
+            </summary>
+        </member>
+    </members>
+</doc>

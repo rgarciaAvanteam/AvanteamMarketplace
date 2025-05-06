@@ -1,0 +1,174 @@
+﻿@media only screen and (min-width: 1090px) {
+    .panel-content {
+      justify-content: center;
+    }
+}
+
+@media only screen and (max-height: 900px) {
+    .panel-content {
+      justify-content: unset;
+    }
+}
+
+body {
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    font: 400 12px "Ubuntu", Helvetica, "Droid Sans", Tahoma, Geneva, sans-serif;
+    text-align: center;
+    background: radial-gradient(circle at 50% 50%, #143c5a, #06121b);
+    color: #143c5a
+}
+
+.img-background {
+    height: calc(100vh - 91px);
+    width: 100vw;
+    opacity: 0.37;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-image: url(../img/background.jpg);
+}
+
+.panel-content {
+    height: calc(100vh - 91px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.card-container {
+    max-width: 1100px;
+}
+
+.main-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.container {
+    max-width: 345px;
+    min-width: 345px;
+    height: 145px;
+    margin: 8px;
+    border-radius: 3px;
+    box-sizing: border-box;
+    background-color: white;
+    box-shadow: 0 5px 6px 0px rgba(0, 0, 0, 0.2), 0 4px 20px 4px rgba(0, 0, 0, 0.12), 0 12px 15px 4px rgba(0, 0, 0, 0.14);
+}
+
+.container:hover {
+    box-shadow: 0 3px 4px -2px #1996eb, 0 2px 18px 2px #1996eb, 0 10px 13px 2px #1996eb;
+    border: solid 1px #1996eb;
+    background-color: white;
+    cursor: pointer;
+}
+
+.container:hover .img i {
+    color: #1996eb;
+}
+
+.container:hover .subTitle {
+color: #1996eb;
+}
+
+.title {
+    font-family: Ubuntu;
+    font-size: 18px;
+    font-weight: bold;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: 0.14px;
+    text-align: center;
+    color: #283c5d;
+}
+
+.link {
+    font-family: Ubuntu;
+    font-size: 15px;
+    font-weight: normal;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: 0.11px;
+    text-align: center;
+}
+
+a {
+    color: #283c5d;
+    text-decoration: none;
+}
+
+p {
+    margin: 8px 0 8px 0;
+}
+
+.img {
+    align-items: center;
+    text-align: center;
+}
+
+.fa, .fas {
+    color: #e61e50;
+    padding-top: 20px;
+}
+
+.header-logo {
+    display: block;
+    border-radius: 50%;
+    min-width: 190px;
+    min-height: 190px;
+    margin: 0px 73px 20px 71px;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 8px 10px 1px rgba(0, 0, 0, 0.14);
+    background-color: white;
+}
+
+.header-logo img {
+    padding-top: 55px;
+    width: 130px;
+}
+
+.header-title {
+    width: 410px;
+    height: 74px;
+    margin: 11px 12px 20px;
+    font-family: Ubuntu;
+    font-size: 30px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: 0.23px;
+    text-align: center;
+    color: white;
+}
+
+.main-footer{
+	display: block;
+	
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 91px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(20, 60, 90);
+    background: radial-gradient(circle at 50% 50%, #143c5a, #06121b);
+}
+
+.login-footer-item {
+    margin: 0 70px;
+    color: #fff;
+    text-decoration: none;
+}

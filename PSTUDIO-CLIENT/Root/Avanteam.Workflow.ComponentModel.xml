@@ -1,0 +1,388 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Workflow.ComponentModel</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Workflow.ComponentModel.Factory.ProcessFactory.GetParticipants">
+            <summary>
+            Return the list of paraticipants of the current process.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.Factory.ProcessFactory.BuildFromRepository(Avanteam.Workflow.ComponentModel.Process,System.Data.DataSet)">
+            <summary>
+            Build a Process object from a DataSet containing a repository Table &amp; Row.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.Factory.ProcessFactory.BuildFromRepository(Avanteam.Workflow.ComponentModel.Process,System.String)">
+            <summary>
+            Build a Process object from a String containing a repository (bpm_content).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.Factory.ProcessFactory.FillFromRepository(Avanteam.Workflow.ComponentModel.Process,System.Data.DataSet)">
+            <summary>
+            Fill a SubProcess object from a DataSet containing a repository Table &amp; Row.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.Factory.ProcessFactory.Build(Avanteam.Workflow.ComponentModel.Process,System.Data.DataSet,System.Boolean)">
+            <summary>
+            Build a Process object from a BPM Diagram.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Performer">
+            <summary>
+            This class represent a single performer.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Resources.InstanceHistory">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.InstanceHistory.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.InstanceHistory.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.InstanceHistory.Action_WorkflowChangeActivity">
+            <summary>
+              Looks up a localized string similar to Workflow change activity.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Resources.TimerRules">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_BusinessDays">
+            <summary>
+              Looks up a localized string similar to Business Day.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Days">
+            <summary>
+              Looks up a localized string similar to Days.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Hours">
+            <summary>
+              Looks up a localized string similar to Hours.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Minutes">
+            <summary>
+              Looks up a localized string similar to Minutes.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Months">
+            <summary>
+              Looks up a localized string similar to Months.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_None">
+            <summary>
+              Looks up a localized string similar to Never.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Weeks">
+            <summary>
+              Looks up a localized string similar to Weeks.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Resources.TimerRules.Period_Years">
+            <summary>
+              Looks up a localized string similar to Years.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.ScriptTask">
+            <summary>
+            A ScriptTask is a specialized Task that can only perform Scripting.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.ScriptTask.ScriptString">
+            <summary>
+            Contains an XML representation of the scripts associated with this task.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.SingleConditionRule.AdvancedMode">
+            <summary>
+            Get/Set the advanced mode flag for this object.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.SingleConditionRule.Enabled">
+            <summary>
+            Enable/Disable this rule.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.Shared.FieldAccessParameters.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Workflow.ComponentModel.Shared.FieldAccessParameters"/> class.
+            Niveau d'accès d'une grille de détail au sein d'un document.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldAccessParameters.AllowEditingAttachments">
+            <summary>
+            Gets or sets a value indicating whether if attachments can be edit in document.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldAccessParameters.AllowAnnotatingPDF">
+            <summary>
+            Gets or sets a value indicating whether if PDF can be annotate.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldAccessParameters.DetailGridAccessLevels">
+            <summary>
+            Gets or sets access levels for detail grid.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritanceSet.AdvancedMode">
+            <summary>
+            Gets or sets a value indicating whether the advanced mode is enabled for this object.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritance.AdvancedMode">
+            <summary>
+            Gets or sets a value indicating whether the advanced mode is enabled for this object.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritance.Source">
+            <summary>
+            Gets or sets the source field name.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritance.Target">
+            <summary>
+            Gets or sets the target field name.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritance.Format">
+            <summary>
+            Gets or sets the format applied to transform Source into Target (default format is {0}).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.FieldInheritance.Expression">
+            <summary>
+            Gets or sets the Expression.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Shared.ValidationRule">
+            <summary>
+            This class represent the global rule sets for the validation of a User Activity.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.ValidationRule.ValidationType">
+            <summary>
+            Get/Set the type of validation (Decision/Signature/...)
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.ValidationRule.DecisionRule">
+            <summary>
+            Get/Set the Decision Rule for this validation Set.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.ValidationRule.SignatureRule">
+            <summary>
+            Get/Set the Signature rules for this validation Set.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.RoutingRules.AdvancedMode">
+            <summary>
+            Get/Set the advanced mode.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.RoutingRules.DefaultAction">
+            <summary>
+            Get/Set the default action for this set of rules.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.RoutingRules.Rules">
+            <summary>
+            Get the rule collection.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.RoutingRule.AdvancedMode">
+            <summary>
+            Get/Set the advanced mode flag for this object.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.RoutingRule.Enabled">
+            <summary>
+            Enable/Disable this rule.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.ValidationCondition.AdvancedMode">
+            <summary>
+            Get/Set the advanced mode.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Shared.DecisionSet">
+            <summary>
+            This class represent a set of decision (n user choices, return value and properties).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.DecisionSet.AdvancedMode">
+            <summary>
+            Get/Set the advanced mode.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.DecisionSet.Decisions">
+            <summary>
+            Get the list of possible decisions.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Shared.Decision">
+            <summary>
+            This class represent a single decision for a user task.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.Decision.Text">
+            <summary>
+            Get/Set the text of the Decision.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.Decision.Value">
+            <summary>
+            Get/Set the value of the decision.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.Decision.MandatoryFields">
+            <summary>
+            Liste des champs obligatoires pour cette décision.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.Decision.Visibility">
+            <summary>
+            Restriction de la visibilité de la décision.
+            Si vide, aucune restriction n'est appliquée : décision visible pour tous les intervenants de l'étape
+            Si non vide, application de la restriction : décision visible uniquement pour les intervenants caractérisés par cette liste (rôles, TODO:noms, TODO:services).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.ComponentModel.Shared.Decision.HideOnMobile">
+            <summary>
+            Restriction de la visibilité de la décision pour l'application MobileStudio.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.ComponentModel.Task">
+            <summary>
+            A Task is a kind of Activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.SignValidationRule.CanValidate(Avanteam.Workflow.Runtime.Instance,Avanteam.Workflow.ComponentModel.SignState)">
+            <summary>
+            Determinate if the RuleExpression is valid.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.ComponentModel.SignValidationRule.GetResultingAction(Avanteam.Workflow.Runtime.Instance,Avanteam.Workflow.ComponentModel.SignState)">
+            <summary>
+            Return the First ResultExpression value that is valid.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.IntermediateEventExecutor.RuleIsPresent(Avanteam.Workflow.Runtime.Instance,Avanteam.Workflow.ComponentModel.IntermediateEvent)">
+            <summary>
+            Test if rules are valid.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.SendMail(Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            Generic method that detect &amp; send a mail if the component contains a Mail Property.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsComponentAnArtifactRequiredForStart(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            check if the component is a RequiredForStart Artifact.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsComponentAStartEvent(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            check if the component is a Start Event.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsComponentAnErrorIntermediateEvent(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            check if the component is an Intermediate Error Event.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsOutgoingConnection(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            Check if component is an outgoing connection of the current component.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsIncomingConnection(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            Check if component is an incoming connection of the current component.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Executors.ExecutorBase.IsComponentATimerIntermediateEventAttachToMe(Avanteam.Workflow.ComponentModel.IWorkflowComponent)">
+            <summary>
+            Check if the component is a Timer Attach to the current componnet (Traget Id=component.id).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Instance.Start">
+            <summary>
+            Start an instance.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Instance.Stop">
+            <summary>
+            Stop the instance.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.Instance.GetIntProperty(System.String,System.Boolean)">
+            <summary>
+            Return the Int value of a property or 0 if the property does not exist.
+            search in previous instances if promote is true.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.Runtime.Instance.Timer">
+            <summary>
+            Get/Set the Timer object for this instance.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.Runtime.Instance.LastComment">
+            <summary>
+            Dernier commentaire saisi avant son enregistrement dans l'historique.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Workflow.Runtime.Instance.LastValidationFor">
+            <summary>
+            Identité de la personne pour qui la dernière action de workflow a été réalisé (délégation).
+            On rend disponible cette information au niveau root du workflow car elle peut être utile dans certains dev custom.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.IRuntime.EvaluateStringExpression(System.String,Avanteam.Workflow.ComponentModel.Shared.Triplet[])">
+            <summary>
+            Return the result of the evaluation of the expression with the Triplets parameters.
+            A triplet contains 2 objects : Type, name, value.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.IRuntime.EvaluateBoolStatement(System.String,Avanteam.Workflow.ComponentModel.Shared.Triplet[])">
+            <summary>
+            Return the result of the evaluation of the statement with the Triplets parameters.
+            A triplet contains 3 objects : Type, name, value. Type is used to reference the assembly,
+            name &amp; value are passed as args to the method call.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.Runtime.IRuntime.EvaluateBoolStatement(Avanteam.Workflow.Runtime.Instance,System.String)">
+            <summary>
+            Return the result of the evaluation of the statement with the instance parameter passed.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,357 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Workflow.DataSource</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessRepositoryTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessRepositoryTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessInstancesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessScriptsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessInstanceExecutorPropTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessInstancePropertiesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessHistoryTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessEventsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.ProcessTimersTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessInstancesTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessScriptsTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessInstanceExecutorPropTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessInstancePropertiesTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessHistoryTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessEventsTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflowTableAdapters.OracleProcessTimersTableAdapter">
+            <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessScriptsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstanceExecutorPropDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancePropertiesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessHistoryDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessEventsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessTimersDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessScriptsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstanceExecutorPropRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancePropertiesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessHistoryRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessEventsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessTimersRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessScriptsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstanceExecutorPropRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancePropertiesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessHistoryRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessEventsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessTimersRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.LoadRepository">
+            <summary>
+            Load the entire ProcessRepository Table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.UpdateRepositoryRow(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow)">
+            <summary>
+            Update one ProcessRepository row.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.GetIdProcess(System.String)">
+            <summary>
+            Return the id of one process.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.GetRepository(System.String)">
+            <summary>
+            Return the ProcessRepository DataSet of a process.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.GetActivities(System.String)">
+            <summary>
+            Get Activities for a process.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.GetProcessesActivities(System.String[])">
+            <summary>
+            Get Activities for an array of processes.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.IWorkflowDataSource.UpdateInstanceTable(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessInstancesDataTable)">
+            <summary>
+            Update an instance table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Oracle.WorkflowDataSource.LoadRepository">
+            <summary>
+            Load the entire ProcessRepository Table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Oracle.WorkflowDataSource.UpdateRepositoryRow(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow)">
+            <summary>
+            Update one ProcessRepository row.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Oracle.WorkflowDataSource.GetIdProcess(System.String)">
+            <summary>
+            Get the Id of a process by its name.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Oracle.WorkflowDataSource.GetRepository(System.String)">
+            <summary>
+            Get the Repository of a process by its Id.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Oracle.WorkflowDataSource.LoadBPMGraph(System.String)">
+            <summary>
+            Load a DataSet that contains the entire BPM description of a Workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Sql.WorkflowDataSource.LoadRepository">
+            <summary>
+            Load the entire ProcessRepository Table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Sql.WorkflowDataSource.UpdateRepositoryRow(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow)">
+            <summary>
+            Update one ProcessRepository row.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Sql.WorkflowDataSource.GetIdProcess(System.String)">
+            <summary>
+            Get the Id of a process by its name.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Sql.WorkflowDataSource.GetRepository(System.String)">
+            <summary>
+            Get the Repository of a process by its Id.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.Sql.WorkflowDataSource.LoadBPMGraph(System.String)">
+            <summary>
+            Load a DataSet that contains the entire BPM description of a Workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.LoadRepository">
+            <summary>
+            Load the entire ProcessRepository Table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.UpdateRepositoryRow(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow)">
+            <summary>
+            Update ProcessRepository
+            (sans mise à jour date modification et modifié par).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.UpdateRepositoryRow(Avanteam.Workflow.DataSource.DataSets.DSWorkflow.ProcessRepositoryRow,System.String)">
+            <summary>
+            Update ProcessRepository
+            (avec mise à jour date modification et modifié par).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetIdProcess(System.String)">
+            <summary>
+            Gets the Id of a process by its name.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetRunableIdProcess(System.String)">
+            <summary>
+            Gets the Id of the first runable process (status=1 or status=2 in thsi order).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetRepository(System.String)">
+            <summary>
+            Gets the Repository of a process by its Id.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetActivities(System.String)">
+            <summary>
+            Gets a DataSet that contains all activities for a process.
+            </summary>
+            <returns>DataSet contains activities in the Activity DataTable, columns ID, name ...</returns>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetProcessesActivities(System.String[])">
+            <summary>
+            Get a DataSet that contains all activities for all processes.
+            </summary>
+            <returns>DataSet contains 2 tables : process &amp; Activity + a relation "process_Activity".</returns>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetIdParentInstance(System.String)">
+            <summary>
+            Get the parent's id of the passed instance's id.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.GetCategories">
+            <summary>
+            List of categories linked to the navigator.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Workflow.DataSource.WorkflowDataSource.UpdateCategorie(System.String,System.String)">
+            <summary>
+            Updates the category of a navigator.
+            </summary>
+        </member>
+    </members>
+</doc>

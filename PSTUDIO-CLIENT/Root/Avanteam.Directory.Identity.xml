@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Directory.Identity</name>
+    </assembly>
+    <members>
+        <member name="P:Avanteam.Directory.Identity.ApsSignInResult.HasPasswordExpired">
+            <summary>
+            Gets or sets a flag indication whether the sign-in was successful but password has expired.
+            </summary>
+            <value>True if the sign-in was successful and password expired, otherwise false.</value>
+        </member>
+        <member name="T:Avanteam.Directory.Identity.ApsUserManager`1">
+            <summary>
+            Implementation of <see cref="T:Microsoft.AspNetCore.Identity.UserManager`1"/> that add business logic
+            needs required by the Avanteam Process Suite.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Directory.Identity.ApsUserManager`1.GetUserAsync(System.Security.Claims.ClaimsPrincipal)">
+            <summary>
+            Returns the user corresponding to the IdentityOptions.ClaimsIdentity.UserIdClaimType claim in
+            the principal or null.
+            </summary>
+            <param name="principal">The principal which contains the user id claim.</param>
+            <returns>The user corresponding to the IdentityOptions.ClaimsIdentity.UserIdClaimType claim in
+            the principal or null.</returns>
+        </member>
+        <member name="P:Avanteam.Directory.Identity.ApsUserStore.ErrorDescriber">
+            <summary>
+            Gets the <see cref="T:Microsoft.AspNetCore.Identity.IdentityErrorDescriber"/> for any error that occurred with the current operation.
+            </summary>
+        </member>
+    </members>
+</doc>

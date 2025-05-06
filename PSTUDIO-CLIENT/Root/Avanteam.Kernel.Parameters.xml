@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Kernel.Parameters</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.GetValue``1(System.String,``0)">
+            <summary>
+            Gets application setting by key from ApplicationSettings table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.SetValue``1(System.String,``0)">
+            <summary>
+            Sets application setting by key to ApplicationSettings table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.GetLocalizedValue(System.String,System.String)">
+            <summary>
+            Gets localized value by key (for current culture).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.GetLocalizedValue(System.String,System.String,System.String)">
+            <summary>
+            Gets localized value by key (for specified culture).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.SetLocalizedValue(System.String,System.String,System.String)">
+            <summary>
+            Sets localized value.
+            </summary>
+            <param name="key">key name.</param>
+            <param name="locale">TwoLetterISOLanguageName.</param>
+            <param name="value">localized value.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.ApplicationSettingsManagerWrapper.SetAllLocalizedValues(System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+            <summary>
+            Sets all localized values by key.
+            </summary>
+            <param name="key">key name.</param>
+            <param name="valuesByLocale">collection of key/value pairs with key=TwoLetterISOLanguageName and value=localized value.</param>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParams">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParams.ContentParamsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParams.ContentParamsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParams.ContentParamsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParamsTableAdapters.ContentParamsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSContentParamsTableAdapters.OracleContentParamsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParams">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParams.UserParamsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParams.UserParamsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParams.UserParamsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.UserParamsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager">
+             <summary>
+            TableAdapterManager is used to coordinate TableAdapters in the dataset to enable Hierarchical Update scenarios
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.UpdateUpdatedRows(Avanteam.Kernel.Parameters.DataSets.DSUserParams,System.Collections.Generic.List{System.Data.DataRow},System.Collections.Generic.List{System.Data.DataRow})">
+             <summary>
+            Update rows in top-down order.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.UpdateInsertedRows(Avanteam.Kernel.Parameters.DataSets.DSUserParams,System.Collections.Generic.List{System.Data.DataRow})">
+             <summary>
+            Insert rows in top-down order.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.UpdateDeletedRows(Avanteam.Kernel.Parameters.DataSets.DSUserParams,System.Collections.Generic.List{System.Data.DataRow})">
+             <summary>
+            Delete rows in bottom-up order.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.GetRealUpdatedRows(System.Data.DataRow[],System.Collections.Generic.List{System.Data.DataRow})">
+             <summary>
+            Remove inserted rows that become updated rows after calling TableAdapter.Update(inserted rows) first
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.UpdateAll(Avanteam.Kernel.Parameters.DataSets.DSUserParams)">
+             <summary>
+            Update all changes to the dataset.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.UpdateOrderOption">
+             <summary>
+            Update Order Option
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.TableAdapterManager.SelfReferenceComparer">
+             <summary>
+            Used to sort self-referenced table's rows
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parameters.DataSets.DSUserParamsTableAdapters.OracleUserParamsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSource.ContentParamsManagerWrapper.#ctor(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.Parameters.DataSource.ContentParamsManagerWrapper"/> class.
+            <paramref name="profile">Constructor with Application Profile.</paramref>.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSource.ContentParamsManagerWrapper.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.Parameters.DataSource.ContentParamsManagerWrapper"/> class.
+            Default constructor for backward compatibility.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.DataSource.Oracle.StringExtensions.ConvertToOracleNotNullField(System.String)">
+            <summary>
+            Adapte une chaîne pour être stockée dans un champ de table Oracle n'acceptant pas les valeurs null (ou vide).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.GetValue``1(System.String,``0)">
+            <summary>
+            Get application setting by key from ApplicationSettings table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.SetValue``1(System.String,``0)">
+            <summary>
+            Set application setting by key to ApplicationSettings table.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.GetLocalizedValue(System.String,System.String)">
+            <summary>
+            Get localized value by key (for current culture).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.GetLocalizedValue(System.String,System.String,System.String)">
+            <summary>
+            Get localized value by key (for specified culture).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.SetLocalizedValue(System.String,System.String,System.String)">
+            <summary>
+            Set localized value.
+            </summary>
+            <param name="key">key name.</param>
+            <param name="locale">TwoLetterISOLanguageName.</param>
+            <param name="value">localized value.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Parameters.IApplicationSettingsManager.SetAllLocalizedValues(System.String,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.String}})">
+            <summary>
+            Set all localized values by key.
+            </summary>
+            <param name="key">key name.</param>
+            <param name="valuesByLocale">collection of key/value pairs with key=TwoLetterISOLanguageName and value=localized value.</param>
+        </member>
+    </members>
+</doc>

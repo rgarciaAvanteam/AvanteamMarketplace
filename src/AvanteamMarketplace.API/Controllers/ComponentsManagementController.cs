@@ -85,19 +85,29 @@ namespace AvanteamMarketplace.API.Controllers
         {
             try
             {
+                _logger.LogInformation($"Début de traitement de l'extraction du manifest. Taille du fichier: {packageFile?.Length ?? 0} octets");
+                
                 if (packageFile == null || packageFile.Length == 0)
                 {
                     return BadRequest(new { error = "Aucun fichier n'a été téléversé" });
+                }
+                
+                if (packageFile.Length > 500 * 1024 * 1024) // 500 MB
+                {
+                    _logger.LogWarning($"Fichier trop volumineux: {packageFile.Length / (1024 * 1024)} MB");
+                    return BadRequest(new { error = "Le fichier est trop volumineux. La taille maximale autorisée est de 500 MB." });
                 }
 
                 // Chemin temporaire pour enregistrer le fichier
                 var tempFilePath = Path.GetTempFileName();
                 try
                 {
+                    _logger.LogInformation($"Copie du fichier dans un fichier temporaire: {tempFilePath}");
                     using (var stream = new FileStream(tempFilePath, FileMode.Create))
                     {
                         await packageFile.CopyToAsync(stream);
                     }
+                    _logger.LogInformation($"Fichier copié avec succès: {packageFile.Length} octets");
 
                     // Valider le package
                     var validationResult = await _packageService.ValidateComponentPackageAsync(tempFilePath);
@@ -292,16 +302,48 @@ namespace AvanteamMarketplace.API.Controllers
                     // Supprimer le fichier temporaire en cas d'erreur
                     if (System.IO.File.Exists(tempFilePath))
                     {
-                        System.IO.File.Delete(tempFilePath);
+                        try {
+                            System.IO.File.Delete(tempFilePath);
+                        } catch (Exception deleteEx) {
+                            _logger.LogWarning($"Impossible de supprimer le fichier temporaire: {deleteEx.Message}");
+                        }
                     }
                     
-                    _logger.LogError(ex, "Erreur lors de l'extraction du manifest du package");
+                    _logger.LogError(ex, $"Erreur lors de l'extraction du manifest du package: {ex.Message}");
+                    if (ex is IOException ioEx)
+                    {
+                        _logger.LogError(ioEx, "Erreur d'IO: cela peut être lié à une taille de fichier excessive ou à des problèmes de disque");
+                        return BadRequest(new { error = "Le fichier est trop volumineux ou le format n'est pas correct", details = ex.Message });
+                    }
+                    else if (ex is OutOfMemoryException memEx)
+                    {
+                        _logger.LogError(memEx, "Erreur de mémoire: fichier probablement trop gros pour être traité");
+                        return BadRequest(new { error = "Le fichier est trop volumineux pour être traité", details = "Mémoire insuffisante pour traiter ce fichier" });
+                    }
+                    else if (ex is InvalidOperationException || ex is ArgumentException)
+                    {
+                        return BadRequest(new { error = "Format de fichier invalide", details = ex.Message });
+                    }
+                    
                     return StatusCode(500, new { error = "Une erreur est survenue lors de l'extraction du manifest", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erreur lors de l'extraction du manifest du package");
+                var exDetails = ex.ToString();
+                if (exDetails.Length > 1000)
+                {
+                    exDetails = exDetails.Substring(0, 1000) + "...";
+                }
+                
+                _logger.LogError(ex, $"Erreur générale lors de l'extraction du manifest: {ex.Message}");
+                _logger.LogError($"Détails de l'exception: {exDetails}");
+                
+                if (ex is BadHttpRequestException badRequestEx)
+                {
+                    return BadRequest(new { error = "Requête HTTP incorrecte", details = "La requête est malformée ou contient un fichier trop volumineux" });
+                }
+                
                 return StatusCode(500, new { error = "Une erreur est survenue lors de l'extraction du manifest", details = ex.Message });
             }
         }

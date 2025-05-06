@@ -1,0 +1,2688 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Kernel</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Kernel.Aspose.LicenceManager">
+            <summary>
+            Aspose Licence manager.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Aspose.LicenceManager.GetLicenceStream">
+            <summary>
+            Get aspose licence file stream.
+            </summary>
+            <returns>Aspose licence as stream.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.AsyncLock">
+            <summary>
+            Class that helps to use <see cref="T:System.Threading.SemaphoreSlim"/> to acquire locks
+            to handle concurrency in async/await methods.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Collections.SerializableDictionary`2">
+            <summary>
+            Un dictionnaire sérialisable.
+            <remarks>Attention, si vous cherchez à sérialiser une classe dont l'une des propriétés est un SerializableDictionary, alors celle-ci ne sera sérialisée que si elle possède un getter ET un setter</remarks>
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Configuration.ApsEnvironment">
+            <summary>
+            Class that describe the Avanteam Process Suite environment.
+            This environment is discovered by conventions and be controlled for development needs with
+            environment variables (AVTNET_INSTANCE and AVTNET_{gitCloneName}[-{instance}]_TARGETPATH).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.ApsEnvironment.RootDir">
+            <summary>
+            Gets the root directory of avanteam process suite installation. This is the directory
+            that should contains the "PStudio.Configuration" directory.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.ApsEnvironment.ConfigDir">
+            <summary>
+            Gets the path to the "PStudio.Configuration" directory to use.
+            Pay attention that the returned path may not exists.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.ApsEnvironment.ExePath">
+            <summary>
+            Gets the path to the executable file to use.
+            Note that the string returned may be empty in the ASP.NET Web Form context,
+            and the path Avanteam.Root.dll in the ASP.NET Core context.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.ApsEnvironment.ProgramDeployPath">
+            <summary>
+            Gets the deploy path of the current program relative to <see cref="P:Avanteam.Kernel.Configuration.ApsEnvironment.RootDir"/>.
+            When deployed this is a real relative path. But in development mode it‘s a path determined
+            by conventions since the current program is not actually running from that location.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ApsEnvironment.LocateRootDir(System.String)">
+            <summary>
+            Locate the root directory of avanteam process suite installation. This is the directory
+            that should contains the "PStudio.Configuration" directory.
+            </summary>
+            <param name="instance">
+            Name of a specific development instance to look for.
+            This allows to override the AVTNET_INSTANCE variable to programmatically switch between dev
+            instances, which is useful for unit tests.
+            -- or --
+            Full path of the application base path that will be used to search for a
+            "PStudio.Configuration" directory.
+            </param>
+            <returns>
+            The full path to the root directory of avanteam process suite installation,
+            or null if <paramref name="instance"/> is not null and not a full path, and that no
+            matching dev instance was found.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ApsEnvironment.LocateRootDirDeveloperMode(System.String)">
+            <summary>
+            In developer mode we look for an environment variable named
+            AVTNET_{gitCloneName}[-{instance}]_TARGETPATH, where {gitCloneName} is the name of
+            the directory that contains our git clone, and {instance} is an optional parameter
+            generally defined through the AVTNET_INSTANCE environment variable, that allows to have
+            multiple deployed instances for a same git clone (typically to distinct an oracle
+            deployment from the default SQLServer one).
+            </summary>
+            <param name="instance">Name of the development instance.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ApsEnvironment.LocateRootDirDeployedMode(System.String,System.String)">
+            <summary>
+            In deploy mode we just search for the nearest "PStudio.Configuration" directory while
+            looking in the <paramref name="appBasePath"/> directory and in every parent directory
+            of it.
+            If none if found, return the parent directory of <paramref name="appBasePath"/> as the
+            default location.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ApsEnvironment.LocateConfigDir(System.String)">
+            <summary>
+            Locate the "PStudio.Configuration" directory to use.
+            </summary>
+            <param name="instance">
+            Name of a specific development instance to look for.
+            This allows to override the AVTNET_INSTANCE environment variable to programmatically switch
+            between development instances, which is useful for unit tests.
+            -- or --
+            Full path of the application base path that will be used to search for a
+            "PStudio.Configuration" directory.
+            </param>
+            <returns>
+            The path to the PStudio.Configuration directory,
+            or null if <paramref name="instance"/> is not null and not a full path, and that no
+            matching dev instance was found.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ApsEnvironment.ResolveShimPath(System.String,System.String,System.String)">
+            <summary>
+            Return the programRelativeDir of the shim of a program if one exists
+            Otherwise return the programRelativeDir itself.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Configuration.BuildEnvironment">
+            <summary>
+            Class that describe the build environment.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.BuildEnvironment.Current">
+            <summary>
+            Gets the BuildEnvironment instance corresponding to the current appDomain.
+            This can be null if the current appDomain is not executed from the sources,
+            which means that we are not in a build environment.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.BuildEnvironment.CloneRootDir">
+            <summary>
+            Gets the full path to the root directory of the code clone.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.BuildEnvironment.BaseOutputDir">
+            <summary>
+            Gets the full path to the base output directory (the build or release
+            folder).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Configuration.ProgramConfig">
+            <summary>
+            Class that represent the static key value pairs configuration of a program.
+            It should contains settings needed to boot the program and that are not
+            expected to change during the life time of the program.
+            </summary>
+            <remarks>Keys are case insensitive.</remarks>
+        </member>
+        <member name="P:Avanteam.Kernel.Configuration.ProgramConfig.Default">
+            <summary>
+            Gets the settings for the currently running program, read from the
+            programs.ini file located in the "PStudio.Configuration" directory.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ProgramConfig.ParseIniFile(System.Collections.Generic.IEnumerable{System.String},System.String)">
+            <summary>
+            Parse a programs.ini file lines to extract the configuration that should be
+            applied for the specified program.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Configuration.ProgramConfig.ParseSectionName(System.String)">
+            <summary>
+            Parse a section name as a list of paths.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Constants">
+            <summary>
+            Quelques constantes utiles.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Constants.DN_NAME">
+            <summary>
+            Nom du champ de la table DirectoryResources correspondant à l'identifiant unique d'une ressource (FullName).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Constants.CN_NAME">
+            <summary>
+            nom du champ de la table DirectoryResources correspondant au nom d'affichage d'une ressource (DisplayName).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Constants.DEFAULT_LANGUAGE">
+            <summary>
+            Code de la langue "par défaut", dite aussi "neutre", c’est la langue par défaut de toute l’application.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.ApplicationProfileContext.#ctor(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.DataSource.ApplicationProfileContext"/> class.
+            Current profile will be the one that can be retrieved statically during the life
+            duration of this context.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.DataSource.DataSourceBase`1.Profile">
+            <summary>
+            L'application courante.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.DataSource.DataSourceBase`1.Proxy">
+            <summary>
+            Instance d'une implémentation proxy permettant d'accéder aux données de la base.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.DataSource.DataSourceBase`1.DataSourceProviderProxy">
+            <summary>
+            Le proxy présenté en tant que <see cref="T:Avanteam.Kernel.DataSource.DataSourceProvider"/>, ou null si le proxy n‘implémente pas cette classe.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.DataSource.DataSourceBase`1.IsOracle">
+            <summary>
+            Indique si la base de donnée est de type Oracle.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.DataSource.DataSourceBase`1.ConfigurationKey">
+            <summary>
+            Configuration key to access provider -> [ConfigurationKey]Provider.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceBase`1.ProxyReset">
+            <summary>
+            Réinitialiser le Proxy (à utiliser en cas de changement de base).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceBase`1.SQL_ExecuteScalarCollection``1(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute query and return a collection of TItem.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceProvider.SQL_ExecuteScalarCollection``1(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute query and return a collection of T.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceProvider.GetTableNames">
+            <summary>
+            Gets the collection of tables name.
+            </summary>
+            <returns>Return collection of tables name.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.DataSource.DataSourceTools">
+            <summary>
+            Utility static class to Manipulate DataSet Structure.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceTools.CopyDataTableStructure(System.Data.DataSet,System.String,System.Data.DataSet)">
+            <summary>
+            Copy the structure of a datatable (columns) from a Dataset to another DataSet.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceTools.CopyDataTableRows(System.Data.DataTable,System.Data.DataTable)">
+            <summary>
+            Copy the content of a DataTable to another DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceTools.CopyDataRow(System.Data.DataRow,System.Data.DataRow)">
+            <summary>
+            Copy a source DataRow in a Target one.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceTools.ExtractColumn(System.Data.DataTable,System.Data.DataColumn)">
+            <summary>
+            Extract a column from a dataTable to a list of string.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.DataSourceTools.ExtractColumn(System.Data.DataTable,System.Int32)">
+            <summary>
+            Extract a column from a dataTable to a list of string.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.SQL_ExecuteScalar(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.SQL_ExecuteScalarColection(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar collection query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.SQL_ExecuteScalarCollection``1(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute query and return a collection of T.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.SQL_ExecuteNonQuery(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a non query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.SQL_ExecuteSelect(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Select Query return result in a DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.CopyDataTableStructure(System.Data.DataSet,System.String,System.Data.DataSet)">
+            <summary>
+            Copy the structure of a datatable (columns) from a Dataset to another DataSet.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.CopyDataTableRows(System.Data.DataTable,System.Data.DataTable)">
+            <summary>
+            Copy the content of a DataTable to another DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.OracleDataSourceBase.CopyDataRow(System.Data.DataRow,System.Data.DataRow)">
+            <summary>
+            Copy a source DataRow in a Target one.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.RawDbDataSourceFactory.TryGetRawDbDataSource(Avanteam.Kernel.DataSource.ConnectionType,System.String,Avanteam.Kernel.DataSource.RawDbDataSource@)">
+            <summary>
+            Try to create a RawDbDataSource instance.
+            This may fail if DbProviderFactories is not filled, which may happen
+            in design time scenarios.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.DataSource.ScopedServiceLocatorProxyBase`1">
+            <summary>
+            Base class to use to implement a ServiceLocator proxy over a service
+            which implementation requires to be resolved in a DI scope.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.SQL_ExecuteScalar(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.SQL_ExecuteScalarColection(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar collection query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.SQL_ExecuteScalarCollection``1(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute query and return a collection of T.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.SQL_ExecuteNonQuery(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a non query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.SQL_ExecuteSelect(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Select Query return result in a DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.CopyDataTableStructure(System.Data.DataSet,System.String,System.Data.DataSet)">
+            <summary>
+            Copy the structure of a datatable (columns) from a Dataset to another DataSet.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.CopyDataTableRows(System.Data.DataTable,System.Data.DataTable)">
+            <summary>
+            Copy the content of a DataTable to another DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DataSource.SqlDataSourceBase.CopyDataRow(System.Data.DataRow,System.Data.DataRow)">
+            <summary>
+            Copy a source DataRow in a Target one.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.DateTimeInterval">
+            <summary>
+            An interval between two DateTime (start and end).
+            Highly inspired by Interval struct from NodaTime.
+            </summary>
+            <remarks>
+            The interval includes the start DateTime and excludes the end DateTime.
+            However, an interval may be missing its start or end, in which case the interval is deemed to
+            be infinite in that direction.
+            The end may equal the start (resulting in an empty interval), but will not be before the start.
+            The end must be of the same kind than the start.
+            </remarks>
+        </member>
+        <member name="P:Avanteam.Kernel.DBTools.DateTools.NullReference">
+            <summary>
+            An empty DateTime.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DBTools.DateTools.IsEmpty(System.DateTime)">
+            <summary>
+            Return True if DateTime is empty.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DBTools.DateTools.DBConvert(System.DateTime)">
+            <summary>
+            Convert a DateTime to a SQL Complient format (DBNull if the DateTime is empty).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DBTools.DateTools.DBStore(System.DateTime,System.Data.DataRow,System.String)">
+            <summary>
+            Store a DateTime object in a DataRow column using DBNull if DateTime is empty.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DBTools.DateTools.DBLoad(System.Data.DataRow,System.String)">
+            <summary>
+            Load a DateTime object from a DataRow, if DBNull, return an empty DateTime.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DependencyInjection.ApplicationProfileScope.#ctor(System.IServiceProvider,Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.DependencyInjection.ApplicationProfileScope"/> class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Document.DocumentUtils">
+            <summary>
+            Regroupe quelques méthodes utilitaires liées au domaine des documents dans le contexte du site web.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Document.DocumentUtils.BuildDocumentLink(System.String,System.Boolean)">
+            <summary>
+            Construit un lien vers un document (un tag « a href » HTML) utilisable dans le corps d'un email HTML.
+            </summary>
+            <param name="documentId">identifiant du document.</param>
+            <param name="dualview">mode d'ouverture : false pour mode normal, true pour mode « dualview ».</param>
+            <returns>une chaîne de caractère contenant le code HTML du lien vers le document.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Document.DocumentUtils.BuildDocumentUrl(System.String,System.Boolean)">
+            <summary>
+            Construit l'URL d'un document (utilisable même depuis un email).
+            </summary>
+            <param name="documentId">identifiant du document.</param>
+            <param name="dualview">mode d'ouverture : false pour mode normal, true pour mode « dualview ».</param>
+            <returns>une URL.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Document.DocumentUtils.BuildDocumentUrl(System.String,System.String,System.String)">
+            <summary>
+            Build a document url.
+            </summary>
+            <remarks>
+            Pattern: `{applicationUrlBase}/PageLoader.ashx?{action}&amp;IdDoc={id}[&amp;{customArgs}]`.
+            </remarks>
+        </member>
+        <member name="M:Avanteam.Kernel.Document.DocumentUtils.BuildUrlToOpenDocWithNav(System.String,System.String,System.String)">
+            <summary>
+            Build an url to open a document with navigation.
+            </summary>
+            <remarks>
+            This url targets the application home and automatically loads the document in a new tab.
+            Pattern:
+            <code>{applicationUrlBase}#link=doc/{id}/{action}[/{customArgs}]</code>
+            </remarks>
+            <param name="documentId">Document id.</param>
+            <param name="queryAction">open or edit.</param>
+            <param name="customArgs">Custom arguments.</param>
+        </member>
+        <member name="T:Avanteam.Kernel.Domino.AuthenticationMode">
+            <summary>
+            Permet d'identifié le mode d'authentification des sessions
+            Cette option est définie dans les paramètres du serveur domino "Moteur Http" dans le champ "Authentification des sessions"
+            Ce champ peut contenir trois valeurs
+                Désactivé / Disable
+                Serveur unique / Single server
+                Serveur multiple ==> sso ou token. Cette option n'a pas été implémentée.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Domino.AuthenticationMode.Disabled">
+            <summary>
+            Mode désactivé : l'authentification des sessions http se fait via boite de dialogue.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Domino.AuthenticationMode.SingleServer">
+            <summary>
+            Mode serveur unique : l'authentification des sessions http se fait via un formulaire.
+            L'implémentation a été testé dans le cadre d'une personnalisation du formulaire de login Avanteam.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Domino.DominoHttpSession">
+            <summary>
+            A stateful (authenticated) session with a Domino server.  Current version only supports
+            forms based authentication, and does not permit bypassing authentication.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Domino.DominoHttpSession.UserName">
+            <summary>
+            Username with which to authenticate to the Domino server, must be a legal web user name.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Domino.DominoHttpSession.Password">
+            <summary>
+            Web password of the authenticating account.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Domino.DominoHttpSession.ServerHostName">
+            <summary>
+            The server on which the session will exist.  At this time, all connections must use
+            the same server.  Untested but probably will work:  switching server name before establishing
+            a connection, as long as the authentication cookies are shared.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.#ctor(System.String,Avanteam.Kernel.Domino.AuthenticationMode,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.Domino.DominoHttpSession"/> class.
+            Create a connection to a Domino Database using HTTP protocol.
+            </summary>
+            <param name="serverHostName">http://democom.corp.avanteam.fr:8080.</param>
+            <param name="authenticationMode">Disable or single server.</param>
+            <param name="username">Le nom de l'utilisateur.</param>
+            <param name="password">Le mot de passe de l'utilisateur.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.GetWebResponse(System.String)">
+            <summary>
+            Exécuter une Url 'GET' en utilisation la session http domino et de cookies.
+            </summary>
+            <param name="url">Url domino.</param>
+            <returns>La réponse.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.Authenticate(System.String)">
+            <summary>
+            Must be called to establish the session with the server.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.TimeoutOccurs(System.String)">
+            <summary>
+            Timeout occurs.
+            </summary>
+            <param name="url">Url.</param>
+            <returns>La requête avec les paramètres de connexion.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.ReadHttpXml(System.String)">
+            <summary>
+            Lecture d'une URL qui retourne un "fichier" au format XML.
+            </summary>
+            <param name="url">Url à traiter.</param>
+            <returns>Retourne la réponse du serveur domino.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Domino.DominoHttpSession.DownloadFile(System.String)">
+            <summary>
+            Télécharge un fichier à partir d'une url Domino.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Extensibility.ExtensionsAssembliesResolver.SearchPaths">
+            <summary>
+            Base directory + search path of the registered extension types.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.ColorExtensions.ToHsl(System.Drawing.Color)">
+            <summary>
+            Convertir un Color en ColorHsl (Hue, Saturation, Luminosity).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.EnumerableExtensions.OrderByNatural``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.String})">
+            <summary>
+            Pour trier une énumération dans l’ordre "naturel".
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.EnumerableExtensions.FirstIfSingleOrDefault``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Return the first element of a sequence if the sequence contains a single element.
+            Otherwise (sequence is empty or has more than one element) return the default value.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.EnumerableExtensions.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+            Performs the specified action for each element of the enumeration.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.EnumerableExtensions.ForEach``1(``0[],System.Action{``0})">
+            <summary>
+            Performs the specified action for each element of the array.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.NameValueCollectionExtensions.GetValueOrDefault``1(System.Collections.Specialized.NameValueCollection,System.String,``0)">
+            <summary>
+            Retourne la valeur du paramètre passé en clé, à défaut, la valeur defaultValue passée en paramètre.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Extensions.SerializationExtensions">
+            <summary>
+            Méthodes d'extension permettant de sérialiser/déserialiser n'importe quelle instance de classe sérialisable en XML.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.SerializationExtensions.Serialize``1(``0)">
+            <summary>
+            Serialise une instance de <typeparamref name="T"/> en XML.
+            </summary>
+            <typeparam name="T">Une classe sérialisable.</typeparam>
+            <param name="instance">Une instance sérialisable.</param>
+            <returns>le xml de la sérialisation dans une chaîne.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.SerializationExtensions.Deserialize``1(System.String)">
+            <summary>
+            Désérialize le XML d'un <typeparamref name="T"/> et retourne l'instance.
+            </summary>
+            <typeparam name="T">Une classe sérialisable.</typeparam>
+            <param name="xmlString">le xml d'une sérialisation de T.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.SerializationExtensions.DeserializeSingleOrArrayOf``1(System.String)">
+            <summary>
+            Désérialize le XML d'un <typeparamref name="T"/> ou d'un tableau de <typeparamref name="T"/> et retourne quelque soit le cas un tableau de <typeparamref name="T"/>
+            Cette méthode est une version plus résiliente de <see cref="M:Avanteam.Kernel.Extensions.SerializationExtensions.Deserialize``1(System.String)"/>.
+            </summary>
+            <typeparam name="T">Une classe sérialisable.</typeparam>
+            <param name="xmlString">le xml d'une sérialisation de T ou de T[].</param>
+            <returns>retourne quelque soit le cas un tableau de <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.ServiceProviderExtensions.CreateApplicationProfileScope(System.IServiceProvider,Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Create a DI scope and enter in an <see cref="T:Avanteam.Kernel.DataSource.ApplicationProfileContext"/>.
+            Pay attention that the given <paramref name="applicationProfile"/> may
+            need to be clone if this scope will be bind to a non static context like
+            an HttpContext.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.ServiceProviderExtensions.CreatePerApplicationProfileScopes(System.IServiceProvider,System.Collections.Generic.IEnumerable{Avanteam.Kernel.DataSource.ApplicationProfile})">
+            <summary>
+            Create lazy DI scopes associated to each profile of the given
+            <paramref name="applicationProfiles"/> collection, and return a disposable
+            object that allows to dispose all that scopes at once.
+            Useful if you need to work on multiple ApplicationProfiles in a same
+            context.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.CountLines(System.String)">
+            <summary>
+            Compte le nombre de lignes d'une chaîne.
+            </summary>
+            <returns>Le nombre de lignes contenues dans la chaîne.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.SplitLines(System.String)">
+            <summary>
+            Enumère la liste des lignes dans la chaîne de caractère.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.ToSqlString(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Formate une collection de string pour être insérée comme liste de valeurs dans une clause "WHERE [monchamp] IN (...)" d'une requête SQL.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.ToSqlFilteredQuery(System.String,System.Boolean)">
+            <summary>
+            Mise en forme d'une requête SQL pour Oracle ou SQLserver.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.SanitizeJsonForHtmlPage(System.String)">
+            <summary>
+            Pour insérer un JSON directement dans une balise &lt;script&gt; d'une page HTML et empêcher l'injection de javascript (attaque XSS).
+            </summary>
+            <param name="json">le json stringifié.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.ReplaceCaseInsensitive(System.String,System.String,System.String)">
+            <summary>
+            Comme la fonction Replace mais case-insensitive.
+            </summary>
+            <param name="input">le texte à modifier.</param>
+            <param name="pattern">le texte à rechercher.</param>
+            <param name="replaceText">le texte de remplacement.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.FirstLetterToUpperCase(System.String)">
+            <summary>
+            Returns the input string with the first character converted to uppercase.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.EnsureEndWith(System.String,System.Char)">
+            <summary>
+            Ensure that the last character of a specified string is the given one.
+            <para>If not, add the specified character to the string.</para>
+            </summary>
+            <param name="src">the string to check.</param>
+            <param name="finalCharacter">the expected character at the end of the string.</param>
+            <returns>a string which final character is the given one.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.RemoveSuffix(System.String,System.String,System.StringComparison)">
+            <summary>
+            Remove a given suffix from a string.
+            <para>
+            This looks like a TrimEnd,
+            but will search for a string and not just one character,
+            and will remove the suffix only one time, not as many times as we
+            can found it at the end.
+            </para>
+            </summary>
+            <param name="src">the string to sanitize.</param>
+            <param name="suffix">The suffix to remove if found.</param>
+            <param name="comparisonType">The comparison type to use to check if
+            the string ends with the suffix or not.</param>
+            <returns>The same string if it was not end with the suffix, or a
+            new string from which the suffix has been removed.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Extensions.StringExtensions.RemoveSuffixIgnoreCase(System.String,System.String)">
+            <summary>
+            Remove a given suffix from a string, ignoring the case of the suffix
+            when looking for it.
+            <para>
+            This looks like a TrimEnd,
+            but will search for a string and not just one character,
+            and will remove the suffix only one time, not as many times as we
+            can found it at the end.
+            </para>
+            </summary>
+            <param name="src">the string to sanitize.</param>
+            <param name="suffix">The suffix to remove if found.</param>
+            <returns>The same string if it was not end with the suffix, or a
+            new string from which the suffix has been removed.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.IO.DirectoryHelper.SearchParentDirectoryThatContainsDir(System.String,System.String)">
+            <summary>
+            Search in a given <paramref name="path"/> a given <paramref name="directory"/>,
+            and continue to search in every parent directory of the given <paramref name="path"/>
+            until we found the requested <paramref name="directory"/>.
+            </summary>
+            <returns>The path to the directory that contains the searched <paramref name="directory"/>;
+            or null if is has not been found.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.KeyEqualityComparer`1">
+            <summary>
+            Comparateur d'égalité générique sur un identifiant.
+            </summary>
+            <example>ret.Distinct(new KeyEqualityComparer&lt;KeyPair&gt;( (o) => o.Key )).</example>
+        </member>
+        <member name="M:Avanteam.Kernel.KeyEqualityComparer`1.#ctor(System.Func{`0,System.Object})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.KeyEqualityComparer`1"/> class.
+            </summary>
+            <param name="keyExtractor">fonction ou expression lambda permettant d'extraire le nom de la propriété servant d'identifiant à comparer.</param>
+        </member>
+        <member name="T:Avanteam.Kernel.Log.Logger">
+            <summary>
+            Logger Avanteam.
+            <remarks>Cette classe est un wrapper partiel de la classe NLog.Logger</remarks>
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Log.LogManager.OverloadDefaultNLogConfiguration">
+            <summary>
+            Load NLog configuration from extended conventions over what NLog natively do.
+            <para>
+            This allows to use the first nlog file that match the following patterns:
+            1. 'PStudio.Configuration/program.path.using.dots.program.exe.nlog'
+            or 'PStudio.Configuration/PStudio.Net.Web.Root.Avanteam.Root.dll.nlog' for the web root
+            or 'PStudio.Configuration/PStudio.Net.Web.app.nlog' for a web app.
+            2. 'PStudio.Configuration/program.exe.nlog' only for exe.
+            3. 'Program/path/program.exe.nlog' only for exe.
+            </para>
+            <para>
+            Also note that when a shim exists for a program, it’s the path to the shim that will be
+            used, and not the path to the real exe.
+            </para>
+            <para>
+            If no nlog file is found in one of those locations, then default nlog search will apply:
+            https://github.com/NLog/NLog/wiki/Configuration-file#configuration-file-locations.
+            </para>
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Log.LogManager.InitDefaultContext(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initialise le contexte global du logger et y ajoute les clés/valeurs usuelles (nom d'application, nom de profil, etc...)
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Log.LogManager.AddToContext(System.String,System.String)">
+            <summary>
+            Ajoute au contexte global du logger une clé/valeur.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Log.LogManager.RemoveFromContext(System.String)">
+            <summary>
+            Retire une clé du contexte global du logger.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Mail.SendMailService">
+            <summary>
+            Implementation of <see cref="T:Avanteam.Kernel.Mail.ISendMailService"/> based on legacy
+            <see cref="T:System.Net.Mail.SmtpClient"/>.
+            Since this client is deprecated and works slightly differently on
+            NetCore, we expect it to change in a near future.
+            Functional code must try to depends on <see cref="T:Avanteam.Kernel.Mail.ISendMailService"/>
+            and not on that class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.ObjectByteArrayConverter">
+            <summary>
+            Convert an object to byte array.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.BracesTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.BracesTag.cStartTag">
+            <summary>
+            The start of the tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.BracesTag.cEndTag">
+            <summary>
+            The end of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.InitializeCoreFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified word and separator array.
+            </summary>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.MatchEnd(System.String,System.Int32)">
+            <summary>
+            Returns a value indicating whether there is the tag ending at the specified position.
+            </summary>
+            <returns>
+            If this value is less than zero, then there is no ending; otherwise the
+            position after ending is returned.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.WriteEnd(System.Text.StringBuilder)">
+            <summary>
+            Writes the end of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.MatchStartStatic(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag start at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag start at the position.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.BracesTag.MatchEndStatic(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag end at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag end at the position.
+            </returns>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ForUpdateTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ForUpdateTag.cTagFirstPart">
+            <summary>
+            The first part of tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ForUpdateTag.cTagSecondPart">
+            <summary>
+            The second part of tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ForUpdateTag.Name">
+            <summary>
+            Gets the name of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ForUpdateTag.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ForUpdateTag.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchForUpdateTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchForUpdateTagAttribute.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchForUpdateTagAttribute.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.FromTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.FromTag.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchFromTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.GroupByTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.GroupByTag.cTagFirstPart">
+            <summary>
+            The first part of tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.GroupByTag.cTagSecondPart">
+            <summary>
+            The second part of tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.GroupByTag.Name">
+            <summary>
+            Gets the name of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.GroupByTag.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.GroupByTag.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchGroupByTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchGroupByTagAttribute.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchGroupByTagAttribute.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.OrderByTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.OrderByTag.cTagFirstPart">
+            <summary>
+            The first part of tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.OrderByTag.cTagSecondPart">
+            <summary>
+            The second part of tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.OrderByTag.Name">
+            <summary>
+            Gets the name of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.OrderByTag.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.OrderByTag.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchOrderByTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchOrderByTagAttribute.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchOrderByTagAttribute.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.ParserBase">
+            <summary>
+            An abstract class which is used as the base class for parsers.
+            It contains basic methods which allow you to create a logical tree
+            from a document.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cValueXmlAttributeName">
+            <summary>
+            The name of the Value xml attribute.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cTagTypeXmlAttributeName">
+            <summary>
+            The name of the Tag Type xml attribute.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cRootXmlNodeName">
+            <summary>
+            The name of the root node in the xml representation of a parsed text.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cTagXmlNodeName">
+            <summary>
+            The name of the Tag xml node.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cTextXmlNodeName">
+            <summary>
+            The name of the Text xml node.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cWhiteSpace">
+            <summary>
+            The white space text (is used when adding white
+            spaces between text elements).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase.cNewLine">
+            <summary>
+            The new line string.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.ParserBase._fParsedDocument">
+            <summary>
+            The tree representation of a parsed document as an xml document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.Parse(System.String)">
+            <summary>
+            Parses the specified text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.ParseBlock(System.Xml.XmlNode,Avanteam.Kernel.Parser.TagBase,System.String,System.Int32)">
+            <summary>
+            Parses the specified block of a text.
+            </summary>
+            <returns>
+            Returns the end position of the parsed block.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.IsTag(System.String,System.Int32)">
+            <summary>
+            Checks whether there is a tag in the text at the specified position, and returns its type.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.CreateTagXmlNode(Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Creates an xml node for the specified tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.CreateTextXmlNode(System.String)">
+            <summary>
+            Creates an xml node for the specified text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.SkipWhiteSpace(System.String,System.Int32@)">
+            <summary>
+            Skips the white space symbols located at the specified position.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.ReadWordOrSeparator(System.String,System.Int32@,System.Boolean)">
+            <summary>
+            Reads a single word or separator at the specified position.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.CheckTextAndPositionArguments(System.String,System.Int32)">
+            <summary>
+            Checks the text and position parameters.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.CheckXmlDocInitialized">
+            <summary>
+            Checks whether the fParsedDocument is initialized.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.ToText">
+            <summary>
+            Returns the text string processed by the parser.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.XmlNodesToText(System.Text.StringBuilder,System.Xml.XmlNodeList)">
+            <summary>
+            Converts the specified xml node collection to the text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.XmlNodeToText(System.Text.StringBuilder,System.Xml.XmlNode)">
+            <summary>
+            Converts the specified xml node to text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.IsTagXmlNode(System.Xml.XmlNode)">
+            <summary>
+            Determines whether the specified node is a tag node.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.IsTextXmlNode(System.Xml.XmlNode)">
+            <summary>
+            Determines whether the specified node is a text node.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.GetTextNodeText(System.Xml.XmlNode)">
+            <summary>
+            Returns the text stored in the text node.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.GetXmlNodeValue(System.Xml.XmlNode)">
+            <summary>
+            Retrieves the value of the specified tag xml node.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.TagXmlNodeToText(System.Text.StringBuilder,System.Xml.XmlNode)">
+            <summary>
+            Converts the specified tag xml node to text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.TagXmlNodeToTag(System.Xml.XmlNode)">
+            <summary>
+            Converts the specified tag xml node into a tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.GetTagFromType(System.String,System.String,System.Boolean)">
+            <summary>
+            Retrurns the tag instance from its type and value.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.ClearXmlNode(System.Xml.XmlNode)">
+            <summary>
+            Removes all the sub nodes from the specified node.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.ParserBase.CountStringsBefore(System.String,System.Int32,System.String)">
+            <summary>
+            Returns how many continuous specified strings are before of the specified
+            position in the specified text.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ParserBase.IsSkipWhiteSpace">
+            <summary>
+            Indicates whether the white space is considered as a non-valuable
+            character.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ParserBase.Tags">
+            <summary>
+            The list of all available tags.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.ParserBase.ParsedDocument">
+            <summary>
+            Gets the parsed document in xml format.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.QuotedIdentifierTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.QuotedIdentifierTag.cTagDelimiter">
+            <summary>
+            The tag delimiter.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.QuotedIdentifierTag.InitializeCoreFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified word and separator array.
+            </summary>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.QuotedIdentifierTag.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.QuotedIdentifierTag.MatchStartStatic(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag start at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag start at the position.
+            </returns>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.SelectTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SelectTag.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchSelectTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.SimpleOneWordTag">
+            <summary>
+            The base class for such tags as Select, From etc.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.SimpleOneWordTag._fParentTag">
+            <summary>
+            The value of the ParentTag property.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.InitializeCoreFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.MatchStart(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag at the position.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.WriteEnd(System.Text.StringBuilder)">
+            <summary>
+            Writes the end of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.MatchEnd(System.String,System.Int32)">
+            <summary>
+            Returns a value indicating whether there is the tag ending at the specified position.
+            </summary>
+            <returns>
+            If this value is less than zero, then there is no ending; otherwise the
+            position after ending is returned.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleOneWordTag.MatchStart(System.String,System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag at the specified position
+            in the specified sql.
+            </summary>
+            <name>The value of the Name property.</name>
+            <returns>
+            The position after the tag or -1 there is no tag at the position.
+            </returns>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SimpleOneWordTag.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SimpleOneWordTag.CanTerminateByStringEnd">
+            <summary>
+            Inidicates whether the string end can be treated as the end of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SimpleOneWordTag.ParentTag">
+            <summary>
+            Returns the parent tag of this tag in the sql being parsed.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchSimpleOneWordTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.SimpleTwoWordTag">
+            <summary>
+            The base class for such tags as Order By, Group By etc.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleTwoWordTag.MatchStart(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag at the position.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleTwoWordTag.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SimpleTwoWordTag.MatchStart(System.String,System.String,System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag at the specified position
+            in the specified sql.
+            </summary>
+            <name>The value of the Name property.</name>
+            <returns>
+            The position after the tag or -1 there is no tag at the position.
+            </returns>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SimpleTwoWordTag.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SimpleTwoWordTag.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchSimpleTwoWordTagAttribute.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchSimpleTwoWordTagAttribute.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.SqlParser._fTags">
+            <summary>
+            Stores the types of all the possible tags.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.SqlParser._isSkipWhiteSpace">
+            <summary>
+            Indicates whether the white space is a non-valueable character.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.Tags">
+            <summary>
+            Returns the list of all the available tags.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetSelectTagXmlNode">
+            <summary>
+            Returns the xml node which corresponds to the Select tag.
+            If this node does not exist, this method generates an
+            exception.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetFromTagXmlNode">
+            <summary>
+            Returns the xml node which corresponds to the From tag.
+            If this node does not exist, this method generates an
+            exception.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetForUpdateTagXmlNode">
+            <summary>
+            Returns the xml node which corresponds to the For Update tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.IsTag(System.String,System.Int32)">
+            <summary>
+            Checks whether there is a tag in the text at the specified position, and returns its tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.FromClause">
+            <summary>
+            Gets or sets the From clause of the parsed sql.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.SelectClause">
+            <summary>
+            Gets or sets the Select clause of the parsed sql.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetWhereTagXmlNode(System.Boolean)">
+            <summary>
+            Returns the xml node which corresponds to the Where tag.
+            If this node does not exist, creates a new one (if needed).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.WhereClause">
+            <summary>
+            Gets or sets the Where clause of the parsed sql.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetOrderByTagXmlNode(System.Boolean)">
+            <summary>
+            Returns the xml node which corresponds to the Order By tag.
+            If this node does not exist, creates a new one (if needed).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.OrderByClause">
+            <summary>
+            Gets or sets the Order By clause of the parsed sql.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.SqlParser.GetGroupByTagXmlNode(System.Boolean)">
+            <summary>
+            Returns the xml node which corresponds to the Group by tag.
+            If this node does not exist, creates a new one (if needed).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.SqlParser.GroupByClause">
+            <summary>
+            Gets or sets the GroupBy clause of the parsed sql.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.StartWith.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.StartWith.cTagFirstPart">
+            <summary>
+            The first part of tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.StartWith.cTagSecondPart">
+            <summary>
+            The second part of tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.StartWith.Name">
+            <summary>
+            Gets the name of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.StartWith.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.StartWith.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchStartWithTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchStartWithTagAttribute.FirstWord">
+            <summary>
+            Gets the first word of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchStartWithTagAttribute.SecondWord">
+            <summary>
+            Gets the second word of the tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.StringLiteralTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.StringLiteralTag.cTagDelimiter">
+            <summary>
+            The tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.StringLiteralTag.InitializeCoreFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified sql string.
+            </summary>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.StringLiteralTag.MatchEnd(System.String,System.Int32,System.Int32)">
+            <summary>
+            Returns a value indicating whether there is the tag ending at the specified position.
+            </summary>
+            <returns>
+            If this value is less than zero, then there is no ending; otherwise the
+            position after ending is returned.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.StringLiteralTag.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.StringLiteralTag.WriteEnd(System.Text.StringBuilder)">
+            <summary>
+            Writes the end of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.StringLiteralTag.MatchStartStatic(System.String,System.Int32)">
+            <summary>
+            Checks whether there is the tag start at the specified position
+            in the specified sql.
+            </summary>
+            <returns>
+            The position after the tag or -1 there is no tag start at the position.
+            </returns>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.TagBase">
+            <summary>
+            The base class for all the tags.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.TagBase._fIsInitialized">
+            <summary>
+            The value of the IsInitialized property.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.TagBase._fHasContents">
+            <summary>
+            The value of the HasContents property.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.TagBase._fValue">
+            <summary>
+            The value of the Value property.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.TagBase._fParser">
+            <summary>
+            The value of the Parser property.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.InitializeFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified word and separator array.
+            </summary>
+            <param name="parser">The parser.</param>
+            <param name="text">The text to parse.</param>
+            <param name="position">The position in the text where parsing should start.</param>
+            <param name="parentTag">
+            The parent tag of this tag. This argument is used to determine
+            the end of the tag (it can be the end of the parent tag).
+            </param>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.InitializeCoreFromText(Avanteam.Kernel.Parser.ParserBase,System.String,System.Int32,Avanteam.Kernel.Parser.TagBase)">
+            <summary>
+            Reads the tag at the specified position in the specified word and separator array.
+            </summary>
+            <param name="parser">The parser.</param>
+            <param name="text">The text to parse.</param>
+            <param name="position">The position in the text where parsing should start.</param>
+            <param name="parentTag">
+            The parent tag of this tag. This argument is used to determine
+            the end of the tag (it can be the end of the parent tag).
+            </param>
+            <returns>
+            The position after the tag (at which to continue reading).
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.InitializeFromData(Avanteam.Kernel.Parser.ParserBase,System.String,System.Boolean)">
+            <summary>
+            Reads the tag from the specified data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.InitializeFromDataCore(Avanteam.Kernel.Parser.ParserBase,System.String,System.Boolean)">
+            <summary>
+            Reads the tag from the specified data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.GetTagType(System.Type)">
+            <summary>
+            Returns the type of the specified tag (its identifier).
+            This method is used by the Type property.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.GetTagMatchAttribute(System.Type)">
+            <summary>
+            Returns the match attribute of the specified class.
+            This attribute is used to identify a tag in a text.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.MatchEnd(System.String,System.Int32)">
+            <summary>
+            Returns a value indicating whether there is the tag ending
+            at the specified position.
+            </summary>
+            <returns>
+            If this value is less than zero, then there is no ending; otherwise the
+            position after ending is returned.
+            </returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.WriteStart(System.Text.StringBuilder)">
+            <summary>
+            Writes the start of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.WriteEnd(System.Text.StringBuilder)">
+            <summary>
+            Writes the end of the tag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Parser.TagBase.CheckInitialized">
+            <summary>
+            Checks whether the tag is initialized, and throws an exception if not. This method should be called before a tag porperty or method is accessed.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.Type">
+            <summary>
+            Returns the type of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.Value">
+            <summary>
+            The value of the tag (it can be the text of a string literal for example).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.HasContents">
+            <summary>
+            Gets a value indicating whether this tag has contents to be parsed.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.CanTerminateByStringEnd">
+            <summary>
+            Inidicates whether the string end can be treated as the end of the tag.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.IsInitialized">
+            <summary>
+            Indicates whether the tag has been initialized.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.TagBase.Parser">
+            <summary>
+            The parser which has created this instance.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.MatchTagAttributeBase">
+            <summary>
+            This attribute is used to determine whether there is certain tag
+            at a position in a text.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Parser.TagTypeAttribute">
+            <summary>
+            This attribute is used to determine the name (identifier) of a tag.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.UnionTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.UnionTag.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchUnionTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Parser.WhereTag.cTagName">
+            <summary>
+            The name of the tag (its identifier).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.WhereTag.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Parser.MatchWhereTagAttribute.Name">
+            <summary>
+            Gets the name of the tag (its identifier and sql text).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Schema.APSSchema.HasSchemaChanged">
+            <summary>
+            return True if the schema has changed (contains new or updated fields, tables or columns).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Scripting.AssemblyReferencesBuilder">
+            <summary>
+            Class that helps to build a list of assembly paths that include
+            dependencies of the added assemblies.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.AssemblyReferencesBuilder.WithAvanteamDependencies">
+            <summary>
+            Get an <see cref="T:Avanteam.Kernel.Scripting.AssemblyReferencesBuilder"/> instance that include
+            only "Avanteam" dependencies.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Scripting.CSharpScriptCompiler">
+            <summary>
+            CSharp implementation of <see cref="T:Avanteam.Kernel.Scripting.IScriptCompiler"/>.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Scripting.IScriptCompiler">
+            <summary>
+            Interface that represent a service capable of compiling
+            generated code sources into an in memory assembly.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.IScriptCompiler.CompileAndLoadAssemblyFromSource(System.Collections.Generic.IEnumerable{System.String},System.String,System.Reflection.Assembly@)">
+            <summary>
+            Compile and load the resulting assembly if compilation suceed so it can been used.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.IScriptCompiler.CompileOnlyFromSource(System.Collections.Generic.IEnumerable{System.String},System.String)">
+            <summary>
+            Compile and only compile sources. Generating IL is dropped. No assembly is loaded.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.LocationExtensions.GetMappedLine(Microsoft.CodeAnalysis.Location,System.Int32)">
+            <summary>
+            Gets the start line (1 based) of a location after applying a source line mapping
+            based on a given user code start line.
+            Native source line mapping directives (#line in C# or #ExternalSource in VB)
+            are ignored here.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Scripting.ScriptCompiler">
+            <summary>
+            Provide access to the different implementations of <see cref="T:Avanteam.Kernel.Scripting.IScriptCompiler"/>.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Scripting.ScriptCompiler.CSharp">
+            <summary>
+            Gets the CSharp implementation of <see cref="T:Avanteam.Kernel.Scripting.IScriptCompiler"/>.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Scripting.ScriptCompilerBase">
+            <summary>
+            Base class used to share code between <see cref="T:Avanteam.Kernel.Scripting.IScriptCompiler"/> implementations.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptLoading.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Kernel.Scripting.ScriptLoading"/> class.
+            </summary>
+            <param name="withAppDomain">Obsolete parameter. Value is ignored.</param>
+        </member>
+        <member name="P:Avanteam.Kernel.Scripting.ScriptManager.Errors">
+            <summary>
+            Get the errors.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.SetCodeLanguage(System.Int32)">
+            <summary>
+            Initialize a compiler with default values :
+            Generate Executable = false
+            Generate in memory = true
+            Do not generate output file (.dll)
+            Registered dlls :
+                System.dll
+                RuntimeLibrary.dll.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.AddAssembly(System.String,System.Boolean)">
+            <summary>
+            Add an assembly to the Referenced assemblies of the compiler context.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.CompileCode(System.String)">
+            <summary>
+            Compile the code passed in argument.
+            </summary>
+            <returns>false if errors.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.AddExpressionParameter(System.String,System.Object)">
+            <summary>
+            Add parameters needed to Evaluate Expression.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.SetExpressionParameter(System.String,System.Object)">
+            <summary>
+            Set parameters needed to Evaluate Expression.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Scripting.ScriptManager.EvaluateBoolExpression(System.String)">
+            <summary>
+            Evaluate a boolean expression.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.AssemblyCall.Parameters">
+            <summary>
+            Liste des paramètres de la méthode (attention, seulement ceux de type string).
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.NoAccess">
+            <summary>
+            La grille n'est pas visible.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.Read">
+            <summary>
+            La grille est visible mais pas modifiable.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.Write">
+            <summary>
+            La grille est éditable.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.Add">
+            <summary>
+            La grille permet d'ajouter des lignes.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.Remove">
+            <summary>
+            La grille permet de supprimer des lignes.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Shared.DetailGridAccessLevel.All">
+            <summary>
+            Tous les niveaux réunis.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.SqlHelper">
+            <summary>
+            The SqlHelper class is intended to encapsulate high performance, scalable best practices for
+            common uses of SqlClient.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.AttachParameters(System.Data.SqlClient.SqlCommand,System.Data.SqlClient.SqlParameter[])">
+             <summary>
+             This method is used to attach array of SqlParameters to a SqlCommand.
+            
+             This method will assign a value of DbNull to any parameter with a direction of
+             InputOutput and a value of null.
+            
+             This behavior will prevent default values from being used, but
+             this will be the less common case than an intended pure output parameter (derived as InputOutput)
+             where the user provided no input value.
+             </summary>
+             <param name="command">The command to which the parameters will be added.</param>
+             <param name="commandParameters">an array of SqlParameters tho be added to command.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.AssignParameterValues(System.Data.SqlClient.SqlParameter[],System.Object[])">
+            <summary>
+            This method assigns an array of values to an array of SqlParameters.
+            </summary>
+            <param name="commandParameters">array of SqlParameters to be assigned values.</param>
+            <param name="parameterValues">array of objects holding the values to be assigned.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.PrepareCommand(System.Data.SqlClient.SqlCommand,System.Data.SqlClient.SqlConnection,System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            This method opens (if necessary) and assigns a connection, transaction, command type and parameters
+            to the provided command.
+            </summary>
+            <param name="command">the SqlCommand to be prepared.</param>
+            <param name="connection">a valid SqlConnection, on which to execute this command.</param>
+            <param name="transaction">a valid SqlTransaction, or 'null'.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParameters to be associated with the command or 'null' if no parameters are required.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.String,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns no resultset and takes no parameters) against the database specified in
+            the connection string.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(connString, CommandType.StoredProcedure, "PublishOrders").
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.String,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns no resultset) against the database specified in the connection string
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(connString, CommandType.StoredProcedure, "PublishOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.String,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns no resultset) against the database specified in
+             the connection string using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int result = ExecuteNonQuery(connString, "PublishOrders", 24, 36).
+             </remarks>
+             <param name="connectionString">a valid connection string for a SqlConnection.</param>
+             <param name="spName">the name of the stored prcedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns no resultset and takes no parameters) against the provided SqlConnection.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(conn, CommandType.StoredProcedure, "PublishOrders").
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns no resultset) against the specified SqlConnection
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(conn, CommandType.StoredProcedure, "PublishOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlConnection,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns no resultset) against the specified SqlConnection
+             using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int result = ExecuteNonQuery(conn, "PublishOrders", 24, 36).
+             </remarks>
+             <param name="connection">a valid SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns no resultset and takes no parameters) against the provided SqlTransaction.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(trans, CommandType.StoredProcedure, "PublishOrders").
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns no resultset) against the specified SqlTransaction
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int result = ExecuteNonQuery(trans, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteNonQuery(System.Data.SqlClient.SqlTransaction,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns no resultset) against the specified
+             SqlTransaction using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int result = ExecuteNonQuery(conn, trans, "PublishOrders", 24, 36).
+             </remarks>
+             <param name="transaction">a valid SqlTransaction.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an int representing the number of rows affected by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.String,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the database specified in
+            the connection string.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(connString, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.String,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the database specified in the connection string
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(connString, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.String,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the database specified in
+             the connection string using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              DataSet ds = ExecuteDataset(connString, "GetOrders", 24, 36).
+             </remarks>
+             <param name="connectionString">a valid connection string for a SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlConnection.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(conn, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlConnection
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(conn, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlConnection,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified SqlConnection
+             using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              DataSet ds = ExecuteDataset(conn, "GetOrders", 24, 36).
+             </remarks>
+             <param name="connection">a valid SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlTransaction.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(trans, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlTransaction
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             DataSet ds = ExecuteDataset(trans, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteDataset(System.Data.SqlClient.SqlTransaction,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified
+             SqlTransaction using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              DataSet ds = ExecuteDataset(trans, "GetOrders", 24, 36).
+             </remarks>
+             <param name="transaction">a valid SqlTransaction.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.SqlHelper.SqlConnectionOwnership">
+            <summary>
+            this enum is used to indicate whether the connection was provided by the caller, or created by SqlHelper, so that
+            we can set the appropriate CommandBehavior when calling ExecuteReader().
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.SqlHelper.SqlConnectionOwnership.Internal">
+            <summary>Connection is owned and managed by SqlHelper.</summary>
+        </member>
+        <member name="F:Avanteam.Kernel.SqlHelper.SqlConnectionOwnership.External">
+            <summary>Connection is owned and managed by the caller.</summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlConnection,System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[],Avanteam.Kernel.SqlHelper.SqlConnectionOwnership)">
+             <summary>
+             Create and prepare a SqlCommand, and call ExecuteReader with the appropriate CommandBehavior.
+             </summary>
+             <remarks>
+             If we created and opened the connection, we want the connection to be closed when the DataReader is closed.
+            
+             If the caller provided the connection, we want to leave it to them to manage.
+             </remarks>
+             <param name="connection">a valid SqlConnection, on which to execute this command.</param>
+             <param name="transaction">a valid SqlTransaction, or 'null'.</param>
+             <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+             <param name="commandText">the stored procedure name or T-SQL command.</param>
+             <param name="commandParameters">an array of SqlParameters to be associated with the command or 'null' if no parameters are required.</param>
+             <param name="connectionOwnership">indicates whether the connection parameter was provided by the caller, or created by SqlHelper.</param>
+             <returns>SqlDataReader containing the results of the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.String,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the database specified in
+            the connection string.
+            </summary>
+            <remarks>
+            e.g.:
+             SqlDataReader dr = ExecuteReader(connString, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.String,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the database specified in the connection string
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             SqlDataReader dr = ExecuteReader(connString, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.String,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the database specified in
+             the connection string using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              SqlDataReader dr = ExecuteReader(connString, "GetOrders", 24, 36).
+             </remarks>
+             <param name="connectionString">a valid connection string for a SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlConnection.
+            </summary>
+            <remarks>
+            e.g.:
+             SqlDataReader dr = ExecuteReader(conn, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlConnection
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             SqlDataReader dr = ExecuteReader(conn, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlConnection,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified SqlConnection
+             using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              SqlDataReader dr = ExecuteReader(conn, "GetOrders", 24, 36).
+             </remarks>
+             <param name="connection">a valid SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlTransaction.
+            </summary>
+            <remarks>
+            e.g.:
+             SqlDataReader dr = ExecuteReader(trans, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlTransaction
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+              SqlDataReader dr = ExecuteReader(trans, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteReader(System.Data.SqlClient.SqlTransaction,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified
+             SqlTransaction using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              SqlDataReader dr = ExecuteReader(trans, "GetOrders", 24, 36).
+             </remarks>
+             <param name="transaction">a valid SqlTransaction.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a SqlDataReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.String,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset and takes no parameters) against the database specified in
+            the connection string.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(connString, CommandType.StoredProcedure, "GetOrderCount").
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.String,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset) against the database specified in the connection string
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(connString, CommandType.StoredProcedure, "GetOrderCount", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.String,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a 1x1 resultset) against the database specified in
+             the connection string using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int orderCount = (int)ExecuteScalar(connString, "GetOrderCount", 24, 36).
+             </remarks>
+             <param name="connectionString">a valid connection string for a SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset and takes no parameters) against the provided SqlConnection.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(conn, CommandType.StoredProcedure, "GetOrderCount").
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset) against the specified SqlConnection
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(conn, CommandType.StoredProcedure, "GetOrderCount", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlConnection,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a 1x1 resultset) against the specified SqlConnection
+             using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int orderCount = (int)ExecuteScalar(conn, "GetOrderCount", 24, 36).
+             </remarks>
+             <param name="connection">a valid SqlConnection.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset and takes no parameters) against the provided SqlTransaction.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(trans, CommandType.StoredProcedure, "GetOrderCount").
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a 1x1 resultset) against the specified SqlTransaction
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             int orderCount = (int)ExecuteScalar(trans, CommandType.StoredProcedure, "GetOrderCount", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteScalar(System.Data.SqlClient.SqlTransaction,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a 1x1 resultset) against the specified
+             SqlTransaction using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              int orderCount = (int)ExecuteScalar(trans, "GetOrderCount", 24, 36).
+             </remarks>
+             <param name="transaction">a valid SqlTransaction.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an object containing the value in the 1x1 resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlConnection.
+            </summary>
+            <remarks>
+            e.g.:
+             XmlReader r = ExecuteXmlReader(conn, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO".</param>
+            <returns>an XmlReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlConnection,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlConnection
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             XmlReader r = ExecuteXmlReader(conn, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="connection">a valid SqlConnection.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO".</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an XmlReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlConnection,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified SqlConnection
+             using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              XmlReader r = ExecuteXmlReader(conn, "GetOrders", 24, 36).
+             </remarks>
+             <param name="connection">a valid SqlConnection.</param>
+             <param name="spName">the name of the stored procedure using "FOR XML AUTO".</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>an XmlReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String)">
+            <summary>
+            Execute a SqlCommand (that returns a resultset and takes no parameters) against the provided SqlTransaction.
+            </summary>
+            <remarks>
+            e.g.:
+             XmlReader r = ExecuteXmlReader(trans, CommandType.StoredProcedure, "GetOrders").
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO".</param>
+            <returns>an XmlReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlTransaction,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            Execute a SqlCommand (that returns a resultset) against the specified SqlTransaction
+            using the provided parameters.
+            </summary>
+            <remarks>
+            e.g.:
+             XmlReader r = ExecuteXmlReader(trans, CommandType.StoredProcedure, "GetOrders", new SqlParameter("@prodid", 24)).
+            </remarks>
+            <param name="transaction">a valid SqlTransaction.</param>
+            <param name="commandType">the CommandType (stored procedure, text, etc.)</param>
+            <param name="commandText">the stored procedure name or T-SQL command using "FOR XML AUTO".</param>
+            <param name="commandParameters">an array of SqlParamters used to execute the command.</param>
+            <returns>an XmlReader containing the resultset generated by the command.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelper.ExecuteXmlReader(System.Data.SqlClient.SqlTransaction,System.String,System.Object[])">
+             <summary>
+             Execute a stored procedure via a SqlCommand (that returns a resultset) against the specified
+             SqlTransaction using the provided parameter values.  This method will query the database to discover the parameters for the
+             stored procedure (the first time each stored procedure is called), and assign the values based on parameter order.
+             </summary>
+             <remarks>
+             This method provides no access to output parameters or the stored procedure's return value parameter.
+            
+             e.g.:
+              XmlReader r = ExecuteXmlReader(trans, "GetOrders", 24, 36).
+             </remarks>
+             <param name="transaction">a valid SqlTransaction.</param>
+             <param name="spName">the name of the stored procedure.</param>
+             <param name="parameterValues">an array of objects to be assigned as the input values of the stored procedure.</param>
+             <returns>a dataset containing the resultset generated by the command.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.SqlHelperParameterCache">
+            <summary>
+            SqlHelperParameterCache provides functions to leverage a static cache of procedure parameters, and the
+            ability to discover parameters for stored procedures at run-time.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelperParameterCache.DiscoverSpParameterSet(System.String,System.String,System.Boolean)">
+            <summary>
+            resolve at run time the appropriate set of SqlParameters for a stored procedure.
+            </summary>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="spName">the name of the stored procedure.</param>
+            <param name="includeReturnValueParameter">whether or not to include their return value parameter.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelperParameterCache.CacheParameterSet(System.String,System.String,System.Data.SqlClient.SqlParameter[])">
+            <summary>
+            add parameter array to the cache.
+            </summary>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <param name="commandParameters">an array of SqlParamters to be cached.</param>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelperParameterCache.GetCachedParameterSet(System.String,System.String)">
+            <summary>
+            retrieve a parameter array from the cache.
+            </summary>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="commandText">the stored procedure name or T-SQL command.</param>
+            <returns>an array of SqlParamters.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelperParameterCache.GetSpParameterSet(System.String,System.String)">
+            <summary>
+            Retrieves the set of SqlParameters appropriate for the stored procedure.
+            </summary>
+            <remarks>
+            This method will query the database for this information, and then store it in a cache for future requests.
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="spName">the name of the stored procedure.</param>
+            <returns>an array of SqlParameters.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SqlHelperParameterCache.GetSpParameterSet(System.String,System.String,System.Boolean)">
+            <summary>
+            Retrieves the set of SqlParameters appropriate for the stored procedure.
+            </summary>
+            <remarks>
+            This method will query the database for this information, and then store it in a cache for future requests.
+            </remarks>
+            <param name="connectionString">a valid connection string for a SqlConnection.</param>
+            <param name="spName">the name of the stored procedure.</param>
+            <param name="includeReturnValueParameter">a bool value indicating whether the return value parameter should be included in the results.</param>
+            <returns>an array of SqlParameters.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.SQLQuery.SQL_ExecuteScalar(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SQLQuery.SQL_ExecuteScalarColection(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Scalar collection query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SQLQuery.SQL_ExecuteNonQuery(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a non query with args.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SQLQuery.SQL_ExecuteSelect(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute a Select Query return result in a DataTable.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.SQLQuery.SQL_ExecuteScalarCollection``1(System.String,Avanteam.Kernel.KeyPair[])">
+            <summary>
+            Execute query and return a collection of T.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.FullName">
+            <summary>
+            Get Full name of the user (aka DN).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.DisplayName">
+            <summary>
+            Get the Display name of the user (aka CN).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Roles">
+            <summary>
+            Get the list of roles of this user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Groups">
+            <summary>
+            Get the list of groups of this user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Services">
+            <summary>
+            Get the list of services of this user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.SocieteServices">
+            <summary>
+            Get the list of services of this user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Societes">
+            <summary>
+            Get the list of societes of this user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Societe">
+            <summary>
+            Get Societe of the user (default if multiple).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.UserInfo.Abonnements">
+            <summary>
+            Get the list of Abonnements of this user.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Kernel.Utils.UnixEpoch">
+            <summary>
+            The Unix Epoch like available since .Net Core 2.1.
+            (see https://learn.microsoft.com/en-us/dotnet/api/system.datetime.unixepoch?view=netcore-2.1).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Xml.XmlMerge">
+            <summary>
+            Merges two <see cref="T:System.Xml.XmlNode"/> objects.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Xml.XmlMerge.Merge(System.Xml.XPath.IXPathNavigable,System.Xml.XPath.IXPathNavigable,System.Boolean)">
+            <summary>
+            Merges the first XML with the second.
+            </summary>
+            <param name="first">First XML.</param>
+            <param name="second">Second XML.</param>
+            <param name="replace">If set to <see langword="true"/> replaces
+            text values from <paramref name="first"/> with the ones in
+            <paramref name="second"/> if nodes are equal.</param>
+            <returns>The merged XML.</returns>
+        </member>
+        <member name="T:Avanteam.Kernel.Xml.XmlMerge.XmlNodeResolver">
+            <summary>
+            Resolves the dummy URL locations to the parameters received.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.Stores.DataSourceProviderBase">
+            <summary>
+            DataSourceProvider implementation that wrap an <see cref="T:Avanteam.Kernel.DataSource.IRawDbDataSource"/>.
+            This is the new base class to use instead of the legacy <see cref="T:Avanteam.Kernel.DataSource.SqlDataSourceBase"/>
+            and <see cref="T:Avanteam.Kernel.DataSource.OracleDataSourceBase"/> because it allows to have an injected dependency
+            instead of a compile dependency on SqlServer or Oracle.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -413,6 +413,119 @@ textarea.form-control {
     background-color: #dc3545;
 }
 
+.action-btn-download-version {
+    background-color: #337ab7;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.action-btn-download-version:hover {
+    background-color: #2e6da4;
+    color: white;
+    text-decoration: none;
+}
+
+.action-btn-download-version i {
+    font-size: 14px;
+}
+
+/* Styles pour les notifications */
+.admin-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: stretch;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+}
+
+.admin-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.admin-notification .notification-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.admin-notification .notification-content {
+    padding: 12px 16px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.admin-notification .notification-message {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.admin-notification .notification-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 12px;
+    color: #666;
+    align-self: flex-start;
+}
+
+.admin-notification .notification-close:hover {
+    color: #333;
+}
+
+/* Types de notifications */
+.admin-notification.success {
+    border-left: 4px solid #52c41a;
+}
+
+.admin-notification.success .notification-icon {
+    background-color: #52c41a;
+}
+
+.admin-notification.error {
+    border-left: 4px solid #f5222d;
+}
+
+.admin-notification.error .notification-icon {
+    background-color: #f5222d;
+}
+
+.admin-notification.info {
+    border-left: 4px solid #1890ff;
+}
+
+.admin-notification.info .notification-icon {
+    background-color: #1890ff;
+}
+
+.admin-notification.warning {
+    border-left: 4px solid #faad14;
+}
+
+.admin-notification.warning .notification-icon {
+    background-color: #faad14;
+}
+
 /* Prévisualisation d'icône */
 .icon-preview {
     margin: 15px 0;

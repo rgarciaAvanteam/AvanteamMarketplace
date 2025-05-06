@@ -205,13 +205,35 @@ dotnet ef database update
 
 Pour chaque instance de Process Studio où vous souhaitez intégrer le Marketplace:
 
-### Copier les fichiers client
+### Préparation du package client
 
-Copiez le dossier complet `AvanteamMarketplace` (sans le dossier `src`) vers le répertoire `Custom` de Process Studio:
+Le module client doit être déployé sur chaque serveur Process Studio. Pour faciliter ce déploiement, nous vous recommandons de préparer un package client:
 
 ```powershell
-# Exemple
-Copy-Item -Path "C:\Avanteam\dev\DevRG\AvanteamMarketplace" -Destination "C:\ProcessStudio\Custom\" -Recurse -Exclude "src","*.sln"
+# Sur le serveur de développement, générer un package de déploiement client
+New-Item -ItemType Directory -Path ".\client-package" -Force | Out-Null
+Copy-Item -Path ".\PSTUDIO-CLIENT\Custom\MarketPlace\*" -Destination ".\client-package\" -Recurse
+Copy-Item -Path ".\DeployClientModule.ps1" -Destination ".\client-package\" -Force
+Compress-Archive -Path ".\client-package\*" -DestinationPath ".\MarketplaceClient.zip" -Force
+
+# Le fichier MarketplaceClient.zip est maintenant prêt à être transféré sur les serveurs Process Studio
+```
+
+### Déploiement du package client
+
+Sur le serveur Process Studio cible:
+
+1. Transférez le fichier `MarketplaceClient.zip` sur le serveur
+2. Décompressez-le dans un répertoire temporaire
+3. Exécutez le script de déploiement inclus:
+
+```powershell
+# Décompresser le package
+Expand-Archive -Path "MarketplaceClient.zip" -DestinationPath ".\temp-marketplace" -Force
+
+# Exécuter le script de déploiement avec les paramètres appropriés
+cd .\temp-marketplace
+.\DeployClientModule.ps1 -ProcessStudioPath "C:\ProcessStudio" -ApiUrl "https://votre-serveur/api/marketplace"
 ```
 
 ### Configurer la version de Process Studio
@@ -236,16 +258,18 @@ Le module Marketplace détecte automatiquement la version de Process Studio de p
 
 ### Générer une clé API
 
-Utilisez le script inclus pour générer une clé API pour cette installation:
+Le script de déploiement générera automatiquement une clé API pour cette installation, mais vous pouvez également la générer manuellement:
 
 ```powershell
-# Dans le répertoire Custom\AvanteamMarketplace
+# Dans le répertoire Custom\MarketPlace
 .\scripts\generate-api-key.ps1
 ```
 
+La clé générée doit être communiquée de manière sécurisée à l'équipe Avanteam pour être enregistrée sur le serveur API central. Cette étape est essentielle pour que le client puisse s'authentifier auprès de l'API.
+
 ### Configurer l'URL de l'API
 
-Modifiez le fichier `Web.config` dans le dossier `Custom\AvanteamMarketplace` pour pointer vers votre API:
+Le script de déploiement configurera automatiquement l'URL de l'API, mais vous pouvez également la modifier manuellement dans le fichier `Web.config` du dossier `Custom\MarketPlace`:
 
 ```xml
 <appSettings>
@@ -256,9 +280,37 @@ Modifiez le fichier `Web.config` dans le dossier `Custom\AvanteamMarketplace` po
 </appSettings>
 ```
 
-### Redémarrer Process Studio
+> **Important**: Après le déploiement, notez bien la clé API générée et transmettez-la à l'équipe Avanteam pour activation sur le serveur central. Sans cette activation, le client ne pourra pas communiquer avec l'API.
 
-Redémarrez l'application Process Studio pour prendre en compte les changements.
+### Finaliser le déploiement
+
+Après le déploiement du module client:
+
+1. **Vérifiez l'installation**:
+   ```powershell
+   # Vérifier que les fichiers essentiels sont présents
+   Test-Path "C:\ProcessStudio\Custom\MarketPlace\Default.aspx"
+   Test-Path "C:\ProcessStudio\Custom\MarketPlace\js\marketplace\marketplace.js"
+   ```
+
+2. **Redémarrez l'application IIS de Process Studio**:
+   ```powershell
+   # Option 1: Utiliser le script fourni
+   .\recycle-apppool.bat
+   
+   # Option 2: Redémarrer manuellement le pool d'applications
+   Import-Module WebAdministration
+   Restart-WebAppPool -Name "ProcessStudioAppPool"  # Remplacez par le nom réel du pool
+   ```
+
+3. **Testez l'accès au Marketplace**:
+   - Naviguez vers `http://votre-serveur-process-studio/Custom/MarketPlace/Default.aspx`
+   - Vérifiez que la page se charge correctement et affiche les composants disponibles
+   - Assurez-vous que la version de Process Studio est correctement détectée
+
+4. **Vérifiez les logs**:
+   - En cas de problème, consultez les logs dans le dossier `logs` du module client
+   - Les erreurs d'authentification indiqueraient que la clé API n'est pas correctement enregistrée
 
 ## 8. Publication de composants
 
@@ -444,6 +496,46 @@ L'onglet "GitHub" permet de:
 2. **Configurer les webhooks**
    - Mettre en place des webhooks pour la mise à jour automatique
    - Tester la connexion GitHub
+
+## 11. Déploiement automatisé
+
+Pour faciliter le déploiement dans des environnements d'entreprise, des scripts d'automatisation sont disponibles:
+
+### Script de déploiement complet
+
+Le script `deploy-complete.ps1` réalise toutes les étapes nécessaires:
+
+```powershell
+# Usage: ./deploy-complete.ps1 -TargetServer "serveur-iis" -SqlServer "serveur-sql" -Database "AvanteamMarketplace" -ApiUrl "https://marketplace.example.com"
+```
+
+### Génération automatique du package client
+
+Pour créer un package client prêt à déployer sur plusieurs serveurs Process Studio:
+
+```powershell
+# Usage: ./create-client-package.ps1 -OutputPath "C:\Deployment\Packages"
+```
+
+Ce script crée un package auto-installable qui inclut:
+- Le module client MarketPlace
+- Le script de déploiement
+- Une documentation d'installation
+- Un script de vérification post-installation
+
+### Déploiement à distance
+
+Pour déployer sur plusieurs serveurs Process Studio à distance:
+
+```powershell
+# Usage: ./deploy-remote-clients.ps1 -ClientListFile "clients.csv" -PackagePath "MarketplaceClient.zip"
+```
+
+Le fichier CSV doit contenir:
+- Nom du serveur
+- Chemin d'installation
+- URL de l'API
+- Informations d'authentification (optionnel)
 
 ## Support technique
 

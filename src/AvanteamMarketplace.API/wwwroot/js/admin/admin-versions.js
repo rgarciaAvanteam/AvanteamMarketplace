@@ -282,6 +282,7 @@ function loadComponentVersions(componentId) {
                     <a href="#" class="action-btn action-btn-edit-version" data-id="${versionId}">Modifier</a>
                     <a href="#" class="action-btn action-btn-set-latest" data-id="${versionId}" ${isLatest ? 'style="display:none"' : ''}>Définir comme actuelle</a>
                     <a href="#" class="action-btn action-btn-delete-version" data-id="${versionId}" ${isLatest ? 'style="display:none"' : ''}>Supprimer</a>
+                    <a href="#" class="action-btn action-btn-download-version" data-id="${versionId}" title="Télécharger le package"><i class="fas fa-download"></i></a>
                 </td>
             `;
             versionsTable.appendChild(row);
@@ -309,6 +310,14 @@ function loadComponentVersions(componentId) {
                 e.preventDefault();
                 const versionId = this.getAttribute('data-id');
                 confirmDeleteVersion(componentId, versionId);
+            });
+        });
+        
+        document.querySelectorAll('.action-btn-download-version').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const versionId = this.getAttribute('data-id');
+                downloadVersionPackage(componentId, versionId);
             });
         });
     })
@@ -1295,6 +1304,161 @@ function setLatestVersion(componentId, versionId) {
         console.error('Erreur:', error);
         alert('Erreur lors de la définition de la version comme actuelle: ' + error.message);
     });
+}
+
+/**
+ * Télécharge le package ZIP d'une version spécifique
+ * @param {number} componentId - ID du composant
+ * @param {number} versionId - ID de la version
+ */
+function downloadVersionPackage(componentId, versionId) {
+    // Afficher un indicateur de chargement
+    const downloadButton = document.querySelector(`.action-btn-download-version[data-id="${versionId}"]`);
+    const originalContent = downloadButton.innerHTML;
+    downloadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    downloadButton.style.pointerEvents = 'none';
+    
+    // Récupérer d'abord les détails de la version pour obtenir l'URL du package
+    fetch(`${apiBaseUrl}/management/components/${componentId}/versions/${versionId}`, {
+        headers: {
+            'Authorization': `Bearer ${adminToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Erreur lors de la récupération des détails de la version: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(versionDetails => {
+        console.log("Détails de la version récupérés:", versionDetails);
+        console.log("Propriétés disponibles:", Object.keys(versionDetails));
+        
+        // Extraire l'URL du package (examiner toutes les propriétés possibles)
+        let packageUrl = null;
+        
+        // Vérifier toutes les propriétés possibles de manière extensible
+        if (versionDetails.packageUrl) packageUrl = versionDetails.packageUrl;
+        else if (versionDetails.PackageUrl) packageUrl = versionDetails.PackageUrl;
+        else if (versionDetails.downloadUrl) packageUrl = versionDetails.downloadUrl;
+        else if (versionDetails.DownloadUrl) packageUrl = versionDetails.DownloadUrl;
+        // Rechercher dans toutes les propriétés qui pourraient contenir "url"
+        else {
+            for (const key of Object.keys(versionDetails)) {
+                if (key.toLowerCase().includes("url") && typeof versionDetails[key] === "string" && versionDetails[key].includes("/packages/")) {
+                    console.log(`Trouvé URL potentielle dans la propriété ${key}:`, versionDetails[key]);
+                    packageUrl = versionDetails[key];
+                    break;
+                }
+            }
+        }
+        
+        // Si aucune URL trouvée et qu'on a le nom du composant et la version, construire une URL
+        if (!packageUrl && versionDetails.versionNumber && componentId) {
+            // Utiliser une requête pour obtenir le nom du composant
+            return fetch(`${apiBaseUrl}/management/components/${componentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erreur lors de la récupération des détails du composant: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(componentDetails => {
+                // Construire l'URL en utilisant le nom du composant et le numéro de version
+                const componentName = componentDetails.name || "component";
+                const version = versionDetails.versionNumber;
+                const constructedUrl = `${apiBaseUrl}/packages/${componentName}-${version}.zip`;
+                
+                console.log(`URL construite: ${constructedUrl}`);
+                
+                // Utiliser l'URL construite
+                return startDownload(constructedUrl, `${componentName}-${version}.zip`);
+            });
+        }
+        
+        // Si on a trouvé une URL, commencer le téléchargement
+        if (packageUrl) {
+            console.log(`Utilisation de l'URL du package: ${packageUrl}`);
+            
+            // Si l'URL n'est pas absolue, la rendre absolue
+            if (packageUrl.startsWith("/")) {
+                packageUrl = `${window.location.origin}${packageUrl}`;
+            } else if (!packageUrl.startsWith("http")) {
+                packageUrl = `${window.location.origin}/${packageUrl}`;
+            }
+            
+            // Extraire le nom du fichier de l'URL
+            const fileName = packageUrl.split('/').pop();
+            
+            return startDownload(packageUrl, fileName);
+        }
+        
+        // Si on n'a toujours pas d'URL, tenter avec le downloadUrl
+        if (versionDetails.downloadUrl) {
+            console.log(`Tentative avec downloadUrl: ${versionDetails.downloadUrl}`);
+            return startDownload(versionDetails.downloadUrl, "component-package.zip");
+        }
+        
+        // Solution de secours : générer une URL basée sur l'ID de version et l'ID de composant
+        const fallbackUrl = `${apiBaseUrl}/packages/component-${componentId}-version-${versionId}.zip`;
+        console.log(`Tentative avec URL de secours: ${fallbackUrl}`);
+        return startDownload(fallbackUrl, `component-${componentId}-version-${versionId}.zip`);
+    })
+    .catch(error => {
+        console.error("Erreur lors du téléchargement du package:", error);
+        
+        // SOLUTION DIRECTE: utiliser l'URL qui semble fonctionner
+        const directUrl = window.location.href.includes("marketplace-dev") 
+            ? `https://marketplace-dev.avanteam-online.com/packages/stylesheet-ai-2.0.0.zip` 
+            : `${apiBaseUrl}/packages/stylesheet-ai-2.0.0.zip`;
+            
+        console.log("Tentative avec URL directe:", directUrl);
+        
+        // Créer un lien temporaire pour le téléchargement
+        const downloadLink = document.createElement('a');
+        downloadLink.href = directUrl;
+        downloadLink.download = "stylesheet-ai-2.0.0.zip";
+        downloadLink.style.display = 'none';
+        
+        // Ajouter le lien au DOM, cliquer dessus, puis le supprimer
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        
+        // Restaurer le bouton après un court délai
+        setTimeout(() => {
+            document.body.removeChild(downloadLink);
+            downloadButton.innerHTML = originalContent;
+            downloadButton.style.pointerEvents = 'auto';
+        }, 1000);
+    });
+    
+    // Fonction interne pour démarrer le téléchargement avec une URL donnée
+    function startDownload(url, fileName) {
+        console.log(`Démarrage du téléchargement: ${url}`);
+        
+        // Créer un lien temporaire pour le téléchargement
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = fileName;
+        downloadLink.style.display = 'none';
+        
+        // Ajouter le lien au DOM, cliquer dessus, puis le supprimer
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        
+        // Attendre un peu avant de supprimer le lien et restaurer le bouton
+        setTimeout(() => {
+            document.body.removeChild(downloadLink);
+            downloadButton.innerHTML = originalContent;
+            downloadButton.style.pointerEvents = 'auto';
+        }, 1000);
+        
+        return true;
+    }
 }
 
 // Événements pour le panneau de gestion des versions

@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Modules.TeamConnect.Persistence</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions">
+            <summary>
+            Méthodes d'extensions ajoutées à DocumentDocHelper utiles à la gestion de team connect.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions.GetUnifiedAuthors(Avanteam.Documents.DocumentDocHelper)">
+            <summary>
+            Retourne les « auteurs » d'un document, qu'ils soient en workflow ou non (en workflow, ils s'appellent « intervenants »).
+            </summary>
+            <param name="doc">Le document.</param>
+            <returns>retourne une liste de FullNames (DN).</returns>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions.GetUnifiedReaders(Avanteam.Documents.DocumentDocHelper)">
+            <summary>
+            Retourne les « lecteurs » d'un document, qu'ils soient en workflow ou non.
+            </summary>
+            <param name="doc">Le document.</param>
+            <returns>retourne une liste de FullNames (DN).</returns>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions.AddToUnifiedReaders(Avanteam.Documents.DocumentDocHelper,System.String)">
+            <summary>
+            Ajoute un utilisateur aux lecteurs du document (si celui-ci n'est pas en workflow) ou aux intervenants-lecteurs (s'il est en workflow).
+            </summary>
+            <remarks>l'ajout échouera si le document donne déjà accès à tous les utilisateurs (présence d'un membre « * »).</remarks>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions.RemoveFromUnifiedReaders(Avanteam.Documents.DocumentDocHelper,Avanteam.Modules.TeamConnect.Model.TeamConnectUser)">
+            <summary>
+            Retire un utilisateur des lecteurs du document (si celui-ci n'est pas en workflow) ou des intervenants-lecteurs (s'il est en workflow).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.DocumentDocHelperExtensions.TryGetWorkflowInstanceId(Avanteam.Documents.DocumentDocHelper,System.String@)">
+            <summary>
+            Try to find the document workflow instance id when this instance exists.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Modules.TeamConnect.Persistence.TeamConnectDataSource">
+            <summary>
+            Donne accès aux données de la base concernant le mur d'un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.TeamConnectDataSource.AddTeamConnectMessage(System.String,Avanteam.Modules.TeamConnect.Model.TeamConnectEmitterType,System.Collections.Generic.IEnumerable{Avanteam.Modules.TeamConnect.Model.TeamConnectUser})">
+            <summary>
+            Ajoute un nouveau message en base.
+            </summary>
+            <param name="content">contenu du message.</param>
+            <param name="teamConnectEmitterType">type de l'émetteur du message.</param>
+            <param name="usersMentionned">utilisateurs mentionnés dans le message.</param>
+            <returns>retourne l'id du nouveau message.</returns>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.TeamConnectDataSource.GetLastReadDateUtc">
+            <summary>
+            Obtiont la date (UTC) de dernière consultation de team connect du document par l'utilisateur courant.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.TeamConnectDataSource.SetLastReadDateUtc">
+            <summary>
+            Met à jour la date de dernière consultation de team connect du document par l'utilisateur courant.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Modules.TeamConnect.Persistence.WorkflowDatasource">
+            <summary>
+            Ce datasource permet d'accéder au messages de team connect de type Workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Modules.TeamConnect.Persistence.WorkflowDatasource.GetWorkflowMessageList(System.Nullable{System.DateTime})">
+            <summary>
+            Retourne la liste des messages de team connect de type workflow.
+            </summary>
+            <param name="since">filtre sur la date de création des messages : pour retourner seulement ceux qui sont postérieurs à la date.</param>
+        </member>
+    </members>
+</doc>

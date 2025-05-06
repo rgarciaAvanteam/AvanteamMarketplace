@@ -1,0 +1,381 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Views</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Views.DataSets.DSViewsData">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewsData.DocumentFieldsDataViewDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewsData.DocumentFieldsDataViewRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewsData.DocumentFieldsDataViewRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewsDataTableAdapters.DocumentFieldsDataViewTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.ViewTemplatesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.UserSearchQueryDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.ViewTemplatesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.UserSearchQueryRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.ViewTemplatesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplates.UserSearchQueryRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplatesTableAdapters.ViewTemplatesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.DataSets.DSViewTemplatesTableAdapters.UserSearchQueryTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.DataSource.ViewManagerWrapper.#ctor(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Views.DataSource.ViewManagerWrapper"/> class.
+            Constructor with Application Profile.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.DataSource.ViewManagerWrapper.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Views.DataSource.ViewManagerWrapper"/> class.
+            Default constructor for backward compatibility.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.DataSource.ViewManagerWrapper.SynchronizeColumnsWithSelectedColumns(Avanteam.Views.ViewTemplateInfo)">
+            <summary>
+            Automatic creation of columns as part as a view made without advanced mode.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.DataSource.ViewManagerWrapper.UpdateSelectedColumnsAndColumns(Avanteam.Views.ViewTemplateInfo)">
+            <summary>
+            Adds or removes selection columns and view columns according to schema fields.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.DataSource.ViewManagerWrapper.UpdateSelectedColumnsProperties(Avanteam.Views.ViewTemplateInfo)">
+            <summary>
+            Updates properties of view selected columns from parameters of form fields.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.QueryDataSource.QueryValues">
+            <summary>
+            Liste des valeurs recherchées pour sérialisation/déserialisation des écrans de recherche
+            (sous la forme nom_champ/Valeurs).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.Resources.ViewManagerWrapper">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewManagerWrapper.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewManagerWrapper.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewManagerWrapper.DocumentStatus">
+            <summary>
+              Looks up a localized string similar to Document Status.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewManagerWrapper.Participants">
+            <summary>
+              Looks up a localized string similar to Participants.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewManagerWrapper.Stage">
+            <summary>
+              Looks up a localized string similar to Stage.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.Resources.ViewTemplateInfo">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessMode_Read">
+            <summary>
+              Looks up a localized string similar to Read.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessMode_Use">
+            <summary>
+              Looks up a localized string similar to Use.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessMode_Write">
+            <summary>
+              Looks up a localized string similar to Write.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_NoFilters">
+            <summary>
+              Looks up a localized string similar to No Filters.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_PermanentDelegations">
+            <summary>
+              Looks up a localized string similar to User&apos;s rights from its permanent delegations.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_TemporaryDelegations">
+            <summary>
+              Looks up a localized string similar to User&apos;s rights from its temporary delegations.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_UserRights">
+            <summary>
+              Looks up a localized string similar to User&apos;s rights only.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_UserRightsAndDelegations">
+            <summary>
+              Looks up a localized string similar to User&apos;s rights with delegations.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.AccessRight_UsersRightsAndDelegationsWithAdmin">
+            <summary>
+              Looks up a localized string similar to User&apos;s rights with delegations (admin).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.WorkflowFilterValue_NoWorkflow">
+            <summary>
+              Looks up a localized string similar to No Workflow.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.WorkflowFilterValue_OnGoing">
+            <summary>
+              Looks up a localized string similar to On Going.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTemplateInfo.WorkflowFilterValue_WorkflowEnded">
+            <summary>
+              Looks up a localized string similar to Workflow Ended.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.Resources.ViewTotalSummary">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.TotalSummary_Average">
+            <summary>
+              Looks up a localized string similar to Average.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.TotalSummary_Count">
+            <summary>
+              Looks up a localized string similar to Count.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.TotalSummary_Max">
+            <summary>
+              Looks up a localized string similar to Maximum.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.TotalSummary_Min">
+            <summary>
+              Looks up a localized string similar to Minimum.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.Resources.ViewTotalSummary.TotalSummary_Sum">
+            <summary>
+              Looks up a localized string similar to Sum.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewColumnInfo.FormatIsCurrency(System.String)">
+            <summary>
+            Verifies if the format of the number is a currency.
+            <remarks>The format string must start with C and is followed by a number</remarks>
+            <example>C, C3</example>
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.ViewColumnInfo.Devise">
+            <summary>
+            Returns the last digit of the format if it is a currency cf. <seealso cref="M:Avanteam.Views.ViewColumnInfo.FormatIsCurrency(System.String)"/>
+            </summary>
+            <value></value>
+        </member>
+        <member name="T:Avanteam.Views.ViewScript">
+            <summary>
+            Définit un script de vue.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.ViewScriptRepository">
+            <summary>
+            CRUD permettant de gérer les scripts disponibles pour les vues.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.Get(Avanteam.Views.ViewScriptBase)">
+            <summary>
+            Recherche un script de vue par sa clé.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.GetVsb(System.String)">
+            <summary>
+            Retrieves the basic attributes of a script.
+            </summary>
+            <param name="key">Key of the script.</param>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.GetVs(System.String)">
+            <summary>
+            Retrieves information of a script.
+            </summary>
+            <param name="key">Key of the script.</param>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.Update(Avanteam.Views.ViewScript)">
+            <summary>
+            Updates an existing script.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.Insert(Avanteam.Views.ViewScript)">
+            <summary>
+            Inserts a new script.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.Remove(System.String)">
+            <summary>
+            Deletes a script.
+            </summary>
+            <param name="key">Key of the script to be deleted.</param>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.ListSorted">
+            <summary>
+            List scripts ordered by category and name: category, name et key.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.ListIn(System.Collections.Generic.IList{System.String})">
+            <summary>
+            Loads a list of predefined scripts.
+            </summary>
+            <param name="scriptsKey">List of keys of the scripts to be loaded.</param>
+        </member>
+        <member name="M:Avanteam.Views.ViewScriptRepository.List">
+            <summary>
+            Loads the available scripts and their code.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewTemplateInfo.GetSelectedColumns">
+            <summary>
+            All view source columns of form.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Views.ViewTemplateInfo.Scripts">
+            <summary>
+            List of the scripts associated to the view.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewTemplateInfo.GetColumnInfo(System.String)">
+            <summary>
+            Retrieves the column using its idTag.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewTemplateInfoExtensions.BuildTabSelect(Avanteam.Views.ViewTemplateInfo,System.Collections.Generic.List{Avanteam.Views.TabColumn},Avanteam.Kernel.DataSource.ConnectionType)">
+            <summary>
+            Build the SQL query from the set of attributes selected.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewTemplateInfoExtensions.AddSummaryDisplayText(Avanteam.Views.ViewTemplateInfo)">
+            <summary>
+            TotalSummary:
+            Allows to convert a number into a "Currency" string using the culture of the user but by ignoring its currency.
+            <remarks>ViewColumnInfo.ColumnType = NumberColumn, ViewColumnInfo.Format="C#", ViewColumnInfo.Devise="$"</remarks>
+            </summary>
+        </member>
+        <member name="M:Avanteam.Views.ViewTemplateInfoExtensions.AddCustomColumnDisplayText(Avanteam.Views.ViewTemplateInfo)">
+            <summary>
+            Allows to convert a number into a "Currency" string using the culture of the user but by ignoring its currency.
+            <remarks>ViewColumnInfo.ColumnType = NumberColumn, ViewColumnInfo.Format="C#", ViewColumnInfo.Devise="$"</remarks>
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.ViewTotalSummary">
+            <summary>
+            Allows to define the content of the toat as the footer of a DevExpress page.
+            <code><TotalSummary></TotalSummary></code>
+            </summary>
+        </member>
+        <member name="T:Avanteam.Views.Xpo.NonPersistentXPLiteObject">
+            <summary>
+            Version "Non Persistent" de la classe abstraite XPLiteObject de devexpress
+            permettant de décrire les champs d’un objet de données XPO.
+            cf. https://docs.devexpress.com/XPO/2056/examples/how-to-make-a-class-or-property-non-persistent.
+            Attention, pour que tout fonctionne correctement :
+            - la classe doit posséder l’attribut NonPersistent,
+            - la classe ne doit PAS être `abstract`
+            — les constructeurs de la classe sont nécessaires.
+            </summary>
+        </member>
+    </members>
+</doc>

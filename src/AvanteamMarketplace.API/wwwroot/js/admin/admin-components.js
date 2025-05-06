@@ -1064,8 +1064,27 @@ function deleteComponent(componentId) {
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors de la suppression du composant:", error);
-            alert(`Erreur lors de la suppression du composant: ${xhr.status} ${xhr.statusText}`);
             $("#confirmDeleteModal").css("display", "none");
+            
+            // Extraire le message d'erreur détaillé de la réponse JSON
+            let errorMessage = "Erreur lors de la suppression du composant.";
+            
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response && response.error) {
+                    errorMessage = response.error;
+                    
+                    // Si le message contient des détails sur les installations, le formater pour l'affichage
+                    if (response.details && response.details.includes("installations actives")) {
+                        errorMessage = response.details;
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur lors du parsing de la réponse:", e);
+            }
+            
+            // Afficher une notification d'erreur
+            showNotification(errorMessage, "error");
         }
     });
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Application.Factories</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Application.Factories.ApplicationContextFactory">
+            <summary>
+            Class that allows to create instances of <see cref="T:Avanteam.Application.Repository.EFCore.ApplicationContext"/>
+            based on connection string settings.
+            </summary>
+        </member>
+    </members>
+</doc>

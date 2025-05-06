@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Extensions.EFCore</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Extensions.EFCore.PropertyBuilderExtensions.HasUtcConversion(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder{System.Nullable{System.DateTime}})">
+            <summary>
+            Adds a conversion that allows to defined the DateTimeKind to UTC when
+            reading a DateTime? property from the store.
+            Without that conversion, DateTime? properties are read with a value of
+            Unspecified for their DateTimeKind.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Extensions.EFCore.PropertyBuilderExtensions.HasUtcConversion(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder{System.DateTime})">
+            <summary>
+            Adds a conversion that allows to defined the DateTimeKind to UTC when
+            reading a DateTime property from the store.
+            Without that conversion, DateTime properties are read with a value of
+            Unspecified for their DateTimeKind.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Extensions.EFCore.PropertyBuilderExtensions.HasEnumToStringConversion``1(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder{``0})">
+            <summary>
+            Adds a conversion method that allows to store an enum with its string
+            representation.
+            Without that conversion, its the numeric value which is used.
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -22,6 +22,133 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     // Version de la plateforme (utilisée pour les comparaisons de compatibilité)
     let platformVersion = '';
     
+    // Configuration du cache
+    const CACHE_CONFIG = {
+        // Durée de validité du cache en millisecondes
+        defaultValidityDuration: 30 * 60 * 1000, // 30 minutes par défaut
+        // Préfixe pour les clés de stockage
+        keyPrefix: 'marketplace_components_',
+        // Suffixe pour les timestamps
+        timestampSuffix: '_timestamp'
+    };
+    
+    /**
+     * Système de gestion de cache centralisé
+     */
+    const cacheManager = {
+        /**
+         * Vérifie si des données en cache sont disponibles et valides pour une clé donnée
+         * @param {string} cacheKey - Clé de cache
+         * @param {number} [validityDuration] - Durée de validité en millisecondes (optionnel)
+         * @returns {boolean} - true si le cache est valide, false sinon
+         */
+        isValid(cacheKey, validityDuration) {
+            const duration = validityDuration || CACHE_CONFIG.defaultValidityDuration;
+            const timestampKey = `${CACHE_CONFIG.keyPrefix}${cacheKey}${CACHE_CONFIG.timestampSuffix}`;
+            const timestamp = utils.getFromStorage(timestampKey, 0);
+            
+            return (Date.now() - timestamp) < duration;
+        },
+        
+        /**
+         * Récupère des données depuis le cache
+         * @param {string} cacheKey - Clé de cache
+         * @param {Object} options - Options
+         * @param {boolean} [options.checkValidity=true] - Vérifier si le cache est valide
+         * @param {number} [options.validityDuration] - Durée de validité personnalisée
+         * @param {*} [options.defaultValue=[]] - Valeur par défaut si le cache est invalide/inexistant
+         * @returns {*} - Données du cache ou valeur par défaut
+         */
+        get(cacheKey, options = {}) {
+            const opts = {
+                checkValidity: true,
+                validityDuration: CACHE_CONFIG.defaultValidityDuration,
+                defaultValue: [],
+                ...options
+            };
+            
+            // Si le cache doit être vérifié et qu'il n'est pas valide, retourner la valeur par défaut
+            if (opts.checkValidity && !this.isValid(cacheKey, opts.validityDuration)) {
+                return opts.defaultValue;
+            }
+            
+            // Pour les composants, vérifier d'abord dans le cache en mémoire
+            if (cacheKey in componentsCache && componentsCache[cacheKey].length > 0) {
+                return componentsCache[cacheKey];
+            }
+            
+            // Sinon, retourner la valeur par défaut
+            return opts.defaultValue;
+        },
+        
+        /**
+         * Stocke des données dans le cache
+         * @param {string} cacheKey - Clé de cache
+         * @param {*} data - Données à stocker
+         * @param {Object} options - Options
+         * @param {boolean} [options.updateTimestamp=true] - Mettre à jour le timestamp
+         * @param {boolean} [options.updateMemoryCache=true] - Mettre à jour le cache en mémoire
+         * @param {boolean} [options.updateFilteredCache=true] - Mettre à jour le cache filtré
+         */
+        set(cacheKey, data, options = {}) {
+            const opts = {
+                updateTimestamp: true,
+                updateMemoryCache: true,
+                updateFilteredCache: true,
+                ...options
+            };
+            
+            // Mettre à jour le timestamp si demandé
+            if (opts.updateTimestamp) {
+                const timestampKey = `${CACHE_CONFIG.keyPrefix}${cacheKey}${CACHE_CONFIG.timestampSuffix}`;
+                utils.saveToStorage(timestampKey, Date.now());
+            }
+            
+            // Mettre à jour le cache en mémoire si demandé et si c'est une clé valide
+            if (opts.updateMemoryCache && cacheKey in componentsCache) {
+                componentsCache[cacheKey] = Array.isArray(data) ? [...data] : data;
+            }
+            
+            // Mettre à jour également le cache filtré si demandé
+            if (opts.updateFilteredCache && cacheKey in filteredComponents) {
+                filteredComponents[cacheKey] = Array.isArray(data) ? [...data] : data;
+            }
+        },
+        
+        /**
+         * Invalide une entrée de cache spécifique
+         * @param {string} cacheKey - Clé de cache à invalider
+         * @param {boolean} [clearMemoryCache=true] - Effacer aussi le cache en mémoire
+         */
+        invalidate(cacheKey, clearMemoryCache = true) {
+            const timestampKey = `${CACHE_CONFIG.keyPrefix}${cacheKey}${CACHE_CONFIG.timestampSuffix}`;
+            
+            // Mettre le timestamp à 0 pour invalider le cache
+            utils.saveToStorage(timestampKey, 0);
+            
+            // Vider le cache en mémoire si demandé
+            if (clearMemoryCache && cacheKey in componentsCache) {
+                componentsCache[cacheKey] = [];
+                
+                // Vider également le cache filtré
+                if (cacheKey in filteredComponents) {
+                    filteredComponents[cacheKey] = [];
+                }
+            }
+        },
+        
+        /**
+         * Invalide toutes les entrées de cache
+         * @param {boolean} [clearMemoryCache=true] - Effacer aussi le cache en mémoire
+         */
+        invalidateAll(clearMemoryCache = true) {
+            // Invalider chaque cache
+            for (const tabName in componentsCache) {
+                this.invalidate(tabName, clearMemoryCache);
+            }
+        }
+    };
+    
     /**
      * Fonction utilitaire centralisée pour effectuer des requêtes API
      * @param {string} endpoint - Point de terminaison de l'API (sans l'URL de base)
@@ -362,24 +489,20 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     function loadComponents(tabName) {
         console.log(`Chargement des composants pour l'onglet ${tabName}`);
         
-        // Vérifier si les composants sont déjà en cache et toujours valides
-        if (componentsCache[tabName] && componentsCache[tabName].length > 0) {
-            // Vérifier le cache timestamp
-            const cacheTimestamp = utils.getFromStorage(`marketplace_components_${tabName}_timestamp`, 0);
-            const cacheValidityDuration = 30 * 60 * 1000; // 30 minutes
+        // Vérifier si des données en cache sont disponibles et valides
+        const cachedComponents = cacheManager.get(tabName);
+        
+        if (cachedComponents && cachedComponents.length > 0) {
+            console.log(`Utilisation du cache pour l'onglet ${tabName}`);
             
-            if (Date.now() - cacheTimestamp < cacheValidityDuration) {
-                console.log(`Utilisation du cache pour l'onglet ${tabName}`);
-                
-                // Notifier que les composants sont chargés
-                MarketplaceMediator.publish('componentsLoaded', {
-                    tabName,
-                    components: componentsCache[tabName],
-                    fromCache: true
-                });
-                
-                return Promise.resolve(componentsCache[tabName]);
-            }
+            // Notifier que les composants sont chargés
+            MarketplaceMediator.publish('componentsLoaded', {
+                tabName,
+                components: cachedComponents,
+                fromCache: true
+            });
+            
+            return Promise.resolve(cachedComponents);
         }
         
         // S'assurer que platformVersion est bien défini
@@ -442,12 +565,8 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
             // Extraire et normaliser les composants
             const components = normalizeComponentData(data);
             
-            // Mettre à jour le cache
-            componentsCache[tabName] = components;
-            filteredComponents[tabName] = [...components];
-            
-            // Sauvegarder le timestamp du cache
-            utils.saveToStorage(`marketplace_components_${tabName}_timestamp`, Date.now());
+            // Mettre à jour le cache avec le gestionnaire centralisé
+            cacheManager.set(tabName, components);
             
             // Notifier que les composants sont chargés
             MarketplaceMediator.publish('componentsLoaded', {
@@ -725,7 +844,9 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     function resetFilters() {
         // Pour chaque onglet, réinitialiser les filtres
         for (const tabName in componentsCache) {
-            filteredComponents[tabName] = [...componentsCache[tabName]];
+            // Récupérer les composants du cache et les assigner au filteredComponents
+            const cachedComponents = cacheManager.get(tabName, { checkValidity: false });
+            filteredComponents[tabName] = [...cachedComponents];
             
             // Notifier du changement
             MarketplaceMediator.publish('componentsFiltered', {
@@ -739,10 +860,8 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
      * Rafraîchit tous les composants (réinitialise le cache)
      */
     function refreshAllComponents() {
-        // Réinitialiser les caches
-        for (const tabName in componentsCache) {
-            utils.saveToStorage(`marketplace_components_${tabName}_timestamp`, 0);
-        }
+        // Utiliser le gestionnaire de cache pour invalider toutes les entrées
+        cacheManager.invalidateAll();
         
         // Notifier du changement
         MarketplaceMediator.publish('componentsNeedRefresh', {});
@@ -1129,6 +1248,7 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
         getFilteredComponents,
         getVisibleComponentsCount,
         prepareAuthHeaders,  // Exposer la fonction d'aide
-        apiRequest  // Exposer la fonction de requête API centralisée
+        apiRequest,  // Exposer la fonction de requête API centralisée
+        cacheManager  // Exposer le gestionnaire de cache
     };
 });

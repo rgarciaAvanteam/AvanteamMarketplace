@@ -1076,13 +1076,50 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         // Générer un ID d'installation unique
         const installId = `install-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
         
-        // Ajouter le premier message au log
-        addLogMessage(logContainer, `Démarrage de l'installation de ${componentName} v${version}...`, false, 'INFO');
+        // Vérifier si le streaming est disponible
+        const useStreaming = typeof utils.marketplaceStream !== 'undefined';
+        console.log("Streaming disponible:", useStreaming);
         
-        // Mise à jour du statut
-        statusContainer.textContent = "Installation en cours...";
-        updateProgress(progressBar, progressText, 20);
-        addLogMessage(logContainer, "Préparation de l'installation...", false, 'INFO');
+        if (useStreaming) {
+            // Initialiser le stream
+            utils.marketplaceStream.init({
+                installId: installId,
+                logContainer: logContainer,
+                progressBar: progressBar,
+                progressText: progressText,
+                statusContainer: statusContainer,
+                onComplete: (success) => {
+                    console.log("Streaming terminé avec succès:", success);
+                    
+                    // Ajouter un bouton pour fermer la modal
+                    const closeButton = document.createElement('button');
+                    closeButton.textContent = 'Fermer';
+                    closeButton.className = 'btn btn-primary';
+                    closeButton.style.marginTop = '20px';
+                    closeButton.addEventListener('click', () => {
+                        document.body.removeChild(modal);
+                        
+                        // Rafraîchir les composants
+                        components.refreshAllComponents();
+                        loadTabContent(state.activeTab);
+                    });
+                    
+                    modal.querySelector('.modal-content').appendChild(closeButton);
+                }
+            });
+            
+            // Connecter au flux
+            utils.marketplaceStream.connect();
+        } else {
+            // Utiliser la méthode classique sans streaming
+            // Ajouter le premier message au log
+            addLogMessage(logContainer, `Démarrage de l'installation de ${componentName} v${version}...`, false, 'INFO');
+            
+            // Mise à jour du statut
+            statusContainer.textContent = "Installation en cours...";
+            updateProgress(progressBar, progressText, 20);
+            addLogMessage(logContainer, "Préparation de l'installation...", false, 'INFO');
+        }
         
         // Obtenir les URLs de l'API
         const apiUrl = config.getApiUrl();
@@ -1123,6 +1160,11 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         
         // Construire l'URL de téléchargement
         const downloadUrl = `${apiUrl}/components/${componentId}/download?clientId=${encodeURIComponent(clientId || '')}&version=${encodeURIComponent(version)}&urlOnly=true&installId=${encodeURIComponent(installId)}`;
+        
+        // Ne pas ajouter de logs inutiles si le streaming est activé
+        if (!useStreaming) {
+            addLogMessage(logContainer, "Obtention de l'URL de téléchargement depuis l'API centrale...", false, 'INFO');
+        }
         
         // D'abord, obtenir l'URL de téléchargement auprès de l'API centrale
         fetch(downloadUrl, {
@@ -1182,8 +1224,8 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             // Mise à jour du statut
             updateProgress(progressBar, progressText, 80);
             
-            // Afficher les logs si disponibles
-            if (result.logs && Array.isArray(result.logs)) {
+            // Afficher les logs si disponibles et si le streaming n'est pas utilisé
+            if (!useStreaming && result.logs && Array.isArray(result.logs)) {
                 result.logs.forEach(log => {
                     addLogMessage(logContainer, log.message, log.level === "ERROR", log.level);
                 });
@@ -1531,13 +1573,50 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         // Générer un ID de désinstallation unique
         const uninstallId = `uninstall-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
         
-        // Ajouter le premier message au log
-        addLogMessage(logContainer, `Démarrage de la désinstallation de ${componentName}...`, false, 'INFO');
+        // Vérifier si le streaming est disponible
+        const useStreaming = typeof utils.marketplaceStream !== 'undefined';
+        console.log("Streaming disponible pour désinstallation:", useStreaming);
         
-        // Mise à jour du statut
-        statusContainer.textContent = "Désinstallation en cours...";
-        updateProgress(progressBar, progressText, 20);
-        addLogMessage(logContainer, "Préparation de la désinstallation...", false, 'INFO');
+        if (useStreaming) {
+            // Initialiser le stream
+            utils.marketplaceStream.init({
+                installId: uninstallId,
+                logContainer: logContainer,
+                progressBar: progressBar,
+                progressText: progressText,
+                statusContainer: statusContainer,
+                onComplete: (success) => {
+                    console.log("Streaming de désinstallation terminé avec succès:", success);
+                    
+                    // Ajouter un bouton pour fermer la modal
+                    const closeButton = document.createElement('button');
+                    closeButton.textContent = 'Fermer';
+                    closeButton.className = 'btn btn-primary';
+                    closeButton.style.marginTop = '20px';
+                    closeButton.addEventListener('click', () => {
+                        document.body.removeChild(modal);
+                        
+                        // Rafraîchir les composants
+                        components.refreshAllComponents();
+                        loadTabContent(state.activeTab);
+                    });
+                    
+                    modal.querySelector('.modal-content').appendChild(closeButton);
+                }
+            });
+            
+            // Connecter au flux
+            utils.marketplaceStream.connect();
+        } else {
+            // Utiliser la méthode classique sans streaming
+            // Ajouter le premier message au log
+            addLogMessage(logContainer, `Démarrage de la désinstallation de ${componentName}...`, false, 'INFO');
+            
+            // Mise à jour du statut
+            statusContainer.textContent = "Désinstallation en cours...";
+            updateProgress(progressBar, progressText, 20);
+            addLogMessage(logContainer, "Préparation de la désinstallation...", false, 'INFO');
+        }
         
         // Obtenir les URLs des API
         const apiUrl = config.getApiUrl();
@@ -1601,8 +1680,8 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             // Mise à jour du statut
             updateProgress(progressBar, progressText, 70);
             
-            // Afficher les logs si disponibles
-            if (result.logs && Array.isArray(result.logs)) {
+            // Afficher les logs si disponibles et si le streaming n'est pas utilisé
+            if (!useStreaming && result.logs && Array.isArray(result.logs)) {
                 result.logs.forEach(log => {
                     addLogMessage(logContainer, log.message, log.level === "ERROR", log.level);
                 });
@@ -1612,9 +1691,14 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             const success = result.success === true || result.Success === true;
             
             if (success) {
-                addLogMessage(logContainer, `Désinstallation locale réussie!`, false, 'SUCCESS');
-                if (result.backupPath) {
-                    addLogMessage(logContainer, `Sauvegarde créée dans: ${result.backupPath}`, false, 'INFO');
+                // Vérifier si le streaming est disponible
+                const useStreaming = typeof utils.marketplaceStream !== 'undefined';
+                
+                if (!useStreaming) {
+                    addLogMessage(logContainer, `Désinstallation locale réussie!`, false, 'SUCCESS');
+                    if (result.backupPath) {
+                        addLogMessage(logContainer, `Sauvegarde créée dans: ${result.backupPath}`, false, 'INFO');
+                    }
                 }
                 
                 // Notifier l'API Marketplace de la désinstallation
@@ -1664,7 +1748,11 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 // Échec de la désinstallation
                 const errorMessage = result.error || "Une erreur est survenue lors de la désinstallation";
                 statusContainer.textContent = "Échec de la désinstallation";
-                addLogMessage(logContainer, `Échec de la désinstallation: ${errorMessage}`, true, 'ERROR');
+                
+                // N'afficher l'erreur que si le streaming n'est pas utilisé (sinon il sera déjà affiché)
+                if (!useStreaming) {
+                    addLogMessage(logContainer, `Échec de la désinstallation: ${errorMessage}`, true, 'ERROR');
+                }
                 
                 // Mettre à jour la barre de progression en rouge
                 progressBar.style.backgroundColor = '#dc3545';
@@ -1689,7 +1777,11 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             
             // Mise à jour du statut
             statusContainer.textContent = "Erreur lors de la désinstallation";
-            addLogMessage(logContainer, "Erreur: " + (error.message || 'Erreur inconnue'), true, 'ERROR');
+            
+            // N'afficher l'erreur que si le streaming n'est pas utilisé (sinon il sera déjà affiché)
+            if (!useStreaming) {
+                addLogMessage(logContainer, "Erreur: " + (error.message || 'Erreur inconnue'), true, 'ERROR');
+            }
             progressBar.style.backgroundColor = '#dc3545'; // Rouge pour erreur
             
             // Ajouter un bouton pour fermer la modal

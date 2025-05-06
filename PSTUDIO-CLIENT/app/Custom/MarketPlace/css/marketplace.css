@@ -896,6 +896,18 @@ body {
     border-radius: 15px;
     font-weight: 500;
     font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.installation-status::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
 }
 
 .status-connected {
@@ -903,9 +915,19 @@ body {
     color: #137333;
 }
 
+.status-connected::before {
+    background-color: #34a853;
+    box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+    animation: pulse 1.5s infinite;
+}
+
 .status-disconnected {
-    background-color: #fce8e6;
-    color: #c5221f;
+    background-color: #f8f9fa;
+    color: #5f6368;
+}
+
+.status-disconnected::before {
+    background-color: #9aa0a6;
 }
 
 .status-error {
@@ -913,14 +935,38 @@ body {
     color: #c5221f;
 }
 
+.status-error::before {
+    background-color: #ea4335;
+}
+
 .status-complete {
     background-color: #e6f4ea;
     color: #137333;
 }
 
+.status-complete::before {
+    background-color: #34a853;
+}
+
 .status-warning {
     background-color: #fef7e0;
     color: #b06000;
+}
+
+.status-warning::before {
+    background-color: #fbbc04;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 5px rgba(52, 168, 83, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0);
+    }
 }
 
 /* Bandeaux d'erreur */

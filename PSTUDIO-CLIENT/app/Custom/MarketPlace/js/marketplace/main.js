@@ -53,6 +53,20 @@
             } else {
                 console.log(`Version de plateforme configurée: ${platformVersion}`);
             }
+            
+            // Définir localApiUrl globalement pour être utilisé par le streaming
+            const localApiUrl = configModule.getLocalApiUrl();
+            if (localApiUrl) {
+                console.log(`URL API locale configurée: ${localApiUrl}`);
+                window.localApiUrl = localApiUrl;
+            } else {
+                console.warn("URL API locale non configurée");
+                // Définir une valeur par défaut
+                const defaultLocalApiUrl = '/api-installer/';
+                console.log(`Utilisation de l'URL API locale par défaut: ${defaultLocalApiUrl}`);
+                window.localApiUrl = defaultLocalApiUrl;
+                configModule.set('localApiUrl', defaultLocalApiUrl);
+            }
         } else {
             console.error("Module de configuration non disponible.");
             return;

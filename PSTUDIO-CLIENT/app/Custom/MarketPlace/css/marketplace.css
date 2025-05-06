@@ -562,44 +562,6 @@ body {
     z-index: 1000;
 }
 
-/* Animation du constructeur pour l'installation */
-.installation-animation {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-    width: 150px;
-    height: 150px;
-    z-index: 10;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPCEtLSBUZXJyYWluIC0tPgogIDxyZWN0IHg9IjMwIiB5PSIxMzAiIHdpZHRoPSIxNDAiIGhlaWdodD0iMzAiIGZpbGw9IiM4YjRkMWUiIC8+CiAgPCEtLSBGb25kYXRpb24gLS0+CiAgPHJlY3QgeD0iNjAiIHk9IjEwMCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjOTk5IiBjbGFzcz0iZm91bmRhdGlvbiIgLz4KICA8IS0tIE11cnMgLS0+CiAgPHJlY3QgeD0iNjAiIHk9IjcwIiB3aWR0aD0iODAiIGhlaWdodD0iMzAiIGZpbGw9IiNlNmU2ZTYiIGNsYXNzPSJ3YWxscyIgLz4KICA8IS0tIFRvaXQgLS0+CiAgPHBvbHlnb24gcG9pbnRzPSIxMDAsMzAgNTAsNzAgMTUwLDcwIiBmaWxsPSIjZDg1MTQwIiBjbGFzcz0icm9vZiIgLz4KICA8IS0tIFBvcnRlIC0tPgogIDxyZWN0IHg9IjkwIiB5PSI5MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjOGI0ZDFlIiBjbGFzcz0iZG9vciIgLz4KICA8IS0tIEZlbuODmnRyZSAtLT4KICA8cmVjdCB4PSI3NSIgeT0iODAiIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgZmlsbD0iIzQ2YTBlOCIgY2xhc3M9IndpbmRvdyIgLz4KICA8cmVjdCB4PSIxMTAiIHk9IjgwIiB3aWR0aD0iMTUiIGhlaWdodD0iMTUiIGZpbGw9IiM0NmEwZTgiIGNsYXNzPSJ3aW5kb3ciIC8+CiAgPCEtLSBQZXJzb25uYWdlIC0tPgogIDxnIGNsYXNzPSJidWlsZGVyIj4KICAgIDxjaXJjbGUgY3g9IjQwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iI2ZmYzI4ZiIgLz4gPCEtLSBUw6p0ZSAtLT4KICAgIDxyZWN0IHg9IjMwIiB5PSIxMTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzE2NjRjMCIgLz4gPCEtLSBDb3JwcyAtLT4KICAgIDxyZWN0IHg9IjIwIiB5PSIxMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzE2NjRjMCIgLz4gPCEtLSBCcmFzIGdhdWNoZSAtLT4KICAgIDxyZWN0IHg9IjUwIiB5PSIxMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzE2NjRjMCIgLz4gPCEtLSBCcmFzIGRyb2l0IC0tPgogICAgPHJlY3QgeD0iMzAiIHk9IjEzMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMTY2NGMwIiAvPiA8IS0tIEphbWJlIGdhdWNoZSAtLT4KICAgIDxyZWN0IHg9IjQwIiB5PSIxMzAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzE2NjRjMCIgLz4gPCEtLSBKYW1iZSBkcm9pdGUgLS0+CiAgICA8cmVjdCB4PSI1MCIgeT0iMTIwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmM5MDAiIC8+IDwhLS0gQ2FzcXVlIC0tPgogICAgPHJlY3QgeD0iNTAiIHk9IjEzMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjYzY2OTBlIiAvPiA8IS0tIE91dGlsIC0tPgogIDwvZz4KPC9zdmc+');
-    background-size: cover;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    animation: build 3s infinite;
-}
-
-@keyframes build {
-    0% {
-        transform: translate(0, 0);
-    }
-    25% {
-        transform: translate(0, -10px);
-    }
-    30% {
-        transform: translate(0, -10px) rotate(5deg);
-    }
-    35% {
-        transform: translate(0, -10px) rotate(-5deg);
-    }
-    40% {
-        transform: translate(0, -10px) rotate(5deg);
-    }
-    45% {
-        transform: translate(0, -10px);
-    }
-    100% {
-        transform: translate(0, 0);
-    }
-}
 
 .modal-backdrop {
     position: absolute;

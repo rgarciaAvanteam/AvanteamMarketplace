@@ -947,6 +947,52 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     }
     
     /**
+     * Vérifie si un composant existe dans le DOM
+     * @param {number} componentId - ID du composant à chercher
+     * @returns {Object|null} - Objet contenant des informations sur le composant trouvé dans le DOM ou null
+     */
+    function findComponentInDOM(componentId) {
+        try {
+            // Vérifier si l'élément existe dans le DOM
+            const componentCard = document.querySelector(`.component-card[data-id="${componentId}"]`);
+            
+            if (componentCard) {
+                console.log(`Composant #${componentId} trouvé dans le DOM`);
+                
+                // Vérifier si le composant est installé
+                const isInstalled = componentCard.classList.contains('installed');
+                
+                // Récupérer le nom du composant s'il existe
+                const componentName = componentCard.querySelector('.component-name')?.textContent || `Composant #${componentId}`;
+                
+                // Vérifier si un bouton de mise à jour existe
+                const updateButton = componentCard.querySelector('.btn-update');
+                const version = updateButton ? updateButton.getAttribute('data-version') : null;
+                
+                // Déterminer l'onglet actif
+                const activeTab = document.querySelector('.tab-content.active');
+                const tabName = activeTab ? activeTab.id.replace('-tab', '') : 'unknown';
+                
+                // Créer un objet minimal avec les informations essentielles
+                return {
+                    componentId: parseInt(componentId, 10),
+                    displayName: componentName,
+                    isInstalled: isInstalled,
+                    version: version,
+                    installedVersion: isInstalled ? (version || "?") : null,
+                    sourceTab: tabName,
+                    // Indiquer que ce composant a été reconstruit à partir du DOM
+                    fromDOM: true
+                };
+            }
+        } catch (e) {
+            console.warn("Erreur lors de la recherche du composant dans le DOM:", e);
+        }
+        
+        return null;
+    }
+
+    /**
      * Obtient un composant par son ID
      * @param {number} componentId - ID du composant
      * @returns {Object|null} - Composant ou null si non trouvé
@@ -1025,7 +1071,13 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
             console.warn("Erreur lors de la recherche dans le cache global:", e);
         }
         
-        console.warn(`Composant #${componentId} introuvable dans tous les caches`);
+        // Si on n'a toujours pas trouvé le composant, essayer de le retrouver dans le DOM
+        const domComponent = findComponentInDOM(componentId);
+        if (domComponent) {
+            return domComponent;
+        }
+        
+        console.warn(`Composant #${componentId} introuvable dans tous les caches et dans le DOM`);
         return null;
     }
     

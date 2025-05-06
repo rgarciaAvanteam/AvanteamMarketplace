@@ -23,6 +23,228 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     let platformVersion = '';
     
     /**
+     * Fonction utilitaire centralisée pour effectuer des requêtes API
+     * @param {string} endpoint - Point de terminaison de l'API (sans l'URL de base)
+     * @param {Object} options - Options de la requête
+     * @param {string} options.method - Méthode HTTP (GET, POST, etc.)
+     * @param {Object} options.headers - En-têtes HTTP supplémentaires
+     * @param {Object} options.body - Corps de la requête (pour POST, PUT, etc.)
+     * @param {number} options.timeout - Délai d'expiration en millisecondes
+     * @param {string} options.context - Contexte de la requête (pour les événements)
+     * @param {Object} options.defaultErrorResponse - Réponse par défaut en cas d'erreur
+     * @param {boolean} options.returnRawResponse - Si true, retourne l'objet response avant parsing JSON
+     * @returns {Promise<Object>} - Promesse résolue avec les données de la réponse
+     */
+    function apiRequest(endpoint, options = {}) {
+        const apiUrl = config.getApiUrl();
+        
+        if (!apiUrl) {
+            const error = new Error("URL API non configurée");
+            
+            // Publier un événement pour informer d'autres modules
+            MarketplaceMediator.publish('apiConfigError', {
+                message: error.message,
+                context: options.context || 'apiRequest'
+            });
+            
+            return Promise.reject(error);
+        }
+        
+        // Construire l'URL complète
+        const url = endpoint.startsWith('http') ? endpoint : `${apiUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+        
+        // Préparer les en-têtes avec authentification
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+        
+        const headers = prepareAuthHeaders({ ...defaultHeaders, ...options.headers });
+        
+        // Configuration du timeout
+        const timeout = options.timeout || 15000; // 15 secondes par défaut
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        // Préparer les options de fetch
+        const fetchOptions = {
+            method: options.method || 'GET',
+            headers: headers,
+            signal: controller.signal
+        };
+        
+        // Ajouter le corps de la requête si nécessaire
+        if (options.body && ['POST', 'PUT', 'PATCH'].includes(fetchOptions.method)) {
+            fetchOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+        }
+        
+        // Publier un événement de début de requête si un contexte est fourni
+        if (options.context) {
+            MarketplaceMediator.publish('apiRequestStarted', {
+                context: options.context,
+                url: url
+            });
+        }
+        
+        // Effectuer la requête
+        return fetch(url, fetchOptions)
+            .then(response => {
+                // Annuler le timeout
+                clearTimeout(timeoutId);
+                
+                // Si demandé, retourner la réponse brute
+                if (options.returnRawResponse) {
+                    return response;
+                }
+                
+                // Gérer les erreurs d'authentification (401, 403)
+                if (response.status === 401 || response.status === 403) {
+                    console.warn("Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré");
+                    
+                    // Publier un événement d'authentification échouée
+                    MarketplaceMediator.publish('apiAuthenticationError', {
+                        status: response.status,
+                        message: "Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré",
+                        context: options.context
+                    });
+                    
+                    // Utiliser le module auth pour afficher une notification si ce n'est pas déjà fait
+                    if (auth && auth.showNotification) {
+                        auth.showNotification("Problème d'authentification avec l'API Marketplace. Veuillez contacter votre administrateur.", "warning");
+                    }
+                    
+                    // Retourner une réponse par défaut si fournie
+                    if (options.defaultErrorResponse) {
+                        return options.defaultErrorResponse;
+                    }
+                    
+                    // Sinon, propager l'erreur
+                    const error = new Error(`Erreur d'authentification: ${response.status}`);
+                    error.statusCode = response.status;
+                    throw error;
+                }
+                
+                // Gérer les erreurs 404 (resource non trouvée)
+                if (response.status === 404) {
+                    console.warn(`Resource non trouvée: ${url}`);
+                    
+                    // Publier un événement de ressource non trouvée
+                    if (options.context) {
+                        MarketplaceMediator.publish('apiResourceNotFound', {
+                            status: response.status,
+                            context: options.context,
+                            url: url
+                        });
+                    }
+                    
+                    // Retourner une réponse par défaut si fournie
+                    if (options.defaultErrorResponse) {
+                        return options.defaultErrorResponse;
+                    }
+                    
+                    // Sinon, propager l'erreur
+                    const error = new Error(`Ressource non trouvée: ${url}`);
+                    error.statusCode = response.status;
+                    throw error;
+                }
+                
+                // Gérer les erreurs serveur (5xx)
+                if (response.status >= 500) {
+                    console.error(`Erreur serveur (${response.status}) lors de la requête: ${url}`);
+                    
+                    // Publier un événement d'erreur serveur
+                    MarketplaceMediator.publish('apiServerError', {
+                        status: response.status,
+                        message: `Erreur serveur API - Le serveur a répondu avec l'erreur ${response.status}`,
+                        context: options.context
+                    });
+                    
+                    // Afficher une notification si possible
+                    if (auth && auth.showNotification) {
+                        auth.showNotification("Le serveur Marketplace est momentanément indisponible. Veuillez réessayer plus tard.", "error");
+                    }
+                    
+                    // Retourner une réponse par défaut si fournie
+                    if (options.defaultErrorResponse) {
+                        return options.defaultErrorResponse;
+                    }
+                    
+                    // Sinon, propager l'erreur
+                    const error = new Error(`Erreur serveur: ${response.status}`);
+                    error.statusCode = response.status;
+                    throw error;
+                }
+                
+                // Gérer les autres erreurs HTTP
+                if (!response.ok) {
+                    console.error(`Erreur HTTP (${response.status}) lors de la requête: ${url}`);
+                    
+                    // Publier un événement d'erreur API
+                    MarketplaceMediator.publish('apiError', {
+                        status: response.status,
+                        message: `Erreur API - Le serveur a répondu avec l'erreur ${response.status}`,
+                        context: options.context
+                    });
+                    
+                    // Retourner une réponse par défaut si fournie
+                    if (options.defaultErrorResponse) {
+                        return options.defaultErrorResponse;
+                    }
+                    
+                    // Sinon, propager l'erreur
+                    const error = new Error(`Erreur HTTP: ${response.status}`);
+                    error.statusCode = response.status;
+                    throw error;
+                }
+                
+                // Traiter la réponse JSON
+                return response.json().catch(e => {
+                    console.warn("Erreur lors du parsing JSON de la réponse:", e);
+                    return {}; // Retourner un objet vide en cas d'erreur de parsing
+                });
+            })
+            .then(data => {
+                // Publier un événement de fin de requête si un contexte est fourni
+                if (options.context) {
+                    MarketplaceMediator.publish('apiRequestCompleted', {
+                        context: options.context,
+                        success: true
+                    });
+                }
+                
+                return data;
+            })
+            .catch(error => {
+                // Annuler le timeout au cas où
+                clearTimeout(timeoutId);
+                
+                console.error(`Erreur lors de la requête API vers ${url}:`, error);
+                
+                // Publier un événement d'erreur générique
+                MarketplaceMediator.publish('apiRequestError', {
+                    context: options.context,
+                    error: error.message,
+                    statusCode: error.statusCode || 'network'
+                });
+                
+                // Si c'est une erreur d'expiration de délai, afficher une notification spécifique
+                if (error.name === 'AbortError') {
+                    if (auth && auth.showNotification) {
+                        auth.showNotification("Le temps de réponse de l'API est trop long. Veuillez réessayer plus tard.", "error");
+                    }
+                }
+                
+                // Retourner une réponse par défaut si fournie
+                if (options.defaultErrorResponse) {
+                    return options.defaultErrorResponse;
+                }
+                
+                // Sinon, propager l'erreur
+                throw error;
+            });
+    }
+    
+    /**
      * Initialise le module des composants
      */
     function init() {
@@ -48,123 +270,45 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
      * Vérifie la validité de la connexion à l'API
      */
     function checkApiConnection() {
-        const apiUrl = config.getApiUrl();
-        
-        if (!apiUrl) {
-            console.warn("URL API non configurée");
-            return;
-        }
-        
-        // Préparer les en-têtes avec authentification complète
-        const headers = prepareAuthHeaders({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
-        
-        // Construire l'URL de l'endpoint avec tous les paramètres requis
-        const clientId = config.getClientId() || '';
-        
         // S'assurer que platformVersion est bien défini et correctement formaté
         if (!platformVersion || platformVersion.trim() === '') {
-            console.error("ERREUR CRITIQUE: platformVersion est vide dans checkApiConnection");
+            console.warn("Version de plateforme non définie, tentative de récupération...");
             platformVersion = config.getPlatformVersion();
-            console.log("Récupération de platformVersion:", platformVersion);
             
             if (!platformVersion || platformVersion.trim() === '') {
-                console.error("Impossible de récupérer la version de la plateforme, utilisation de la valeur par défaut 23.10.0");
-                platformVersion = "23.10.0";
+                console.warn("Impossible de récupérer la version de la plateforme, utilisation de la valeur par défaut");
+                platformVersion = "23.10.0"; // Valeur par défaut
             }
         }
         
-        // Nettoyer les caractères problématiques potentiels dans la version
-        platformVersion = platformVersion.trim().replace(/\s+/g, '');
+        // Nettoyer la version pour éviter les caractères problématiques
+        const cleanVersion = platformVersion.trim().replace(/\s+/g, '');
         
-        // Log pour débogage
-        console.log("Construction de l'URL API pour la vérification:", {
-            apiUrl: apiUrl,
-            platformVersion: platformVersion,
-            clientId: clientId,
-            headers: headers
-        });
+        // Construire le paramètre de requête
+        const clientId = config.getClientId() || '';
+        const endpoint = `/components/compatible?version=${encodeURIComponent(cleanVersion)}&clientId=${encodeURIComponent(clientId)}&limit=1`;
         
-        // Intégrer directement la clé API dans l'URL comme paramètre
-        // Note: L'API attend 'version' et non 'platformVersion'
-        let url = `${apiUrl}/components/compatible?version=${encodeURIComponent(platformVersion)}&clientId=${encodeURIComponent(clientId)}&limit=1`;
-        
-        // Ajouter également la clé API dans l'URL directement (en plus de l'en-tête)
-        if (apiKey) {
-        }
-        
-        // Faire une requête simple pour vérifier la connexion
-        // Nous utilisons l'endpoint components/compatible qui est documenté dans l'API
-        fetch(url, { 
+        // Utiliser apiRequest pour effectuer la vérification
+        apiRequest(endpoint, {
             method: 'GET',
-            headers: headers,
-            // Ajouter un signal pour éviter les erreurs transitoires de réseau
-            signal: AbortSignal.timeout(10000) // 10 secondes timeout
+            timeout: 10000, // 10 secondes
+            context: 'checkApiConnection',
+            returnRawResponse: true // On veut juste vérifier le statut, pas parser le JSON
         })
-            .then(response => {
-                if (response.status === 401 || response.status === 403) {
-                    console.error("Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré");
-                    
-                    // Publier un événement pour notifier d'autres modules
-                    MarketplaceMediator.publish('apiAuthenticationError', {
-                        status: response.status,
-                        message: "Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré"
-                    });
-                    
-                    // Utiliser le module auth pour afficher une notification
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Problème d'authentification avec l'API Marketplace. Veuillez contacter votre administrateur.", "warning");
-                    }
-                } else if (response.status >= 500) {
-                    console.error(`Erreur serveur API - Le serveur a répondu avec l'erreur ${response.status}`);
-                    
-                    // Publier un événement pour notifier d'autres modules
-                    MarketplaceMediator.publish('apiServerError', {
-                        status: response.status,
-                        message: `Erreur serveur API - Le serveur a répondu avec l'erreur ${response.status}`
-                    });
-                    
-                    // Utiliser le module auth pour afficher une notification
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Le serveur Marketplace est momentanément indisponible. Veuillez réessayer plus tard.", "error");
-                    }
-                } else if (!response.ok) {
-                    console.error(`Erreur API - Le serveur a répondu avec l'erreur ${response.status}`);
-                    
-                    // Publier un événement pour notifier d'autres modules
-                    MarketplaceMediator.publish('apiError', {
-                        status: response.status,
-                        message: `Erreur API - Le serveur a répondu avec l'erreur ${response.status}`
-                    });
-                } else {
-                    console.log("Connexion à l'API Marketplace établie avec succès");
-                    // Publier un événement pour notifier d'autres modules
-                    MarketplaceMediator.publish('apiConnectionSuccessful', {
-                        message: "Connexion à l'API Marketplace établie avec succès"
-                    });
-                }
-                
-                return response;
-            })
-            .catch(error => {
-                // Erreur réseau ou timeout
-                console.warn("Erreur lors de la vérification de la connexion API:", error);
-                
+        .then(response => {
+            if (response.ok) {
+                console.log("Connexion à l'API Marketplace établie avec succès");
                 // Publier un événement pour notifier d'autres modules
-                MarketplaceMediator.publish('apiConnectionError', {
-                    message: "Erreur lors de la vérification de la connexion à l'API Marketplace",
-                    error: error.message
+                MarketplaceMediator.publish('apiConnectionSuccessful', {
+                    message: "Connexion à l'API Marketplace établie avec succès"
                 });
-                
-                // Si l'erreur est liée à une interruption de connexion, afficher une notification
-                if (error.name === 'TypeError' || error.name === 'AbortError') {
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Impossible de se connecter à l'API Marketplace. Vérifiez votre connexion internet ou contactez l'administrateur.", "error");
-                    }
-                }
-            });
+            }
+            return response;
+        })
+        .catch(error => {
+            // Les erreurs sont déjà gérées dans apiRequest, mais nous pouvons ajouter une logique supplémentaire si nécessaire
+            console.warn("Erreur de connexion gérée:", error.message);
+        });
     }
     
     /**
@@ -238,198 +382,94 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
             }
         }
         
-        // Construire l'URL de l'API selon l'onglet
-        const apiUrl = config.getApiUrl();
-        const clientId = config.getClientId() || '';
-        
-        if (!apiUrl) {
-            const error = new Error("URL API non configurée");
-            
-            // Publier un événement pour informer d'autres modules
-            MarketplaceMediator.publish('apiConfigError', {
-                message: error.message,
-                tabName: tabName
-            });
-            
-            return Promise.reject(error);
-        }
-        
-        // Vérifier que platformVersion est bien défini
+        // S'assurer que platformVersion est bien défini
         if (!platformVersion || platformVersion.trim() === '') {
-            console.error("Version de plateforme non définie, tentative de récupération...");
+            console.warn("Version de plateforme non définie, tentative de récupération...");
             platformVersion = config.getPlatformVersion();
             
             if (!platformVersion || platformVersion.trim() === '') {
-                console.error("Impossible de récupérer la version de plateforme, utilisation de la valeur par défaut.");
+                console.warn("Impossible de récupérer la version de plateforme, utilisation de la valeur par défaut");
                 platformVersion = "23.10.0"; // Valeur par défaut
             }
         }
         
-        console.log(`Chargement des composants ${tabName} avec platformVersion=${platformVersion}`);
-        
-        // Vérifier à nouveau et nettoyer platformVersion avant de l'utiliser
-        if (!platformVersion || platformVersion.trim() === '') {
-            console.error("ERREUR CRITIQUE: platformVersion est vide dans loadComponents");
-            platformVersion = config.getPlatformVersion();
-            
-            if (!platformVersion || platformVersion.trim() === '') {
-                console.error("Impossible de récupérer la version de la plateforme, utilisation de la valeur par défaut");
-                platformVersion = "23.10.0";
-            }
-        }
-        
         // Nettoyer la version pour éviter les espaces ou caractères problématiques
-        platformVersion = platformVersion.trim().replace(/\s+/g, '');
-        console.log(`Version de plateforme utilisée pour la requête ${tabName}: "${platformVersion}"`);
+        const cleanVersion = platformVersion.trim().replace(/\s+/g, '');
+        console.log(`Chargement des composants ${tabName} avec platformVersion=${cleanVersion}`);
         
-        // Construire l'URL avec les paramètres encodés correctement
-        // Note: L'API attend 'version' et non 'platformVersion'
-        let url = '';
+        // Construire l'endpoint selon l'onglet
+        const clientId = config.getClientId() || '';
+        let endpoint = '';
+        
         switch (tabName) {
             case 'compatible':
-                url = `${apiUrl}/components/compatible?version=${encodeURIComponent(platformVersion)}`;
+                endpoint = `/components/compatible?version=${encodeURIComponent(cleanVersion)}`;
                 break;
             case 'updates':
-                url = `${apiUrl}/components/updates?version=${encodeURIComponent(platformVersion)}`;
+                endpoint = `/components/updates?version=${encodeURIComponent(cleanVersion)}`;
                 break;
             case 'future':
-                url = `${apiUrl}/components/future?version=${encodeURIComponent(platformVersion)}`;
+                endpoint = `/components/future?version=${encodeURIComponent(cleanVersion)}`;
                 break;
             default:
-                url = `${apiUrl}/components/compatible?version=${encodeURIComponent(platformVersion)}`;
+                endpoint = `/components/compatible?version=${encodeURIComponent(cleanVersion)}`;
         }
         
         // Ajouter l'ID client
         if (clientId) {
-            url += `&clientId=${encodeURIComponent(clientId)}`;
+            endpoint += `&clientId=${encodeURIComponent(clientId)}`;
         }
-        
-        // Utiliser la fonction prepareAuthHeaders pour obtenir les en-têtes d'authentification corrects
-        const headers = prepareAuthHeaders({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
         
         // Publier un événement pour indiquer le début du chargement
         MarketplaceMediator.publish('componentsLoading', {
             tabName: tabName,
-            url: url
+            endpoint: endpoint
         });
         
-        // Configurer le timeout pour la requête
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 secondes timeout
+        // Valeur par défaut en cas d'erreur d'authentification
+        const defaultErrorResponse = { components: [], platformInfo: { version: cleanVersion } };
         
-        // Effectuer la requête avec timeout
-        return fetch(url, { 
+        // Utiliser apiRequest pour effectuer la requête
+        return apiRequest(endpoint, {
             method: 'GET',
-            headers: headers,
-            signal: controller.signal
+            timeout: 20000, // 20 secondes timeout
+            context: `loadComponents_${tabName}`,
+            defaultErrorResponse: defaultErrorResponse
         })
-            .then(response => {
-                // Annuler le timeout
-                clearTimeout(timeoutId);
-                
-                // Si 401 ou 403, gérer comme un cas d'erreur d'authentification
-                if (response.status === 401 || response.status === 403) {
-                    console.log("Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré");
-                    
-                    // Publier un événement d'authentification échouée
-                    MarketplaceMediator.publish('apiAuthenticationError', {
-                        status: response.status,
-                        message: "Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré",
-                        tabName: tabName
-                    });
-                    
-                    // Utiliser le module auth pour afficher une notification si ce n'est pas déjà fait
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Problème d'authentification avec l'API Marketplace. Veuillez contacter votre administrateur.", "warning");
-                    }
-                    
-                    // Retourner une réponse vide mais valide pour éviter l'erreur
-                    return { components: [], platformInfo: { version: platformVersion } };
-                }
-                
-                // Gérer les erreurs serveur (5xx)
-                if (response.status >= 500) {
-                    const error = new Error(`Erreur serveur (${response.status})`);
-                    error.statusCode = response.status;
-                    
-                    // Publier un événement d'erreur serveur
-                    MarketplaceMediator.publish('apiServerError', {
-                        status: response.status,
-                        message: `Erreur serveur API - Le serveur a répondu avec l'erreur ${response.status}`,
-                        tabName: tabName
-                    });
-                    
-                    throw error;
-                }
-                
-                // Gérer les autres erreurs HTTP
-                if (!response.ok) {
-                    const error = new Error(`Erreur HTTP: ${response.status}`);
-                    error.statusCode = response.status;
-                    
-                    // Publier un événement d'erreur API
-                    MarketplaceMediator.publish('apiError', {
-                        status: response.status,
-                        message: `Erreur API - Le serveur a répondu avec l'erreur ${response.status}`,
-                        tabName: tabName
-                    });
-                    
-                    throw error;
-                }
-                
-                // Succès - traiter la réponse JSON
-                return response.json();
-            })
-            .then(data => {
-                // Annuler le timeout au cas où
-                clearTimeout(timeoutId);
-                
-                console.log(`Réponse API pour ${tabName}:`, data);
-                
-                // Extraire et normaliser les composants
-                const components = normalizeComponentData(data);
-                
-                // Mettre à jour le cache
-                componentsCache[tabName] = components;
-                filteredComponents[tabName] = [...components];
-                
-                // Sauvegarder le timestamp du cache
-                utils.saveToStorage(`marketplace_components_${tabName}_timestamp`, Date.now());
-                
-                // Notifier que les composants sont chargés
-                MarketplaceMediator.publish('componentsLoaded', {
-                    tabName,
-                    components: components,
-                    fromCache: false
-                });
-                
-                return components;
-            })
-            .catch(error => {
-                // Annuler le timeout au cas où
-                clearTimeout(timeoutId);
-                
-                console.error(`Erreur lors du chargement des composants pour ${tabName}:`, error);
-                
-                // Publier un événement d'erreur générique
-                MarketplaceMediator.publish('componentsLoadError', {
-                    tabName: tabName,
-                    error: error.message,
-                    statusCode: error.statusCode || 'network'
-                });
-                
-                // Si c'est une erreur d'expiration de délai ou de réseau, afficher une notification spécifique
-                if (error.name === 'AbortError') {
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Le temps de réponse de l'API est trop long. Veuillez réessayer plus tard.", "error");
-                    }
-                }
-                
-                throw error;
+        .then(data => {
+            console.log(`Réponse API pour ${tabName}:`, data);
+            
+            // Extraire et normaliser les composants
+            const components = normalizeComponentData(data);
+            
+            // Mettre à jour le cache
+            componentsCache[tabName] = components;
+            filteredComponents[tabName] = [...components];
+            
+            // Sauvegarder le timestamp du cache
+            utils.saveToStorage(`marketplace_components_${tabName}_timestamp`, Date.now());
+            
+            // Notifier que les composants sont chargés
+            MarketplaceMediator.publish('componentsLoaded', {
+                tabName,
+                components: components,
+                fromCache: false
             });
+            
+            return components;
+        })
+        .catch(error => {
+            console.error(`Erreur lors du chargement des composants pour ${tabName}:`, error);
+            
+            // Publier un événement d'erreur spécifique à loadComponents
+            MarketplaceMediator.publish('componentsLoadError', {
+                tabName: tabName,
+                error: error.message,
+                statusCode: error.statusCode || 'network'
+            });
+            
+            throw error;
+        });
     }
     
     /**
@@ -581,57 +621,41 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
      * @returns {Promise<string>} - URL de données de l'icône
      */
     function loadComponentIcon(componentId) {
-        const apiUrl = config.getApiUrl();
+        // Icône par défaut à utiliser en cas d'erreur
+        const defaultIcon = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSIxMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMjggMzUgTDcyIDM1IiBzdHJva2U9IiMwZDZlZmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI4IDUwIEw3MiA1MCIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCA2NSBMNTIgNjUiIHN0cm9rZT0iIzBkNmVmZCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI3NSIgY3k9IjY1IiByPSI1IiBmaWxsPSIjMGQ2ZWZkIi8+PC9zdmc+';
         
-        if (!apiUrl) {
-            return Promise.reject("URL API non configurée");
-        }
+        // Construire le chemin de l'endpoint d'icône du composant
+        const endpoint = `/components/${encodeURIComponent(componentId)}/icon`;
         
-        // Construire l'URL de l'icône du composant
-        let iconUrl = `${apiUrl}/components/${encodeURIComponent(componentId)}/icon`;
-        
-        // Utiliser la fonction prepareAuthHeaders pour obtenir les en-têtes d'authentification
-        const headers = prepareAuthHeaders({
-            'Accept': 'image/*'
-        });
-        
-        // Effectuer la requête avec timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes timeout
-        
-        return fetch(iconUrl, { 
-            headers: headers,
-            signal: controller.signal
+        // Utiliser apiRequest pour obtenir l'icône avec le returnRawResponse activé
+        // car nous voulons traiter directement le blob de l'image
+        return apiRequest(endpoint, {
+            headers: {
+                'Accept': 'image/*'
+            },
+            timeout: 10000, // 10 secondes timeout
+            context: `loadComponentIcon_${componentId}`,
+            returnRawResponse: true // Nous voulons traiter le blob nous-mêmes
         })
-            .then(response => {
-                // Annuler le timeout
-                clearTimeout(timeoutId);
-                
-                if (response.status === 401 || response.status === 403) {
-                    console.warn(`Erreur d'authentification lors du chargement de l'icône ${componentId}`);
-                    throw new Error('Erreur d\'authentification');
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            })
-            .catch(error => {
-                // En cas d'erreur, retourner l'icône par défaut
-                console.warn(`Erreur de chargement de l'icône ${componentId}:`, error);
-                
-                // Retourner une icône par défaut en cas d'erreur
-                return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHJ4PSIxMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMjggMzUgTDcyIDM1IiBzdHJva2U9IiMwZDZlZmQiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI4IDUwIEw3MiA1MCIgc3Ryb2tlPSIjMGQ2ZWZkIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yOCA2NSBMNTIgNjUiIHN0cm9rZT0iIzBkNmVmZCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI3NSIgY3k9IjY1IiByPSI1IiBmaWxsPSIjMGQ2ZWZkIi8+PC9zdmc+';
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
             });
+        })
+        .catch(error => {
+            // En cas d'erreur, retourner l'icône par défaut sans bloquer le flux
+            console.warn(`Erreur de chargement de l'icône ${componentId}:`, error);
+            return defaultIcon;
+        });
     }
     
     /**
@@ -892,162 +916,69 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
      * @returns {Promise<Object>} - Promesse résolue avec les détails du composant
      */
     function getComponentDetails(componentId) {
-        const apiUrl = config.getApiUrl();
-        
-        if (!apiUrl) {
-            const error = new Error("URL API non configurée");
-            
-            // Publier un événement pour informer d'autres modules
-            MarketplaceMediator.publish('apiConfigError', {
-                message: error.message,
-                context: 'getComponentDetails',
-                componentId: componentId
-            });
-            
-            return Promise.reject(error);
-        }
-        
-        // Construire l'URL des détails du composant
-        let detailsUrl = `${apiUrl}/components/${encodeURIComponent(componentId)}`;
-        
-        // Utiliser la fonction prepareAuthHeaders pour obtenir les en-têtes d'authentification complets
-        const headers = prepareAuthHeaders({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
-        
         // Publier un événement pour indiquer le début du chargement des détails
         MarketplaceMediator.publish('componentDetailsLoading', {
             componentId: componentId
         });
         
-        // Configurer le timeout pour la requête
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes timeout
+        // Créer les réponses par défaut pour les différents cas d'erreur
+        const defaultErrorResponses = {
+            auth: { 
+                componentId: componentId,
+                displayName: "Détails non disponibles",
+                description: "Problème d'authentification. Veuillez contacter votre administrateur.",
+                category: "Erreur d'authentification",
+                version: "N/A",
+                authError: true
+            },
+            notFound: { 
+                componentId: componentId,
+                displayName: "Composant non trouvé",
+                description: "Ce composant n'existe pas ou n'est plus disponible.",
+                category: "Erreur",
+                version: "N/A",
+                notFound: true
+            },
+            server: { 
+                componentId: componentId,
+                displayName: "Erreur serveur",
+                description: "Une erreur est survenue sur le serveur. Veuillez réessayer plus tard.",
+                category: "Erreur serveur",
+                version: "N/A",
+                serverError: true
+            },
+            timeout: {
+                componentId: componentId,
+                displayName: "Délai d'attente dépassé",
+                description: "Le serveur n'a pas répondu dans le délai imparti. Veuillez réessayer plus tard.",
+                category: "Erreur de délai",
+                version: "N/A",
+                timeoutError: true
+            }
+        };
         
-        // Effectuer la requête avec timeout
-        return fetch(detailsUrl, { 
+        // Construire le endpoint pour les détails du composant
+        const endpoint = `/components/${encodeURIComponent(componentId)}`;
+        
+        // Utiliser apiRequest pour obtenir les détails du composant
+        return apiRequest(endpoint, {
             method: 'GET',
-            headers: headers,
-            signal: controller.signal
+            timeout: 15000, // 15 secondes timeout
+            context: 'getComponentDetails',
+            // Personnaliser les réponses d'erreur selon le type d'erreur HTTP
+            // Cette logique est gérée dans apiRequest mais nous voulons des réponses spécifiques
+            defaultErrorResponse: null // On va gérer les erreurs spécifiquement dans le catch
         })
-            .then(response => {
-                // Annuler le timeout
-                clearTimeout(timeoutId);
-                
-                // Si 401 ou 403, gérer comme un cas d'erreur d'authentification
-                if (response.status === 401 || response.status === 403) {
-                    console.log("Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré");
-                    
-                    // Publier un événement d'authentification échouée
-                    MarketplaceMediator.publish('apiAuthenticationError', {
-                        status: response.status,
-                        message: "Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré",
-                        context: 'getComponentDetails',
-                        componentId: componentId
-                    });
-                    
-                    // Retourner un composant minimal avec indication d'erreur d'authentification
-                    return { 
-                        componentId: componentId,
-                        displayName: "Détails non disponibles",
-                        description: "Problème d'authentification. Veuillez contacter votre administrateur.",
-                        category: "Erreur d'authentification",
-                        version: "N/A",
-                        authError: true
-                    };
-                }
-                
-                // Gérer les erreurs 404 (composant non trouvé)
-                if (response.status === 404) {
-                    console.log(`Composant ${componentId} non trouvé dans l'API`);
-                    
-                    // Publier un événement de composant non trouvé
-                    MarketplaceMediator.publish('componentNotFound', {
-                        componentId: componentId
-                    });
-                    
-                    // Retourner un composant minimal avec indication de composant non trouvé
-                    return { 
-                        componentId: componentId,
-                        displayName: "Composant non trouvé",
-                        description: "Ce composant n'existe pas ou n'est plus disponible.",
-                        category: "Erreur",
-                        version: "N/A",
-                        notFound: true
-                    };
-                }
-                
-                // Gérer les erreurs serveur (5xx)
-                if (response.status >= 500) {
-                    console.error(`Erreur serveur (${response.status}) lors de la récupération des détails du composant ${componentId}`);
-                    
-                    // Publier un événement d'erreur serveur
-                    MarketplaceMediator.publish('apiServerError', {
-                        status: response.status,
-                        message: `Erreur serveur API - Le serveur a répondu avec l'erreur ${response.status}`,
-                        context: 'getComponentDetails',
-                        componentId: componentId
-                    });
-                    
-                    // Retourner un composant minimal avec indication d'erreur serveur
-                    return { 
-                        componentId: componentId,
-                        displayName: "Erreur serveur",
-                        description: "Une erreur est survenue sur le serveur. Veuillez réessayer plus tard.",
-                        category: "Erreur serveur",
-                        version: "N/A",
-                        serverError: true
-                    };
-                }
-                
-                // Gérer les autres erreurs HTTP
-                if (!response.ok) {
-                    console.error(`Erreur HTTP (${response.status}) lors de la récupération des détails du composant ${componentId}`);
-                    
-                    // Publier un événement d'erreur API
-                    MarketplaceMediator.publish('apiError', {
-                        status: response.status,
-                        message: `Erreur API - Le serveur a répondu avec l'erreur ${response.status}`,
-                        context: 'getComponentDetails',
-                        componentId: componentId
-                    });
-                    
-                    // Retourner un composant minimal avec indication d'erreur API
-                    return { 
-                        componentId: componentId,
-                        displayName: "Erreur API",
-                        description: `Une erreur est survenue lors de la communication avec l'API (${response.status}).`,
-                        category: "Erreur API",
-                        version: "N/A",
-                        apiError: true
-                    };
-                }
-                
-                // Succès - traiter la réponse JSON
-                return response.json();
-            })
-            .then(detailedComponent => {
-                // Annuler le timeout au cas où
-                clearTimeout(timeoutId);
-                
-                console.log("Détails du composant depuis l'API:", detailedComponent);
-                
-                // Si c'est un composant d'erreur (créé ci-dessus), le retourner tel quel
-                if (detailedComponent.authError || detailedComponent.notFound || 
-                    detailedComponent.serverError || detailedComponent.apiError) {
-                    return detailedComponent;
-                }
-                
+        .then(detailedComponent => {
+            console.log("Détails du composant depuis l'API:", detailedComponent);
+            
+            // Vérifier si on a un vrai composant ou un objet d'erreur
+            if (detailedComponent && !detailedComponent.error) {
                 // Récupérer le composant de base avec l'onglet source
                 const baseComponent = getComponentById(componentId);
                 
-                if (!baseComponent) {
-                    return detailedComponent;
-                }
-                
-                // Fusionner les informations
-                const mergedComponent = {
+                // Fusionner les informations si on a un baseComponent
+                const mergedComponent = baseComponent ? {
                     ...baseComponent,
                     ...detailedComponent,
                     // Préserver ces propriétés du composant de base
@@ -1055,6 +986,9 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                     hasUpdate: baseComponent.hasUpdate === undefined ? detailedComponent.hasUpdate : baseComponent.hasUpdate,
                     installedVersion: baseComponent.installedVersion === undefined ? detailedComponent.installedVersion : baseComponent.installedVersion,
                     tagsArray: utils.normalizeTags(detailedComponent.tags || baseComponent.tags)
+                } : {
+                    ...detailedComponent,
+                    tagsArray: utils.normalizeTags(detailedComponent.tags || [])
                 };
                 
                 // Publier un événement pour indiquer que les détails sont chargés
@@ -1064,51 +998,57 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                 });
                 
                 return mergedComponent;
-            })
-            .catch(error => {
-                // Annuler le timeout au cas où
-                clearTimeout(timeoutId);
-                
-                console.error(`Erreur lors du chargement des détails du composant ${componentId}:`, error);
-                
-                // Publier un événement d'erreur générique
-                MarketplaceMediator.publish('componentDetailsLoadError', {
-                    componentId: componentId,
-                    error: error.message
-                });
-                
-                // Si c'est une erreur d'expiration de délai, créer un composant avec message approprié
-                if (error.name === 'AbortError') {
-                    return {
-                        componentId: componentId,
-                        displayName: "Délai d'attente dépassé",
-                        description: "Le serveur n'a pas répondu dans le délai imparti. Veuillez réessayer plus tard.",
-                        category: "Erreur de délai",
-                        version: "N/A",
-                        timeoutError: true
-                    };
-                }
-                
-                // Pour les autres erreurs, réutiliser le composant de base si disponible
-                const baseComponent = getComponentById(componentId);
-                if (baseComponent) {
-                    return {
-                        ...baseComponent,
-                        description: baseComponent.description || "Une erreur est survenue lors du chargement des détails. " + error.message,
-                        errorLoading: true
-                    };
-                }
-                
-                // Sinon, créer un composant d'erreur générique
-                return { 
-                    componentId: componentId,
-                    displayName: "Erreur de chargement",
-                    description: `Une erreur est survenue lors du chargement des détails: ${error.message}`,
-                    category: "Erreur",
-                    version: "N/A",
+            }
+            
+            // C'est un objet d'erreur, à retourner tel quel
+            return detailedComponent;
+        })
+        .catch(error => {
+            console.error(`Erreur lors du chargement des détails du composant ${componentId}:`, error);
+            
+            // Publier un événement d'erreur générique
+            MarketplaceMediator.publish('componentDetailsLoadError', {
+                componentId: componentId,
+                error: error.message
+            });
+            
+            // Déterminer le type d'erreur et renvoyer la réponse adaptée
+            if (error.name === 'AbortError') {
+                return defaultErrorResponses.timeout;
+            }
+            
+            if (error.statusCode === 401 || error.statusCode === 403) {
+                return defaultErrorResponses.auth;
+            }
+            
+            if (error.statusCode === 404) {
+                return defaultErrorResponses.notFound;
+            }
+            
+            if (error.statusCode >= 500) {
+                return defaultErrorResponses.server;
+            }
+            
+            // Pour les autres erreurs, réutiliser le composant de base si disponible
+            const baseComponent = getComponentById(componentId);
+            if (baseComponent) {
+                return {
+                    ...baseComponent,
+                    description: baseComponent.description || "Une erreur est survenue lors du chargement des détails. " + error.message,
                     errorLoading: true
                 };
-            });
+            }
+            
+            // Sinon, créer un composant d'erreur générique
+            return { 
+                componentId: componentId,
+                displayName: "Erreur de chargement",
+                description: `Une erreur est survenue lors du chargement des détails: ${error.message}`,
+                category: "Erreur",
+                version: "N/A",
+                errorLoading: true
+            };
+        });
     }
     
     /**
@@ -1188,6 +1128,7 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
         getComponentDetails,
         getFilteredComponents,
         getVisibleComponentsCount,
-        prepareAuthHeaders  // Exposer la fonction d'aide
+        prepareAuthHeaders,  // Exposer la fonction d'aide
+        apiRequest  // Exposer la fonction de requête API centralisée
     };
 });

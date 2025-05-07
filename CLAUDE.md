@@ -4,26 +4,57 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build Commands
 - Build complete solution: `dotnet build AvanteamMarketplace.sln`
-- Deploy marketplace API: `.\DeployApiToIIS.ps1`
+- Deploy marketplace API: `.\DeployApiToIIS.ps1` 
 - Deploy client module: `.\DeployClientModule.ps1`
-- Refresh deployment (without full rebuild): `.\refresh-deployment.ps1`
+- Run a single test: `dotnet test --filter "FullyQualifiedName=Namespace.TestClass.TestMethod"`
 - Recycle IIS application pool: `.\recycle-apppool.bat`
-- Run component installation: `.\scripts\install-component.ps1`
 - Generate API key: `.\scripts\generate-api-key.ps1`
-- Test installation: `.\scripts\run-test-installation.ps1`
-- Update CORS config: `.\scripts\update-cors-config.ps1`
+- Create deployment package: `.\scripts\create-deployment-package.ps1`
+- Update marketplace secrets: `.\scripts\update-secrets.ps1`
 
-## Recent Improvements (April 2025)
-- Fixed minimum version badge display on component cards in "Prochainement" tab
-- Fixed MinPlatformVersion property display in component versions table
-- Added missing CSS styles for action buttons in versions table
-- Implemented version editing functionality (previously broken)
-- Improved UI responsiveness for file selection dialogs
-- Added documentation for resolving path-related deployment errors
-- Added version panel refresh when selecting different components in admin UI
-- Implemented graphical chart showing version distribution by client
-- Fixed search field icon display issues in version usage table
-- Added advanced filtering system for marketplace components by category, tags, and version
+## Project Structure
+
+### Administration Interface
+- **Path**: `/src/AvanteamMarketplace.API/`
+- **Main View**: `/src/AvanteamMarketplace.API/Pages/Admin/Index.cshtml`
+- **JavaScript**: `/src/AvanteamMarketplace.API/wwwroot/js/admin/` 
+  - `admin-apikeys.js`: API key management
+  - `admin-components.js`: Component management
+  - `admin-versions.js`: Version management
+  - `admin-ui.js`: General UI
+- **CSS**: `/src/AvanteamMarketplace.API/wwwroot/css/admin.css`
+- **API Controllers**: `/src/AvanteamMarketplace.API/Controllers/ComponentsManagementController.cs`
+- **Login**: `/src/AvanteamMarketplace.API/wwwroot/simple-login.html`
+
+### Client Interface
+- **Path**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/`
+- **JavaScript**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/js/marketplace/`
+  - `modules/ui.js`: Client user interface, installation and error handling
+  - `modules/components.js`: Component management and caching
+  - `modules/auth.js`: Authentication and permissions
+- **CSS**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/css/`
+
+### Core Models
+- **Path**: `/src/AvanteamMarketplace.Core/Models/`
+- Key Models:
+  - `ApiKey.cs`: API keys for authentication
+  - `Component.cs`: Marketplace components
+  - `ComponentVersion.cs`: Component versions
+  - `InstalledComponent.cs`: Installed components
+  - `ClientInstallation.cs`: Client installations
+
+### Infrastructure
+- **Path**: `/src/AvanteamMarketplace.Infrastructure/`
+- **Services**: `/src/AvanteamMarketplace.Infrastructure/Services/`
+- **Database**: `/src/AvanteamMarketplace.Infrastructure/Data/MarketplaceDbContext.cs`
+
+## Recent Features (2025)
+- Display of installed components in admin interface when selecting an API key
+- Component status indicators: up-to-date, update available, no longer supported
+- Advanced search and filtering system for components
+- Improved version management with compatibility checking
+- Enhanced error handling for 502 Bad Gateway errors during component installation
+- Optimized streaming connection with improved ping frequency (15s) for installation logs
 
 ## Code Style Guidelines
 - C# Code:
@@ -32,17 +63,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - PascalCase for types/members, camelCase with underscore prefix for fields
   - Nullable reference types enabled
   - Async methods with Async suffix
-  - Exception handling with try/catch blocks
+  - Try/catch blocks for proper error handling
 
 - JavaScript:
-  - 4-space indentation
+  - 4-space indentation with semicolons
   - camelCase for variables/functions
-  - Semicolons required
-  - Descriptive error handling with console.error()
-  - Prefer vanilla JS for marketplace functionality
+  - Clear JSDoc comments for functions
+  - Descriptive error logging with console.error()
+  - Modular architecture with mediator pattern
 
 - General:
-  - Organize imports with system imports first
-  - Use dependency injection for services
-  - Follow RESTful API patterns
-  - One class per file, files named after primary class
+  - System imports first, then project imports
+  - Dependency injection for services
+  - RESTful API patterns
+  - Clear and concise commit messages
+  - One class per file, named after the primary class

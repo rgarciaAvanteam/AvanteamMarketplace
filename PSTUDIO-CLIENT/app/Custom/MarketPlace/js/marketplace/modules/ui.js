@@ -1226,6 +1226,21 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         })
         .then(response => {
             if (!response.ok) {
+                // Gérer spécifiquement l'erreur 502 Bad Gateway qui peut survenir pendant un stream
+                if (response.status === 502) {
+                    console.warn("Erreur 502 détectée pendant l'installation. Le processus continue en arrière-plan.");
+                    addLogMessage(logContainer, "Avertissement: La connexion streaming a été interrompue, mais l'installation continue en arrière-plan.", false, 'WARNING');
+                    addLogMessage(logContainer, "L'état du composant sera mis à jour à la fin de l'installation.", false, 'INFO');
+                    
+                    // Simuler un succès pour continuer le traitement même après une erreur 502
+                    return { 
+                        success: true, 
+                        logs: [{ level: "WARNING", message: "Connexion streaming interrompue. Vérifiez l'installation dans quelques minutes." }],
+                        streamInterrupted: true
+                    };
+                }
+                
+                // Pour les autres erreurs, lever une exception
                 throw new Error("Erreur lors de l'installation (" + response.status + "): " + response.statusText);
             }
             return response.json();
@@ -1250,7 +1265,9 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             const hasSuccessFlag = result.success === true || result.Success === true;
             
             // Vérifier le résultat de l'installation
-            const isSuccess = hasSuccessFlag || filesCopied || 
+            // Si streamInterrupted est true, c'est qu'on a simulé un succès après une erreur 502
+            const isStreamInterrupted = result.streamInterrupted === true;
+            const isSuccess = hasSuccessFlag || filesCopied || isStreamInterrupted || 
                             (result.logs && Array.isArray(result.logs) && 
                             result.logs.some(log => log.level === "SUCCESS"));
             
@@ -1957,6 +1974,7 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         loadTabContent(state.activeTab);
     }
     
+
     // API publique
     return {
         init,

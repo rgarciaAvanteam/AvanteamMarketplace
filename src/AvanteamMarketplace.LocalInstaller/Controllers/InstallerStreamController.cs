@@ -94,10 +94,11 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                             lastSentIndex = currentCount;
                         }
                         
-                        // Envoyer un ping toutes les 30 secondes pour maintenir la connexion
-                        if (DateTime.Now.Second % 30 == 0)
+                        // Envoyer un ping toutes les 15 secondes pour maintenir la connexion active
+                        if (DateTime.Now.Second % 15 == 0)
                         {
                             await SendPing();
+                            _logger.LogDebug($"Ping envoyé pour maintenir la connexion {installId} active");
                         }
                     }
                     catch (Exception ex)
@@ -145,7 +146,9 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         {
             try
             {
-                var pingData = $"event: ping\ndata: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n\n";
+                // Ajouter un identifiant unique au ping pour éviter la mise en cache
+                var pingId = Guid.NewGuid().ToString("N").Substring(0, 8);
+                var pingData = $"event: ping\nid: {pingId}\ndata: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n\n";
                 var buffer = Encoding.UTF8.GetBytes(pingData);
                 await Response.Body.WriteAsync(buffer, 0, buffer.Length);
                 await Response.Body.FlushAsync();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.IIS;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +14,22 @@ using System.Linq;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurer les timeouts pour gérer les installations de gros composants
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    // Configurer Kestrel pour les longues requêtes et gros fichiers
+    serverOptions.Limits.MaxRequestBodySize = 500 * 1024 * 1024; // 500 MB
+    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(30);
+    serverOptions.Limits.MaxConcurrentConnections = 100;
+    serverOptions.Limits.MaxConcurrentUpgradedConnections = 100;
+    
+    // Configurer les temps d'inactivité pour éviter les déconnexions
+    serverOptions.Limits.MinResponseDataRate = new MinDataRate(
+        bytesPerSecond: 240, // 240 bytes/s (~2 kbps)
+        gracePeriod: TimeSpan.FromSeconds(10));
+});
 
 // Ajouter la configuration depuis appsettings.json
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
@@ -78,6 +95,12 @@ builder.Services.AddResponseCompression(options =>
         new[] { "text/event-stream" });
 });
 
+// Configurer le HTTP Client Factory avec des timeouts plus longs
+builder.Services.AddHttpClient("default")
+    .ConfigureHttpClient(client => {
+        client.Timeout = TimeSpan.FromMinutes(20);
+    });
+
 var app = builder.Build();
 
 // Configurer le routing
@@ -106,6 +129,18 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("ProcessStudioPolicy");
+
+// Ajouter un middleware pour désactiver la mise en buffer des réponses pour le streaming
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Accel-Buffering", "no");
+    if (context.Request.Path.StartsWithSegments("/stream"))
+    {
+        // Forcer la désactivation de la compression pour les streams SSE
+        context.Request.Headers["Accept-Encoding"] = "identity";
+    }
+    await next();
+});
 
 app.UseEndpoints(endpoints =>
 {

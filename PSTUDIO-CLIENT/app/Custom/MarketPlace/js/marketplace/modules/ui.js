@@ -1205,13 +1205,23 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             updateProgress(progressBar, progressText, 60);
             addLogMessage(logContainer, "Appel de l'API locale d'installation...", false, 'INFO');
             
-            // Appel à l'API locale d'installation
+            // Appel à l'API locale d'installation avec timeout augmenté
+            // Utiliser AbortController pour gérer le timeout côté client de manière plus robuste
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1200000); // 20 minutes
+            
             return fetch(localInstallEndpoint, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    // Signaler au serveur de ne pas fermer la connexion
+                    'Connection': 'keep-alive',
+                    'Keep-Alive': 'timeout=1200' // 20 minutes en secondes
                 },
-                body: JSON.stringify(installData)
+                body: JSON.stringify(installData),
+                signal: controller.signal
+            }).finally(() => {
+                clearTimeout(timeoutId);
             });
         })
         .then(response => {
@@ -1537,7 +1547,17 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         
         // Fonction pour traiter la désinstallation après confirmation
         function processUninstallation() {
-            // Le traitement commence ici
+            // DIAGNOSTIC: Vérifier la configuration avant de commencer
+            console.log("DIAGNOSTIC - Configuration avant désinstallation:");
+            console.log("- Module config:", config ? "Disponible" : "Non disponible");
+            
+            // Récupérer les URL avant de créer la modal
+            const apiUrl = config.getApiUrl();
+            const localApiUrl = config.getLocalApiUrl();
+            
+            console.log("DIAGNOSTIC - URLs d'API:");
+            console.log("- API URL:", apiUrl);
+            console.log("- API locale URL:", localApiUrl);
             
             // Créer la modal de désinstallation
             const modal = document.createElement('div');
@@ -1572,57 +1592,107 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         
         // Générer un ID de désinstallation unique
         const uninstallId = `uninstall-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+        console.log("DIAGNOSTIC - ID de désinstallation généré:", uninstallId);
         
         // Vérifier si le streaming est disponible
-        const useStreaming = typeof utils.marketplaceStream !== 'undefined';
-        console.log("Streaming disponible pour désinstallation:", useStreaming);
+        const marketplaceStreamExists = typeof utils.marketplaceStream !== 'undefined';
+        let useStreaming = marketplaceStreamExists;
+        console.log("DIAGNOSTIC - Streaming:", { 
+            "marketplaceStreamExists": marketplaceStreamExists,
+            "useStreaming": useStreaming 
+        });
+        
+        // Ajouter le premier message au log - toujours faire ceci, même avec streaming
+        addLogMessage(logContainer, `Démarrage de la désinstallation de ${componentName}...`, false, 'INFO');
+        statusContainer.textContent = "Désinstallation en cours...";
+        updateProgress(progressBar, progressText, 20);
+        
+        // Ajouter un bouton de fermeture d'urgence dès le début
+        const emergencyCloseButton = document.createElement('button');
+        emergencyCloseButton.textContent = 'Arrêter et fermer';
+        emergencyCloseButton.className = 'btn btn-secondary';
+        emergencyCloseButton.style.marginTop = '20px';
+        emergencyCloseButton.addEventListener('click', () => {
+            if (confirm("Êtes-vous sûr de vouloir fermer cette fenêtre? La désinstallation continuera en arrière-plan.")) {
+                document.body.removeChild(modal);
+            }
+        });
+        modal.querySelector('.modal-content').appendChild(emergencyCloseButton);
+        
+        let streamConnected = false;
         
         if (useStreaming) {
-            // Initialiser le stream
-            utils.marketplaceStream.init({
-                installId: uninstallId,
-                logContainer: logContainer,
-                progressBar: progressBar,
-                progressText: progressText,
-                statusContainer: statusContainer,
-                onComplete: (success) => {
-                    console.log("Streaming de désinstallation terminé avec succès:", success);
-                    
-                    // Ajouter un bouton pour fermer la modal
-                    const closeButton = document.createElement('button');
-                    closeButton.textContent = 'Fermer';
-                    closeButton.className = 'btn btn-primary';
-                    closeButton.style.marginTop = '20px';
-                    closeButton.addEventListener('click', () => {
-                        document.body.removeChild(modal);
+            console.log("DIAGNOSTIC - Initialisation du stream pour:", uninstallId);
+            try {
+                // Initialiser le stream
+                const initResult = utils.marketplaceStream.init({
+                    installId: uninstallId,
+                    logContainer: logContainer,
+                    progressBar: progressBar,
+                    progressText: progressText,
+                    statusContainer: statusContainer,
+                    onComplete: (success) => {
+                        console.log("DIAGNOSTIC - Streaming de désinstallation terminé avec succès:", success);
                         
-                        // Rafraîchir les composants
-                        components.refreshAllComponents();
-                        loadTabContent(state.activeTab);
-                    });
+                        // Remplacer le bouton d'urgence par un bouton de fermeture normal
+                        const closeButton = document.createElement('button');
+                        closeButton.textContent = 'Fermer';
+                        closeButton.className = 'btn btn-primary';
+                        closeButton.style.marginTop = '20px';
+                        closeButton.addEventListener('click', () => {
+                            document.body.removeChild(modal);
+                            
+                            // Rafraîchir les composants
+                            components.refreshAllComponents();
+                            loadTabContent(state.activeTab);
+                        });
+                        
+                        // Remplacer le bouton d'urgence
+                        if (emergencyCloseButton.parentNode) {
+                            emergencyCloseButton.parentNode.replaceChild(closeButton, emergencyCloseButton);
+                        } else {
+                            modal.querySelector('.modal-content').appendChild(closeButton);
+                        }
+                    }
+                });
+                console.log("DIAGNOSTIC - Résultat de l'initialisation du stream:", initResult);
+                
+                if (initResult) {
+                    // Connecter au flux
+                    const connectResult = utils.marketplaceStream.connect();
+                    console.log("DIAGNOSTIC - Résultat de la connexion au stream:", connectResult);
                     
-                    modal.querySelector('.modal-content').appendChild(closeButton);
+                    if (connectResult === false) {
+                        // Si connect() retourne false, passer en mode sans streaming
+                        useStreaming = false;
+                        addLogMessage(logContainer, "Impossible de se connecter au flux de logs. Utilisation du mode sans streaming.", false, 'WARNING');
+                        addLogMessage(logContainer, "L'opération continue en arrière-plan.", false, 'INFO');
+                    } else {
+                        streamConnected = true;
+                    }
+                } else {
+                    useStreaming = false;
+                    addLogMessage(logContainer, "Impossible d'initialiser le flux de logs. Utilisation du mode sans streaming.", false, 'WARNING');
                 }
-            });
-            
-            // Connecter au flux
-            utils.marketplaceStream.connect();
-        } else {
+            } catch (streamError) {
+                console.error("DIAGNOSTIC - Erreur lors de l'initialisation du stream:", streamError);
+                
+                // En cas d'erreur, désactiver le streaming pour cette session
+                useStreaming = false;
+                addLogMessage(logContainer, `Erreur de connexion au flux: ${streamError.message}`, true, 'ERROR');
+                addLogMessage(logContainer, "L'opération continue en arrière-plan. Vous pouvez rafraîchir la page plus tard.", false, 'INFO');
+            }
+        }
+        
+        if (!useStreaming) {
             // Utiliser la méthode classique sans streaming
-            // Ajouter le premier message au log
-            addLogMessage(logContainer, `Démarrage de la désinstallation de ${componentName}...`, false, 'INFO');
-            
-            // Mise à jour du statut
-            statusContainer.textContent = "Désinstallation en cours...";
-            updateProgress(progressBar, progressText, 20);
+            // Ajouter un message supplémentaire pour informer l'utilisateur
+            addLogMessage(logContainer, "Mode sans streaming activé - Les mises à jour ne seront pas en temps réel", false, 'INFO');
             addLogMessage(logContainer, "Préparation de la désinstallation...", false, 'INFO');
         }
         
-        // Obtenir les URLs des API
-        const apiUrl = config.getApiUrl();
-        const localApiUrl = config.getLocalApiUrl();
-        
         if (!localApiUrl) {
+            console.error("DIAGNOSTIC - URL de l'API locale non configurée");
             addLogMessage(logContainer, "ERREUR: URL de l'API locale non configurée", true, 'ERROR');
             statusContainer.textContent = "Erreur de configuration";
             progressBar.style.backgroundColor = '#dc3545';
@@ -1644,44 +1714,108 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
         const headers = components.prepareAuthHeaders({
             'Content-Type': 'application/json'
         });
+        console.log("DIAGNOSTIC - En-têtes d'authentification préparés:", 
+            headers ? "En-têtes générés" : "Échec de génération des en-têtes");
         
         // Obtenir le ClientId
         const clientId = config.getClientId();
+        console.log("DIAGNOSTIC - Client ID:", clientId || "Non défini");
         
         // Construire l'endpoint pour l'API locale de désinstallation
         const localUninstallEndpoint = `${localApiUrl}uninstall`;
+        console.log("DIAGNOSTIC - Endpoint de désinstallation:", localUninstallEndpoint);
         
         // Préparer les données pour l'API locale
         const uninstallData = {
             componentId: componentId,
-            force: false,
+            force: true, // MODIFICATION: Forcer la désinstallation pour ignorer les avertissements de dépendances
             uninstallId: uninstallId
         };
+        console.log("DIAGNOSTIC - Données de désinstallation:", uninstallData);
         
         // Mise à jour du statut
         updateProgress(progressBar, progressText, 40);
         addLogMessage(logContainer, "Appel de l'API locale pour désinstaller le composant...", false, 'INFO');
         
+        // DIAGNOSTIC: Vérifier si fetch est disponible
+        if (typeof fetch === 'undefined') {
+            console.error("DIAGNOSTIC - L'API fetch n'est pas disponible dans ce navigateur");
+            addLogMessage(logContainer, "ERREUR: L'API fetch n'est pas disponible", true, 'ERROR');
+            return;
+        }
+        
+        console.log("DIAGNOSTIC - Envoi de la requête de désinstallation à:", localUninstallEndpoint);
+        
         // Appel à l'API locale de désinstallation
+        // Définir un timeout pour la requête fetch (30 secondes)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
+        // Ajouter une note pour l'utilisateur
+        addLogMessage(logContainer, "Envoi de la requête de désinstallation...", false, 'INFO');
+        
         fetch(localUninstallEndpoint, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                // Ajouter des en-têtes pour aider à éviter les timeouts
+                'Connection': 'keep-alive',
+                'Keep-Alive': 'timeout=30'
             },
-            body: JSON.stringify(uninstallData)
+            body: JSON.stringify(uninstallData),
+            signal: controller.signal
         })
         .then(response => {
+            clearTimeout(timeoutId); // Annuler le timeout si la réponse arrive
+            
+            console.log("DIAGNOSTIC - Réponse reçue:", {
+                status: response.status, 
+                statusText: response.statusText,
+                ok: response.ok
+            });
+            
+            addLogMessage(logContainer, `Réponse du serveur: ${response.status} ${response.statusText}`, false, 'INFO');
+            
             if (!response.ok) {
                 throw new Error("Erreur lors de la désinstallation (" + response.status + "): " + response.statusText);
             }
             return response.json();
         })
+        .catch(fetchError => {
+            // Gérer spécifiquement les erreurs d'abort (timeout)
+            if (fetchError.name === 'AbortError') {
+                console.warn("DIAGNOSTIC - La requête a expiré après 30 secondes");
+                addLogMessage(logContainer, "La requête a expiré après 30 secondes, mais l'opération continue en arrière-plan", true, 'WARNING');
+                addLogMessage(logContainer, "Veuillez rafraîchir la page dans quelques minutes pour voir le résultat", false, 'INFO');
+                
+                // Créer un bouton de rafraîchissement
+                const refreshButton = document.createElement('button');
+                refreshButton.textContent = 'Rafraîchir les composants';
+                refreshButton.className = 'btn btn-primary';
+                refreshButton.style.marginTop = '20px';
+                refreshButton.addEventListener('click', () => {
+                    components.refreshAllComponents();
+                    loadTabContent(state.activeTab);
+                });
+                
+                modal.querySelector('.modal-content').appendChild(refreshButton);
+                
+                // Ne pas propager cette erreur, simplement afficher un message
+                return { success: false, error: "Opération en cours en arrière-plan" };
+            }
+            
+            // Pour les autres erreurs, les propager normalement
+            throw fetchError;
+        })
         .then(result => {
+            console.log("DIAGNOSTIC - Résultat de désinstallation:", result);
+            
             // Mise à jour du statut
             updateProgress(progressBar, progressText, 70);
             
             // Afficher les logs si disponibles et si le streaming n'est pas utilisé
             if (!useStreaming && result.logs && Array.isArray(result.logs)) {
+                console.log("DIAGNOSTIC - Affichage de", result.logs.length, "logs sans streaming");
                 result.logs.forEach(log => {
                     addLogMessage(logContainer, log.message, log.level === "ERROR", log.level);
                 });
@@ -1689,11 +1823,9 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             
             // Vérifier le résultat de la désinstallation (le success peut être PascalCase ou camelCase)
             const success = result.success === true || result.Success === true;
+            console.log("DIAGNOSTIC - Désinstallation locale réussie:", success);
             
             if (success) {
-                // Vérifier si le streaming est disponible
-                const useStreaming = typeof utils.marketplaceStream !== 'undefined';
-                
                 if (!useStreaming) {
                     addLogMessage(logContainer, `Désinstallation locale réussie!`, false, 'SUCCESS');
                     if (result.backupPath) {
@@ -1705,18 +1837,32 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 updateProgress(progressBar, progressText, 90);
                 addLogMessage(logContainer, `Finalisation de la désinstallation...`, false, 'INFO');
                 
+                // Construire l'URL de l'API centrale
+                const centralApiUrl = `${apiUrl}/components/${componentId}/uninstall?clientId=${encodeURIComponent(clientId || '')}`;
+                console.log("DIAGNOSTIC - Appel à l'API centrale:", centralApiUrl);
+                
+                // Construire le corps de la requête
+                const centralApiBody = {
+                    ComponentId: componentId.toString(),
+                    Success: true,
+                    UninstallId: uninstallId,
+                    BackupPath: result.backupPath || ""
+                };
+                console.log("DIAGNOSTIC - Corps de la requête API centrale:", centralApiBody);
+                
                 // Appeler l'API pour désinstaller le composant
-                return fetch(`${apiUrl}/components/${componentId}/uninstall?clientId=${encodeURIComponent(clientId || '')}`, {
+                return fetch(centralApiUrl, {
                     method: 'POST',
                     headers: headers,
-                    body: JSON.stringify({
-                        ComponentId: componentId.toString(),
-                        Success: true,
-                        UninstallId: uninstallId,
-                        BackupPath: result.backupPath || ""
-                    })
+                    body: JSON.stringify(centralApiBody)
                 })
                 .then(response => {
+                    console.log("DIAGNOSTIC - Réponse de l'API centrale:", {
+                        status: response.status, 
+                        statusText: response.statusText,
+                        ok: response.ok
+                    });
+                    
                     if (!response.ok) {
                         console.warn("Erreur lors de l'enregistrement de la désinstallation: " + response.status);
                     }
@@ -1747,6 +1893,8 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             } else {
                 // Échec de la désinstallation
                 const errorMessage = result.error || "Une erreur est survenue lors de la désinstallation";
+                console.error("DIAGNOSTIC - Échec de la désinstallation:", errorMessage);
+                
                 statusContainer.textContent = "Échec de la désinstallation";
                 
                 // N'afficher l'erreur que si le streaming n'est pas utilisé (sinon il sera déjà affiché)
@@ -1773,7 +1921,7 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             }
         })
         .catch(error => {
-            console.error("Erreur lors de la désinstallation:", error);
+            console.error("DIAGNOSTIC - Erreur fetch lors de la désinstallation:", error);
             
             // Mise à jour du statut
             statusContainer.textContent = "Erreur lors de la désinstallation";

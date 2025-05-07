@@ -34,34 +34,143 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         [HttpGet("{installId}")]
         public async Task GetLogStream(string installId, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Client connecté au flux de logs pour l'installation {installId}");
-
-            Response.Headers.Add("Content-Type", "text/event-stream");
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
-
-            // Garantir que le stream ID existe
-            EnsureStreamExists(installId);
-
-            // Envoyer les logs existants immédiatement
-            await SendExistingLogs(installId);
-
-            int lastSentIndex = GetCurrentLogCount(installId);
-            
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                // Vérifier s'il y a de nouveaux messages
-                int currentCount = GetCurrentLogCount(installId);
+                _logger.LogInformation($"Client connecté au flux de logs pour l'installation {installId}");
                 
-                if (currentCount > lastSentIndex)
+                // Vérifier si l'ID commence par 'uninstall-' ou 'install-'
+                if (!installId.StartsWith("uninstall-") && !installId.StartsWith("install-"))
                 {
-                    // Envoyer les nouveaux messages
-                    await SendLogsFromIndex(installId, lastSentIndex);
-                    lastSentIndex = currentCount;
+                    _logger.LogWarning($"Format d'ID invalide: {installId}. Doit commencer par 'install-' ou 'uninstall-'");
+                    // Ajouter un message à la queue pour indiquer l'erreur
+                    AddMessageToQueue(installId, "ERROR", "Format d'ID invalide. L'opération peut ne pas fonctionner correctement.");
                 }
 
-                // Attendre un peu avant la prochaine vérification
-                await Task.Delay(100, cancellationToken);
+                Response.Headers.Add("Content-Type", "text/event-stream");
+                Response.Headers.Add("Cache-Control", "no-cache");
+                Response.Headers.Add("Connection", "keep-alive");
+                
+                // En cas d'erreur CORS, ajouter des en-têtes pour permettre les requêtes Cross-Origin
+                Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                Response.Headers.Add("Access-Control-Allow-Methods", "GET");
+                Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+
+                // Garantir que le stream ID existe
+                EnsureStreamExists(installId);
+
+                // Ajouter un message de démarrage
+                AddMessageToQueue(installId, "INFO", "Connexion au flux de logs établie");
+                
+                try
+                {
+                    // Envoyer les logs existants immédiatement
+                    await SendExistingLogs(installId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Erreur lors de l'envoi des logs existants pour {installId}");
+                    // Continuer malgré l'erreur - les nouveaux logs seront encore envoyés
+                }
+
+                int lastSentIndex = GetCurrentLogCount(installId);
+                
+                // Définir un temps maximum de connexion (10 minutes)
+                var connectionTimeout = DateTime.Now.AddMinutes(10);
+                
+                // Envoyer un ping initial pour garder la connexion active
+                await SendPing();
+                
+                while (!cancellationToken.IsCancellationRequested && DateTime.Now < connectionTimeout)
+                {
+                    try
+                    {
+                        // Vérifier s'il y a de nouveaux messages
+                        int currentCount = GetCurrentLogCount(installId);
+                        
+                        if (currentCount > lastSentIndex)
+                        {
+                            // Envoyer les nouveaux messages
+                            await SendLogsFromIndex(installId, lastSentIndex);
+                            lastSentIndex = currentCount;
+                        }
+                        
+                        // Envoyer un ping toutes les 30 secondes pour maintenir la connexion
+                        if (DateTime.Now.Second % 30 == 0)
+                        {
+                            await SendPing();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Erreur dans la boucle de streaming pour {installId}");
+                        // Attendre un peu plus longtemps en cas d'erreur
+                        await Task.Delay(500, cancellationToken);
+                    }
+
+                    // Attendre un peu avant la prochaine vérification
+                    await Task.Delay(100, cancellationToken);
+                }
+                
+                // Envoyer un message de fermeture
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    await SendCloseMessage("Fin de la connexion (timeout après 10 minutes)");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation($"Connexion au flux terminée par le client pour {installId}");
+                // Normal lors de la fermeture de la connexion par le client
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur non gérée dans le flux SSE pour {installId}");
+                try
+                {
+                    // Envoyer un message d'erreur au client si possible
+                    AddMessageToQueue(installId, "ERROR", $"Erreur interne du serveur: {ex.Message}");
+                    await SendCloseMessage("Erreur interne du serveur");
+                }
+                catch
+                {
+                    // Ignorer les erreurs supplémentaires lors de la tentative d'envoi du message d'erreur
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Envoie un événement ping pour maintenir la connexion active
+        /// </summary>
+        private async Task SendPing()
+        {
+            try
+            {
+                var pingData = $"event: ping\ndata: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n\n";
+                var buffer = Encoding.UTF8.GetBytes(pingData);
+                await Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                await Response.Body.FlushAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Erreur lors de l'envoi du ping SSE");
+            }
+        }
+        
+        /// <summary>
+        /// Envoie un message de fermeture au client
+        /// </summary>
+        private async Task SendCloseMessage(string reason)
+        {
+            try
+            {
+                var closeData = $"event: close\ndata: {reason}\n\n";
+                var buffer = Encoding.UTF8.GetBytes(closeData);
+                await Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                await Response.Body.FlushAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Erreur lors de l'envoi du message de fermeture SSE");
             }
         }
 

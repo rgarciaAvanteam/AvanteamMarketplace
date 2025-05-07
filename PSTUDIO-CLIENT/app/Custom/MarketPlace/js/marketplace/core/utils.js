@@ -260,51 +260,109 @@ MarketplaceMediator.defineModule('utils', [], function() {
                 
                 this.addLogMessage("Connexion au flux de logs...", "INFO");
                 
-                this.eventSource = new EventSource(streamUrl);
-                
-                this.eventSource.addEventListener('log', (event) => {
-                    try {
-                        const logData = JSON.parse(event.data);
-                        this.processLogMessage(logData);
-                    } catch (error) {
-                        console.error("MarketplaceStream: Erreur de traitement du message", error);
-                    }
-                });
-                
-                this.eventSource.onopen = () => {
-                    console.log(`MarketplaceStream: Connexion établie pour l'installation ${this.installId}`);
-                    this.addLogMessage("Connexion au flux de logs établie", "SUCCESS");
-                    this.updateStatus("connected");
-                };
-                
-                this.eventSource.onerror = (error) => {
-                    // Vérifier si l'erreur est due à une déconnexion normale ou à un problème réel
-                    if (this.eventSource.readyState === EventSource.CLOSED) {
-                        console.log('MarketplaceStream: Connexion SSE fermée normalement');
-                        // Aucune action n'est nécessaire car c'est une fermeture normale
-                        return;
-                    }
-                    
-                    // Pour les erreurs de connexion, essayer automatiquement de se reconnecter
-                    if (this.eventSource.readyState === EventSource.CONNECTING) {
-                        console.warn('MarketplaceStream: Tentative de reconnexion SSE en cours...');
-                        // Ne pas afficher d'erreur pour les tentatives de reconnexion automatiques
-                        return;
-                    }
-                    
-                    console.error('MarketplaceStream: Erreur SSE', error);
-                    
-                    // Vérifier si l'opération est déjà terminée pour éviter les messages d'erreur confus
-                    const isAlreadyComplete = this.statusContainer && 
-                        (this.statusContainer.textContent === 'Terminé' || 
-                         this.statusContainer.textContent === 'Erreur' ||
-                         this.statusContainer.textContent === 'Terminé avec avertissements');
-                    
-                    if (!isAlreadyComplete) {
-                        this.addLogMessage("Erreur de connexion au flux de logs", "WARNING");
+                // Ajouter un gestionnaire d'exceptions et un timeout pour la création EventSource
+                try {
+                    // Créer un timeout de secours pour éviter de bloquer en cas d'erreur silencieuse
+                    const streamConnectTimeout = setTimeout(() => {
+                        console.warn("MarketplaceStream: Timeout de connexion après 15 secondes");
+                        this.addLogMessage("Erreur de connexion au flux: timeout après 15 secondes.", "WARNING");
+                        this.addLogMessage("Continuez à surveiller l'opération, elle se poursuit en arrière-plan.", "INFO");
                         this.updateStatus("warning");
-                    }
-                };
+                    }, 15000);
+                    
+                    this.eventSource = new EventSource(streamUrl);
+                    
+                    // Écouter les événements de log principaux
+                    this.eventSource.addEventListener('log', (event) => {
+                        try {
+                            // Effacer le timeout quand un événement est reçu (connexion réussie)
+                            clearTimeout(streamConnectTimeout);
+                            
+                            const logData = JSON.parse(event.data);
+                            this.processLogMessage(logData);
+                        } catch (error) {
+                            console.error("MarketplaceStream: Erreur de traitement du message", error);
+                        }
+                    });
+                    
+                    // Écouter les événements ping (keep-alive)
+                    this.eventSource.addEventListener('ping', (event) => {
+                        console.log("MarketplaceStream: Ping reçu:", event.data);
+                        // Aucune action nécessaire, cet événement sert juste à maintenir la connexion
+                    });
+                    
+                    // Écouter les événements de fermeture explicites
+                    this.eventSource.addEventListener('close', (event) => {
+                        console.log("MarketplaceStream: Fermeture demandée par le serveur:", event.data);
+                        this.addLogMessage(`Connexion fermée par le serveur: ${event.data}`, "INFO");
+                        this.disconnect();
+                    });
+                    
+                    // Gérer les événements d'erreur spécifiques pour le streaming
+                    this.eventSource.addEventListener('error', (event) => {
+                        console.error("MarketplaceStream: Erreur spécifique SSE", event);
+                        
+                        // Si l'erreur contient des informations, les afficher
+                        if (event.data) {
+                            try {
+                                const errorData = JSON.parse(event.data);
+                                this.addLogMessage(`Erreur de streaming: ${errorData.message || "Erreur inconnue"}`, "ERROR");
+                            } catch {
+                                this.addLogMessage("Erreur de communication avec le serveur de logs", "ERROR");
+                            }
+                        }
+                    });
+                    
+                    this.eventSource.onopen = () => {
+                        // Effacer le timeout sur connexion réussie
+                        clearTimeout(streamConnectTimeout);
+                        
+                        console.log(`MarketplaceStream: Connexion établie pour l'installation ${this.installId}`);
+                        this.addLogMessage("Connexion au flux de logs établie", "SUCCESS");
+                        this.updateStatus("connected");
+                    };
+                    
+                    this.eventSource.onerror = (error) => {
+                        console.log('MarketplaceStream: Erreur SSE détectée', 
+                            this.eventSource ? `readyState: ${this.eventSource.readyState}` : "EventSource invalide");
+                        
+                        // Vérifier si l'erreur est due à une déconnexion normale ou à un problème réel
+                        if (this.eventSource && this.eventSource.readyState === EventSource.CLOSED) {
+                            console.log('MarketplaceStream: Connexion SSE fermée normalement');
+                            // Aucune action n'est nécessaire car c'est une fermeture normale
+                            return;
+                        }
+                        
+                        // Pour les erreurs de connexion, essayer automatiquement de se reconnecter
+                        if (this.eventSource && this.eventSource.readyState === EventSource.CONNECTING) {
+                            console.warn('MarketplaceStream: Tentative de reconnexion SSE en cours...');
+                            // Ne pas afficher d'erreur pour les tentatives de reconnexion automatiques
+                            return;
+                        }
+                        
+                        console.error('MarketplaceStream: Erreur SSE', error);
+                        
+                        // Vérifier si l'opération est déjà terminée pour éviter les messages d'erreur confus
+                        const isAlreadyComplete = this.statusContainer && 
+                            (this.statusContainer.textContent === 'Terminé' || 
+                             this.statusContainer.textContent === 'Erreur' ||
+                             this.statusContainer.textContent === 'Terminé avec avertissements');
+                        
+                        if (!isAlreadyComplete) {
+                            this.addLogMessage("Erreur de connexion au flux de logs", "WARNING");
+                            this.addLogMessage("L'opération continue en arrière-plan. Rafraîchissez la page une fois terminée.", "INFO");
+                            this.updateStatus("warning");
+                        }
+                    };
+                } catch (ex) {
+                    console.error("MarketplaceStream: Exception lors de la création d'EventSource", ex);
+                    this.addLogMessage("Impossible de se connecter au flux de logs: " + ex.message, "ERROR");
+                    this.addLogMessage("L'opération continue en arrière-plan. Rafraîchissez la page une fois terminée.", "INFO");
+                    this.updateStatus("error");
+                    
+                    // Erreur fatale - Impossible de créer EventSource
+                    return false;
+                }
                 
                 return true;
             } catch (error) {

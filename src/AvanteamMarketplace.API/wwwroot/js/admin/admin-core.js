@@ -23,6 +23,33 @@ function ensureValidUrl(url) {
     return url;
 }
 
+// Gestionnaire global pour les erreurs d'authentification
+function handleAuthenticationError() {
+    console.error("Erreur d'authentification (401). Redirection vers la page de login...");
+    window.location.href = "/admin/login"; // URL en minuscules pour cohérence
+}
+
+// Intercepter toutes les requêtes AJAX pour gérer les erreurs d'authentification
+$(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+    if (jqXHR.status === 401) {
+        // Erreur d'authentification 401 Unauthorized
+        handleAuthenticationError();
+    }
+});
+
+// Intercepter les requêtes fetch via une fonction wrapper
+const originalFetch = window.fetch;
+window.fetch = function(input, init) {
+    return originalFetch(input, init).then(response => {
+        if (response.status === 401) {
+            // Erreur d'authentification 401 Unauthorized
+            handleAuthenticationError();
+            throw new Error('Authentication error');
+        }
+        return response;
+    });
+};
+
 $(document).ready(function() {
     console.log("Document prêt - Initialisation de l'interface admin");
     

@@ -26,7 +26,7 @@ namespace AvanteamMarketplace.API.Pages.Admin
             _configuration = configuration;
         }
         
-        public void OnGet()
+        public IActionResult OnGet()
         {
             try
             {
@@ -59,10 +59,17 @@ namespace AvanteamMarketplace.API.Pages.Admin
                                         $"https://{Request.Host}/api" : 
                                         $"http://{Request.Host}/api");
                         }
+                        else
+                        {
+                            // MODIFICATION: Rediriger vers la page de login si non authentifié
+                            return RedirectToPage("/Admin/Login");
+                        }
                     }
                     catch
                     {
                         // Ignorer les erreurs de session si elles se produisent
+                        // MODIFICATION: Rediriger vers la page de login en cas d'erreur
+                        return RedirectToPage("/Admin/Login");
                     }
                 }
             }
@@ -70,6 +77,14 @@ namespace AvanteamMarketplace.API.Pages.Admin
             {
                 ErrorMessage = $"Erreur lors de l'initialisation: {ex.Message}";
             }
+            
+            // Si on arrive ici et qu'on n'est pas authentifié, rediriger vers la page de login
+            if (!IsAuthenticated)
+            {
+                return RedirectToPage("/Admin/Login");
+            }
+            
+            return Page();
         }
         
         public IActionResult OnPost()

@@ -443,14 +443,13 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
     function onApiAuthenticationError(data) {
         console.warn("Erreur d'authentification API:", data.message);
         
-        // Trouver l'onglet actif pour afficher l'interface d'erreur API élégante
-        const activeTab = state.activeTab || 'compatible';
-        showApiKeyMissingOverlay(activeTab);
-        
         // Afficher une alerte discrète dans l'interface
         if (auth && auth.showNotification) {
             auth.showNotification("Problème d'authentification avec l'API Marketplace. Veuillez contacter votre administrateur.", "warning");
         }
+        
+        // Ajouter une bannière d'avertissement si ce n'est pas déjà fait
+        addAuthErrorBanner();
     }
     
     /**

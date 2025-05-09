@@ -407,68 +407,24 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 // Mettre à jour l'état
                 state.isLoading = false;
                 
-                // Déterminer le type d'erreur
-                let errorType = "generic";
                 let errorMessage = "Erreur lors du chargement des composants.";
                 
                 // Message personnalisé selon le type d'erreur
                 if (data.statusCode === 401 || data.statusCode === 403) {
-                    errorType = "auth";
                     errorMessage = "Problème d'authentification avec l'API. Veuillez contacter votre administrateur.";
                 } else if (data.statusCode >= 500) {
-                    errorType = "server";
                     errorMessage = "Le serveur est actuellement indisponible. Veuillez réessayer plus tard.";
                 } else if (data.statusCode === 404) {
-                    errorType = "notfound";
                     errorMessage = "La ressource demandée n'a pas été trouvée.";
-                } else if (data.statusCode === 'network' || (data.error && data.error.includes('network'))) {
-                    errorType = "network";
+                } else if (data.statusCode === 'network' || data.error.includes('network')) {
                     errorMessage = "Problème de connexion réseau. Veuillez vérifier votre connexion internet.";
                 } else if (data.error) {
                     errorMessage = `Erreur: ${data.error}`;
                 }
                 
-                // Afficher l'interface spéciale pour l'erreur d'authentification
-                if (errorType === "auth") {
-                    showApiKeyMissingOverlay(data.tabName);
-                } else {
-                    // Pour les autres types d'erreurs, utiliser le message standard
-                    showError(data.tabName, errorMessage);
-                }
+                showError(data.tabName, errorMessage);
             }
         }
-    }
-    
-    /**
-     * Affiche une interface élégante pour expliquer que la clé API n'est pas configurée
-     * @param {string} tabName - Nom de l'onglet
-     */
-    function showApiKeyMissingOverlay(tabName) {
-        const container = document.getElementById(`${tabName}-components`);
-        if (!container) return;
-        
-        // Créer un contenu élégant et informatif
-        container.innerHTML = `
-            <div class="api-key-missing">
-                <div class="api-key-missing-icon">
-                    <i class="fas fa-key"></i>
-                </div>
-                <h2>Clé API Marketplace manquante</h2>
-                <p>Cette installation de Process Studio n'est pas encore connectée au Marketplace Avanteam.</p>
-                <div class="api-key-missing-info">
-                    <p>Pour accéder au catalogue de composants et étendre les fonctionnalités de votre application :</p>
-                    <ol>
-                        <li>Contactez votre interlocuteur Avanteam pour obtenir une clé API</li>
-                        <li>Demandez à votre administrateur de configurer cette clé dans les paramètres</li>
-                    </ol>
-                    <p class="api-key-missing-contact">
-                        <a href="mailto:support@avanteam.fr" class="btn btn-contact">
-                            <i class="fas fa-envelope"></i> Contacter le support
-                        </a>
-                    </p>
-                </div>
-            </div>
-        `;
     }
     
     /**

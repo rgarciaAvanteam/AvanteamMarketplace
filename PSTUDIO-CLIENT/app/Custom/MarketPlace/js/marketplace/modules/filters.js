@@ -548,8 +548,7 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         state.activeFilters = {
             categories: [],
             tags: [],
-            versions: [],
-            installed: []
+            versions: []
         };
         
         // Mise à jour de l'interface

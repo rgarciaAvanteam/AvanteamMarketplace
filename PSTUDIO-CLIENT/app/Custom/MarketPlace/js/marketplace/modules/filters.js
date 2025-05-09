@@ -91,8 +91,17 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
             // Mettre à jour l'état
             state.showInstalledOnly = data.showInstalledOnly;
             
+            // Synchroniser l'état visuel de la case à cocher avec l'état interne
+            const checkbox = document.getElementById('show-installed-only');
+            if (checkbox && checkbox.checked !== state.showInstalledOnly) {
+                checkbox.checked = state.showInstalledOnly;
+            }
+            
             // Appliquer les filtres
             applyFilters();
+            
+            // Pour le débogage
+            console.log(`Filtre 'Composants installés' ${state.showInstalledOnly ? 'activé' : 'désactivé'}`);
         }
     }
     

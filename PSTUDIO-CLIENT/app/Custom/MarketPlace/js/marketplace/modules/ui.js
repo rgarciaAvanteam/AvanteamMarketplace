@@ -152,10 +152,23 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
             
             console.log("Initialisation du gestionnaire pour le filtre 'Composants installés'");
             
+            // Restaurer l'état du filtre depuis sessionStorage si disponible
+            const savedState = sessionStorage.getItem('marketplace_installedOnlyFilter');
+            if (savedState === 'true') {
+                checkbox.checked = true;
+                // Informer le système de filtrage de l'état restauré
+                setTimeout(() => {
+                    MarketplaceMediator.publish('setInstalledOnlyFilter', { showInstalledOnly: true });
+                }, 100);
+            }
+            
             // Ajouter l'écouteur d'événements
             checkbox.addEventListener('change', function() {
                 const showInstalledOnly = this.checked;
                 console.log("Changement de filtre 'Composants installés':", showInstalledOnly ? "Activé" : "Désactivé");
+                
+                // Sauvegarder l'état du filtre dans sessionStorage
+                sessionStorage.setItem('marketplace_installedOnlyFilter', showInstalledOnly);
                 
                 // Publier l'événement
                 MarketplaceMediator.publish('setInstalledOnlyFilter', { showInstalledOnly });
@@ -266,6 +279,16 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                 
                 // Afficher les composants
                 renderComponents(tabName, loadedComponents);
+                
+                // Réappliquer les filtres actuels (notamment pour le filtre "Composants installés")
+                // Cela garantit que l'état visuel du filtre correspond à l'état de filtrage
+                const showInstalledOnlyCheckbox = document.getElementById('show-installed-only');
+                if (showInstalledOnlyCheckbox && showInstalledOnlyCheckbox.checked) {
+                    console.log("Réapplication du filtre 'Composants installés' après changement d'onglet");
+                    MarketplaceMediator.publish('setInstalledOnlyFilter', { 
+                        showInstalledOnly: showInstalledOnlyCheckbox.checked 
+                    });
+                }
             })
             .catch(error => {
                 console.error(`Erreur lors du chargement des composants pour ${tabName}:`, error);

@@ -34,6 +34,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `modules/auth.js`: Authentication and permissions
 - **CSS**: `/Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/css/`
 
+### Configuration Files
+- **Path**: `/Avanteam Process Suite/PStudio.Configuration/`
+- **Key Files**:
+  - `programs.ini`: Main client application configuration
+  - `applications.xml`: Database connections and application properties
+
+#### programs.ini Structure
+- **Environment Settings**: Controls application behavior based on environment (Development/Production/Staging)
+- **Security Configuration**: SSL settings, HTTPS requirements, and HSTS parameters
+- **Authentication**: Authentication modes, session timeouts, and token validations
+- **SMTP Configuration**: Email server settings for notifications
+- **Module Settings**: Configuration for individual application modules
+- **File Conversion**: Document generation and conversion settings
+- **Connection Mappings**: Maps application services to their connection strings
+
+#### applications.xml Structure
+- **Database Connections**: 
+  - `app_PROD_APP`: Main application database (parameterization and data)
+  - `app_prod_DIR`: Directory database (users and permissions)
+- **Data Source Mappings**: Links application components to specific database connections
+- **Application Properties**: Defines base URLs, remote URIs, and other connection properties
+
 ### Core Models
 - **Path**: `/src/AvanteamMarketplace.Core/Models/`
 - Key Models:

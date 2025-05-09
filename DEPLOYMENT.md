@@ -201,7 +201,60 @@ dotnet ef database update
    - Gestion des clés API
    - Synchronisation avec GitHub
 
-## 7. Déploiement du module client dans Process Studio
+## 7. Configuration de Process Studio
+
+### Configuration des fichiers principaux
+
+Le fonctionnement de Process Studio et du module Marketplace repose sur deux fichiers de configuration essentiels situés dans `/Avanteam Process Suite/PStudio.Configuration/`:
+
+1. **programs.ini**
+   - Fichier de configuration principal (463 lignes)
+   - Définit les paramètres suivants:
+     - **Environment**: `Development`, `Production` ou `Staging`
+     - **Security**: Configuration HTTPS/SSL et HSTS
+     - **SMTP**: Paramètres du serveur de messagerie
+     - **Authentication**: Mode d'authentification et timeouts
+     - **Parameters**: Paramètres spécifiques aux modules
+     - **Conversion**: Configuration de génération de documents
+   - Exemple de configuration pour l'environnement:
+     ```ini
+     [Environment]
+     Type=Development
+     AllowDebug=true
+     
+     [Security]
+     UseHttps=true
+     HstsEnabled=true
+     HstsMaxAge=31536000
+     ```
+
+2. **applications.xml**
+   - Contient les connexions aux bases de données
+   - Définit deux connexions principales:
+     - `app_PROD_APP`: Base de données d'application (paramétrage et données)
+     - `app_prod_DIR`: Base de données d'annuaire (utilisateurs et permissions)
+   - Exemple de connexion:
+     ```xml
+     <Connection name="ACME.Application.app_PROD_APP" type="Sql" 
+                connectionstring="Data Source=SERVEUR\INSTANCE;Persist Security Info=True;
+                                 User ID=utilisateur;Password=motdepasse;
+                                 Initial Catalog=app_PROD_APP" />
+     ```
+
+### Configuration nécessaire pour le Marketplace
+
+Pour un fonctionnement optimal du Marketplace, vérifiez ces éléments de configuration:
+
+1. Dans **programs.ini**:
+   - La section `[RESTServices]` doit être correctement configurée pour les appels API
+   - La section `[MarketPlace]` doit contenir la clé API et l'URL du serveur Marketplace
+
+2. Dans **applications.xml**:
+   - Les attributs `baseUrl` et `remoteUri` doivent être correctement définis pour la connexion aux services
+
+Pour une documentation complète des fichiers de configuration, consultez [le guide des fichiers de configuration](./docs/CONFIGURATION_FILES.md).
+
+## 8. Déploiement du module client dans Process Studio
 
 Pour chaque instance de Process Studio où vous souhaitez intégrer le Marketplace:
 

@@ -111,6 +111,29 @@ dotnet ef database update
 - `src/AvanteamMarketplace.Core` : Modèles et interfaces du domaine
 - `src/AvanteamMarketplace.Infrastructure` : Implémentations des services et accès aux données
 - `Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/` : Client-side Integration pour Process Studio
+- `Avanteam Process Suite/PStudio.Configuration/` : Fichiers de configuration
+  - `programs.ini` : Configuration principale de l'application (463 lignes)
+  - `applications.xml` : Configuration des bases de données et connexions
+
+### Architecture des bases de données
+
+Le système utilise deux bases de données principales définies dans le fichier `applications.xml` :
+
+1. **Base de données Application** (`app_PROD_APP`) :
+   - Stocke les paramètres de l'application
+   - Contient les tables de données métier
+   - Gère les configurations système
+
+2. **Base de données Directory** (`app_prod_DIR`) :
+   - Gère les utilisateurs et leurs permissions
+   - Stocke les informations d'authentification
+   - Contient les définitions de rôles et groupes
+
+Le Marketplace utilise sa propre base de données (`AvanteamMarketplace`) pour stocker :
+- Le catalogue de composants
+- Les installations de clients
+- Les clés API
+- Les statistiques d'utilisation
 
 ### Technologies utilisées
 

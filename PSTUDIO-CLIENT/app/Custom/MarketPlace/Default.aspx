@@ -27,8 +27,18 @@
                 <div class="tab-btn" data-tab="future"><asp:Literal runat="server" Text="<%$ Resources:TabFuture %>" /></div>
             </div>
             
-            <div class="marketplace-search">
-                <input type="text" id="search-components" placeholder='<asp:Literal runat="server" Text="<%$ Resources:SearchPlaceholder %>" />' />
+            <div class="marketplace-filters">
+                <div class="marketplace-search">
+                    <input type="text" id="search-components" placeholder='<asp:Literal runat="server" Text="<%$ Resources:SearchPlaceholder %>" />' />
+                </div>
+                
+                <div class="installed-filter">
+                    <label class="switch-container">
+                        <input type="checkbox" id="show-installed-only" />
+                        <span class="switch-slider"></span>
+                        <span class="switch-label">N'afficher que les composants install&#233;s</span>
+                    </label>
+                </div>
             </div>
             
             <div class="tab-content active" id="compatible-tab">

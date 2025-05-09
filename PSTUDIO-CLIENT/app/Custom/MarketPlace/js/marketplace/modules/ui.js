@@ -63,7 +63,14 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
     function init() {
         console.log("Initialisation du module d'interface utilisateur");
         
-        // Configurer les gestionnaires d'événements
+        // Attendre que le DOM soit prêt avant d'initialiser les événements
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOMContentLoaded event triggered - DOM is ready");
+            // Initialiser le filtre pour les composants installés
+            initInstalledFilter();
+        });
+        
+        // Configurer les autres gestionnaires d'événements
         setupEvents();
         
         // Initialiser les onglets
@@ -122,9 +129,52 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
     }
     
     /**
+     * Initialise le filtre pour n'afficher que les composants installés
+     */
+    function initInstalledFilter() {
+        try {
+            // Essayer de trouver la case à cocher par son ID
+            const checkbox = document.getElementById('show-installed-only');
+            
+            if (!checkbox) {
+                console.warn("Case à cocher non trouvée par ID. Tentative alternative...");
+                
+                // Tentative alternative - rechercher par sélecteur CSS
+                const checkboxes = document.querySelectorAll('.installed-filter input[type="checkbox"]');
+                if (checkboxes.length > 0) {
+                    checkbox = checkboxes[0];
+                    console.log("Case à cocher trouvée par sélecteur alternatif");
+                } else {
+                    console.error("Impossible de trouver la case à cocher pour le filtre des composants installés");
+                    return;
+                }
+            }
+            
+            console.log("Initialisation du gestionnaire pour le filtre 'Composants installés'");
+            
+            // Ajouter l'écouteur d'événements
+            checkbox.addEventListener('change', function() {
+                const showInstalledOnly = this.checked;
+                console.log("Changement de filtre 'Composants installés':", showInstalledOnly ? "Activé" : "Désactivé");
+                
+                // Publier l'événement
+                MarketplaceMediator.publish('setInstalledOnlyFilter', { showInstalledOnly });
+            });
+            
+            console.log("Gestionnaire ajouté avec succès");
+        } catch (error) {
+            console.error("Erreur lors de l'initialisation du filtre des composants installés:", error);
+        }
+    }
+    
+    /**
      * Configure les gestionnaires d'événements généraux
      */
     function setupEvents() {
+        // Essayer d'initialiser le filtre des composants installés immédiatement
+        // Il sera également tenté à nouveau après DOMContentLoaded
+        setTimeout(initInstalledFilter, 1000);
+        
         // Clic sur les boutons des composants (délégation d'événements)
         document.addEventListener('click', function(event) {
             // Gestion des boutons d'installation

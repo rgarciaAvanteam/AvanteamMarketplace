@@ -810,6 +810,13 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                     }
                 }
                 
+                // Filtre pour n'afficher que les composants installés
+                if (filters.showInstalledOnly) {
+                    if (!component.isInstalled) {
+                        return false;
+                    }
+                }
+                
                 // Filtre par texte de recherche
                 if (filters.searchTerm && filters.searchTerm.length > 0) {
                     const searchTerm = filters.searchTerm.toLowerCase();

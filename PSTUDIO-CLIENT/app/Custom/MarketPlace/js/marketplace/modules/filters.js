@@ -19,7 +19,8 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
             versions: []
         },
         searchTerm: '',
-        showFilters: false
+        showFilters: false,
+        showInstalledOnly: false // Nouveau paramètre pour n'afficher que les composants installés
     };
     
     // Références DOM
@@ -61,6 +62,7 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
             
             // S'abonner aux événements
             MarketplaceMediator.subscribe('componentsLoaded', onComponentsLoaded);
+            MarketplaceMediator.subscribe('setInstalledOnlyFilter', onSetInstalledOnlyFilter);
             
             // Publier un événement pour indiquer que le module est prêt
             MarketplaceMediator.publish('filtersModuleReady', {});
@@ -77,6 +79,20 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         // Extraire les filtres des composants chargés
         if (data && data.components) {
             extractFilters(data.components);
+        }
+    }
+    
+    /**
+     * Gère l'événement lorsque le filtre "N'afficher que les composants installés" change
+     * @param {Object} data - Données de l'événement
+     */
+    function onSetInstalledOnlyFilter(data) {
+        if (data && typeof data.showInstalledOnly === 'boolean') {
+            // Mettre à jour l'état
+            state.showInstalledOnly = data.showInstalledOnly;
+            
+            // Appliquer les filtres
+            applyFilters();
         }
     }
     
@@ -159,6 +175,8 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         versionContainer.className = 'filter-tab-content';
         versionContainer.setAttribute('data-content', 'versions');
         
+        // Nous avons supprimé la référence à installedContainer
+        
         // Bouton pour effacer tous les filtres
         clearFiltersBtn = document.createElement('button');
         clearFiltersBtn.className = 'clear-filters-btn';
@@ -171,6 +189,7 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         filterPanel.appendChild(categoryContainer);
         filterPanel.appendChild(tagContainer);
         filterPanel.appendChild(versionContainer);
+        // Nous avons supprimé cette ligne
         filterPanel.appendChild(clearFiltersBtn);
         
         // Ajout au DOM
@@ -403,6 +422,7 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
             ...state.activeFilters.categories.map(cat => ({ type: 'categories', value: cat })),
             ...state.activeFilters.tags.map(tag => ({ type: 'tags', value: tag })),
             ...state.activeFilters.versions.map(ver => ({ type: 'versions', value: ver }))
+            // Le champ 'installed' a été supprimé
         ];
         
         // Mise à jour du nombre de filtres actifs sur le bouton
@@ -519,7 +539,8 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         state.activeFilters = {
             categories: [],
             tags: [],
-            versions: []
+            versions: [],
+            installed: []
         };
         
         // Mise à jour de l'interface
@@ -539,7 +560,8 @@ MarketplaceMediator.defineModule('filters', ['utils', 'components'], function(ut
         // Créer un objet avec tous les filtres actifs
         const filters = {
             ...state.activeFilters,
-            searchTerm: state.searchTerm
+            searchTerm: state.searchTerm,
+            showInstalledOnly: state.showInstalledOnly // Ajouter le filtre pour les composants installés
         };
         
         // Notifier du changement

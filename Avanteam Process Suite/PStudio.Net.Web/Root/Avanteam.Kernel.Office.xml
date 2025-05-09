@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Kernel.Office</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Kernel.Office.OfficeStatColumn">
+            <summary>
+            Représente dans un modèle d'extraction le mapping entre une colonne de feuille de calcul, un champ de formulaire Avanteam et un code C# custom.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Office.OfficeStatColumn.FieldName">
+            <summary>
+            Nom d'un champ de formulaire Avanteam.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Office.OfficeStatColumn.ColumnIndex">
+            <summary>
+            Lettre correspondant à une colonne dans une feuille de calcul.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Kernel.Office.OfficeStatColumn.Formula">
+            <summary>
+            Code C# qui sera exécuté pour déterminer la valeur à insérer dans la colonne de la feuille de calcul (propriété ColumnIndex).
+            </summary>
+        </member>
+        <member name="T:Avanteam.Kernel.Office.Watermarking">
+            <summary>
+            Gestion du watermarking dans les fichiers PDF.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.Office.Watermarking.WriteToPdf(System.Byte[],Avanteam.Kernel.Office.PdfStampOption,System.String)">
+            <summary>
+            Ajout d'un watermark au sein d'un PDF.
+            </summary>
+        </member>
+    </members>
+</doc>

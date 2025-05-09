@@ -1,0 +1,234 @@
+/* This file allows to apply our theme over bootstrap */
+
+:root {
+  /*--bs-blue: #0d6efd;*/
+  /*--bs-indigo: #6610f2;*/
+  /*--bs-purple: #6f42c1;*/
+  /*--bs-pink: #d63384;*/
+  /*--bs-red: #dc3545;*/
+  /*--bs-orange: #fd7e14;*/
+  /*--bs-yellow: #ffc107;*/
+  /*--bs-green: #198754;*/
+  /*--bs-teal: #20c997;*/
+  /*--bs-cyan: #0dcaf0;*/
+  /*--bs-white: #fff;*/
+  /*--bs-gray: #6c757d;*/
+  /*--bs-gray-dark: #343a40;*/
+  --bs-gray-100: var(--grey-100);
+  --bs-gray-200: var(--grey-200);
+  --bs-gray-300: var(--grey-300);
+  --bs-gray-400: var(--grey-400);
+  --bs-gray-500: var(--grey-500);
+  --bs-gray-600: var(--grey-600);
+  --bs-gray-700: var(--grey-700);
+  --bs-gray-800: var(--grey-800);
+  --bs-gray-900: var(--grey-900);
+  --bs-primary: var(--primary-main);
+  /*--bs-secondary: #6c757d;*/
+  /*--bs-success: #198754;*/
+  /*--bs-info: #0dcaf0;*/
+  /*--bs-warning: #ffc107;*/
+  --bs-danger: var(--error-main);
+  /*--bs-light: #f8f9fa;*/
+  /*--bs-dark: #212529;*/
+  /*--bs-primary-rgb: 13, 110, 253;*/
+  /*--bs-secondary-rgb: 108, 117, 125;*/
+  /*--bs-success-rgb: 25, 135, 84;*/
+  /*--bs-info-rgb: 13, 202, 240;*/
+  /*--bs-warning-rgb: 255, 193, 7;*/
+  /*--bs-danger-rgb: 220, 53, 69;*/
+  /*--bs-light-rgb: 248, 249, 250;*/
+  /*--bs-dark-rgb: 33, 37, 41;*/
+  /*--bs-white-rgb: 255, 255, 255;*/
+  /*--bs-black-rgb: 0, 0, 0;*/
+  /*--bs-body-rgb: 33, 37, 41;*/
+  --bs-font-sans-serif: var(--font-family);
+  /*--bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;*/
+  /*--bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));*/
+  --bs-body-font-family: var(--bs-font-sans-serif);
+  --bs-body-font-size: var(--fontSize);
+  --bs-body-font-weight: var(--fontWeightRegular);
+  --bs-body-line-height: normal;
+  --bs-body-color: var(--text-primary);
+  --bs-body-bg: var(--background-default);
+  /* TODO: à calculer dynamiquement (côté client ou côté serveur ?) */
+  --action-hover-opacity: 0.04;
+}
+
+h1 {
+  font: var(--fontBold);
+  font-size: 22px;
+  line-height: 1.36;
+  margin-bottom: 50px;
+  position: relative;
+}
+h1:after {
+  content: "";
+  background-color: var(--primary-main);
+  opacity: .6;
+  width: 240px;
+  height: 1px;
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+}
+
+h2 {
+  font: var(--fontBold);
+  font-size: 17px;
+}
+
+a:not(.btn) {
+  color: var(--info-main);
+  text-decoration: none;
+  outline: none;
+}
+a:not(.btn):hover,
+a:not(.btn):focus {
+  color: var(--info-main);
+  text-decoration: underline;
+}
+
+form > div {
+    margin : 8px 0;
+}
+
+.form-control {
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-bottom-color: var(--divider);
+  border-radius: 0;
+  transition: border-bottom-color .4s ease-out;
+  font-weight: var(--fontWeightMedium);
+  font-size: var(--fontSizeLarge);
+  color: var(--primary-main);
+  line-height: 0.77;
+  letter-spacing: 0.4px;
+  padding: 13px 0;
+}
+.form-control:focus, .form-control:hover {
+  background-color: transparent;
+  color: var(--primary-main);
+  border: 1px solid transparent;
+  border-bottom-color: var(--primary-main);
+  box-shadow: none;
+}
+.form-control::placeholder {
+  color: var(--text-hint);
+}
+.form-control.input-validation-error {
+  border-bottom-color: var(--error-main);
+}
+.form-check-input {
+  /* fix checkbox vertical alignment */
+  margin-top: 0;
+}
+
+.form-check-input:focus {
+  border-color: var(--primary-main);
+  box-shadow: none;
+}
+
+.btn {
+  font: var(--fontMedium);
+  padding: 10px 10px;
+  transition: background-color cubic-bezier(0.4, 0, 0.2, 1) 250ms;
+  text-decoration: none;
+}
+
+.btn-lg {
+  height: 45px;
+  letter-spacing: 0.4px;
+}
+
+.btn-primary {
+  color: var(--primary-contrast);
+  background-color: var(--primary-main);
+  border-color: var(--primary-main);
+}
+  .btn-primary:active,
+  .btn-primary:focus,
+  .btn-primary:hover {
+    color: var(--primary-contrast);
+    background-color: var(--primary-light);
+    border-color: var(--primary-light);
+  }
+
+  .btn-primary:active,
+  .btn-primary:focus.btn-primary:focus,
+  .btn-outline-primary:active,
+  .btn-outline-primary:focus.btn-outline-primary:focus {
+      box-shadow: none;
+  }
+
+.btn-outline-primary {
+  color: var(--primary-main);
+  border-color: var(--primary-main);
+}
+  .btn-outline-primary:active,
+  .btn-outline-primary:focus,
+  .btn-outline-primary:hover {
+    color: var(--primary-main);
+    border-color: var(--primary-main);
+    background-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-outline-primary:active::after,
+  .btn-outline-primary:focus::after,
+  .btn-outline-primary:hover::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary-main);
+    opacity: var(--action-hover-opacity);
+  }
+
+.divider {
+  display: block;
+  text-align: center;
+  margin: 1rem 0;
+  overflow: hidden;
+  white-space: nowrap
+}
+
+.divider .divider-text {
+  position: relative;
+  display: inline-block;
+  font-size: .8rem;
+  padding: 0rem 1rem
+}
+
+.divider .divider-text:before, .divider .divider-text:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 100vw;
+  border-top: 1px solid rgba(67,89,113,.2)
+}
+
+.divider .divider-text:before {
+  right: 100%
+}
+
+.divider .divider-text:after {
+  left: 100%
+}
+
+/* TODO : encore à review */
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.btn-link.nav-link:focus {
+  outline: black auto 1px;
+}
+
+.text-danger {
+  color: var(--error-main) !important;
+}

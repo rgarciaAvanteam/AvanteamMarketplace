@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Kernel.DependencyInjection</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Kernel.DependencyInjection.ApsAppBuilder`1">
+            <summary>
+            Application builder that behaves like a proxy over a more specialized
+            application builder to put in common avanteam startup code between various
+            types of applications.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Kernel.DependencyInjection.ConfigurationBuilderExtensions.GetPStudioConfigFileProvider(Microsoft.Extensions.Configuration.IConfigurationBuilder)">
+            <summary>
+            Gets the default <see cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/> to be used for file-based providers
+            for files in the PSTUDIO.CONFIGURATION folder.
+            </summary>
+            <param name="builder">The <see cref="T:Microsoft.Extensions.Configuration.IConfigurationBuilder"/>.</param>
+            <returns>The default <see cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/>.</returns>
+        </member>
+        <member name="M:Avanteam.Kernel.DependencyInjection.ConfigurationBuilderExtensions.SetPStudioConfigFileProvider(Microsoft.Extensions.Configuration.IConfigurationBuilder,Microsoft.Extensions.FileProviders.IFileProvider)">
+            <summary>
+            Sets the default <see cref="T:Microsoft.Extensions.FileProviders.IFileProvider"/> to be used for file-based providers
+            for files in the PSTUDIO.CONFIGURATION folder.
+            </summary>
+            <param name="builder">The <see cref="T:Microsoft.Extensions.Configuration.IConfigurationBuilder"/> to add to.</param>
+            <param name="fileProvider">The default file provider instance.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.Configuration.IConfigurationBuilder"/>.</returns>
+        </member>
+    </members>
+</doc>

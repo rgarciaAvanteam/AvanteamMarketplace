@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PStudioConfiguration>
+  <MasterApplication>ACME PROD</MasterApplication>
+  <Connections>
+    <Connection name="ACME.Application.app_PROD_APP" type="Sql" connectionstring="Data Source=ACME-PRD\AVT;Persist Security Info=True;User ID=avanteamPROD;Password=@Vanteam7831;Initial Catalog=app_PROD_APP" />
+    <Connection name="ACME.Directory.app_prod_DIR" type="Sql" connectionstring="Data Source=ACME-PRD\AVT;Persist Security Info=True;User ID=avanteamPROD;Password=@Vanteam7831;Initial Catalog=app_prod_DIR" />
+  </Connections>
+  <Applications>
+    <ApplicationProfile name="ACME PROD">
+      <Image />
+      <Datasources>
+        <DataSource name="APSApplication" connection="ACME.Application.app_PROD_APP" />
+        <DataSource name="APSWorkflow" connection="ACME.Application.app_PROD_APP" />
+        <DataSource name="APSDirectory" connection="ACME.Directory.app_prod_DIR" />
+        <DataSource name="APSPool" connection="ACME.Application.app_PROD_APP" />
+      </Datasources>
+      <Properties>
+        <StringPair>
+          <First>RemoteURI</First>
+          <Second>tcp://localhost:8083/DiskFileAccess.rem</Second>
+        </StringPair>
+        <StringPair>
+          <First>ApplicationName</First>
+          <Second>APP</Second>
+        </StringPair>
+        <StringPair>
+          <First>FormularDesigner</First>
+          <Second>Custom/FormularDesigner.xml</Second>
+        </StringPair>
+        <StringPair>
+          <First>BaseUrl</First>
+          <Second>http://acme.avanteam-online.com/APP</Second>
+        </StringPair>
+      </Properties>
+    </ApplicationProfile>
+  </Applications>
+</PStudioConfiguration>

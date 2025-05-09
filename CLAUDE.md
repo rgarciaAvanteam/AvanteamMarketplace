@@ -27,12 +27,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Login**: `/src/AvanteamMarketplace.API/wwwroot/simple-login.html`
 
 ### Client Interface
-- **Path**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/`
-- **JavaScript**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/js/marketplace/`
+- **Path**: `/Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/`
+- **JavaScript**: `/Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/js/marketplace/`
   - `modules/ui.js`: Client user interface, installation and error handling
   - `modules/components.js`: Component management and caching
   - `modules/auth.js`: Authentication and permissions
-- **CSS**: `/PSTUDIO-CLIENT/app/Custom/MarketPlace/css/`
+- **CSS**: `/Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/css/`
 
 ### Core Models
 - **Path**: `/src/AvanteamMarketplace.Core/Models/`

@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Localisation</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Localisation.AcceptLanguageRequestHeaderCultureProvider">
+            <summary>
+            An abstract implementation that allows to easily provide ASPNet and ASPNetCore implementations.
+            This is strongly inspired by
+            https://github.com/dotnet/aspnetcore/blob/36ffda05bd14d33c5110335cfee55fb87cddece5/src/Middleware/Localization/src/AcceptLanguageHeaderRequestCultureProvider.cs.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Localisation.AppDefaultCultureProvider">
+            <summary>
+            <see cref="T:Avanteam.Localisation.ICultureProvider"/> implementation that return the default
+            culture of the current application.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Localisation.CurrentCultureService">
+            <summary>
+            ScopeCultureService is highly inspired by the AspNetCore RequestLocalizationMiddleware.
+            But try to provide an implementation that can be shared by all types of applications (AspNet, AspNetCore, …)
+            https://github.com/dotnet/aspnetcore/blob/9da42b9fab4c61fe46627ac0c6877905ec845d5a/src/Middleware/Localization/src/RequestLocalizationMiddleware.cs.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.ICultureInfoService.EnumerateSupportedUICultures">
+            <summary>
+            Enumerate the list of the UI cultures that are supported.
+            This is the cultures for which we provide translation resources.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.ICultureInfoService.EnumerateSelectableUICultures(System.Globalization.CultureInfo)">
+            <summary>
+            Enumerate the list of the UI cultures that a user is allowed to select.
+            This is the same that the supported UI cultures, plus it’s current one,
+            minus eventual restrictions.
+            <para>
+            Once a user as selected a ui culture, use <see cref="M:Avanteam.Localisation.ICultureInfoService.GetCultureFromUICulture(System.Globalization.CultureInfo)"/>
+            to get the corresponding culture that should be used.
+            </para>
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.ICultureInfoService.GetCultureFromUICulture(System.Globalization.CultureInfo)">
+            <summary>
+            Gets the culture to use from a given ui culture.
+            The goal is to return the supported regional culture that correspond to a given neutral culture.
+            </summary>
+            <returns>
+            The given <paramref name="uiCulture"/> if it‘s a regional culture (like fr-FR),
+            otherwise the first supported regional culture which parent culture is the given <paramref name="uiCulture"/> (like fr-FR for fr),
+            otherwise the given <paramref name="uiCulture"/> (like fr if no fr-* regional culture is declared as supported).
+            </returns>
+        </member>
+        <member name="T:Avanteam.Localisation.LabelFactory">
+            <summary>
+            This class performs operation on translations.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.LabelFactory.ApplyPatches">
+            <summary>
+            Combines the patch files into the language packs.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.LabelFactory.Save">
+            <summary>
+            Save the current language pack.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.LabelFactory.Load(System.String)">
+            <summary>
+            Load a specified language pack.
+            </summary>
+            <param name="language">Code language to load in TwoLetterISOLanguageName (uppercase).</param>
+        </member>
+        <member name="M:Avanteam.Localisation.LabelFactory.GetLabel(System.String,System.Object[])">
+            <summary>
+            Get a label in the current language.
+            </summary>
+            <param name="key">Key in the form {name_of_label}.</param>
+            <param name="args">Optionnals arguments to format label.</param>
+        </member>
+        <member name="F:Avanteam.Localisation.LocalizationOptions.DEFAULT_CULTURE">
+            <summary>
+            Default configuration value for <see cref="P:Avanteam.Localisation.LocalizationOptions.DefaultCulture"/>.
+            </summary>
+        </member>
+        <member name="F:Avanteam.Localisation.LocalizationOptions.SUPPORTED_CULTURE">
+            <summary>
+            Default configuration value for <see cref="P:Avanteam.Localisation.LocalizationOptions.SupportedCultures"/>.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Localisation.LocalizationOptions.SupportedCultures">
+            <summary>
+            Gets the list of supported cultures which are the cultures that we
+            accept from HTTP requests.
+            This list contains both regional cultures (like fr-FR) and parent
+            neutral cultures (like fr) to maximize matching with the content of the
+            accept-language header of HTTP requests.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Localisation.LocalizationOptions.SupportedUICultures">
+            <summary>
+            Gets the list of supported UI cultures which are the cultures used to
+            store and read translation (in particular in RESX files).
+            It the same list than the <see cref="P:Avanteam.Localisation.LocalizationOptions.SupportedCultures"/> but without
+            the regional cultures when we support only one region for a given parent
+            neutral culture. Like that we can optimise fall-backs when looking for
+            translations.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Localisation.LocalizationOptions.SelectableUICultures">
+            <summary>
+            Gets the list of selectable cultures which are the cultures that
+            users should be allowed to select.
+            It the same list than the <see cref="P:Avanteam.Localisation.LocalizationOptions.SupportedCultures"/> but with only
+            the regional cultures when we support multiple regions for a single neutral,
+            and only the neutral one when we support a single region.
+            The goal is to produce a minimal selection, where user is "prompted" to
+            select a language with a region when there is a relevant choice to do,
+            and where is "prompted" to select only a language when region is irrelevant.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Localisation.LocalizedCategoryAttribute">
+            <summary>
+            Taking into account a localized category.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Localisation.ProviderCultureResult">
+            <summary>
+            Details about the cultures obtained from <see cref="T:Avanteam.Localisation.ICultureProvider"/>.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Localisation.ProviderCultureResult.#ctor(Microsoft.Extensions.Primitives.StringSegment)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Localisation.ProviderCultureResult"/> class
+            that has its <see cref="P:Avanteam.Localisation.ProviderCultureResult.Cultures"/> and <see cref="P:Avanteam.Localisation.ProviderCultureResult.UICultures"/> properties set to the same
+            culture value.
+            </summary>
+            <param name="culture">The name of the culture to be used for formatting, text, i.e. language.</param>
+        </member>
+        <member name="M:Avanteam.Localisation.ProviderCultureResult.#ctor(Microsoft.Extensions.Primitives.StringSegment,Microsoft.Extensions.Primitives.StringSegment)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Localisation.ProviderCultureResult"/> class
+            that has its <see cref="P:Avanteam.Localisation.ProviderCultureResult.Cultures"/> and <see cref="P:Avanteam.Localisation.ProviderCultureResult.UICultures"/> properties set to the
+            respective culture values provided.
+            </summary>
+            <param name="culture">The name of the culture to be used for formatting.</param>
+            <param name="uiCulture"> The name of the ui culture to be used for text, i.e. language.</param>
+        </member>
+        <member name="M:Avanteam.Localisation.ProviderCultureResult.#ctor(System.Collections.Generic.IReadOnlyList{Microsoft.Extensions.Primitives.StringSegment})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Localisation.ProviderCultureResult"/> class
+            that has its <see cref="P:Avanteam.Localisation.ProviderCultureResult.Cultures"/> and <see cref="P:Avanteam.Localisation.ProviderCultureResult.UICultures"/> properties set to the
+            same culture value.
+            </summary>
+            <param name="cultures">The list of cultures to be used for formatting, text, i.e. language.</param>
+        </member>
+        <member name="M:Avanteam.Localisation.ProviderCultureResult.#ctor(System.Collections.Generic.IReadOnlyList{Microsoft.Extensions.Primitives.StringSegment},System.Collections.Generic.IReadOnlyList{Microsoft.Extensions.Primitives.StringSegment})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Localisation.ProviderCultureResult"/> class
+            that has its <see cref="P:Avanteam.Localisation.ProviderCultureResult.Cultures"/> and <see cref="P:Avanteam.Localisation.ProviderCultureResult.UICultures"/> properties set to the
+            respective culture values provided.
+            </summary>
+            <param name="cultures">The list of cultures to be used for formatting.</param>
+            <param name="uiCultures">The list of ui cultures to be used for text, i.e. language.</param>
+        </member>
+        <member name="P:Avanteam.Localisation.ProviderCultureResult.Cultures">
+            <summary>
+            Gets the list of cultures to be used for formatting.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Localisation.ProviderCultureResult.UICultures">
+            <summary>
+            Gets the list of ui cultures to be used for text, i.e. language.
+            </summary>
+        </member>
+    </members>
+</doc>

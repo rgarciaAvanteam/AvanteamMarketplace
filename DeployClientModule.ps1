@@ -22,7 +22,7 @@
     
 .EXAMPLE
     # Installation dans un chemin personnalisé
-    .\DeployClientModule.ps1 -CustomPath "I:\AVANTEAM\POC\TRIAL INNATEPHARMA\Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace" -ApiUrl "https://marketplace-dev.avanteam-online.com/api/marketplace"
+    .\DeployClientModule.ps1 -CustomPath "C:\Process Suite\Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace" -ApiUrl "https://marketplace-dev.avanteam-online.com/api/marketplace"
     
 .EXAMPLE
     # Installation avec le paramètre alias TargetPath
@@ -58,8 +58,8 @@ if ($CustomPath) {
         exit 1
     }
     
-    # Utiliser le chemin par défaut
-    $destinationPath = Join-Path $ProcessStudioPath "Custom\MarketPlace"
+    # Utiliser le chemin par défaut avec la nouvelle structure
+    $destinationPath = Join-Path $ProcessStudioPath "Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace"
 }
 if (-not (Test-Path $destinationPath)) {
     Write-Host "Création du répertoire $destinationPath..."
@@ -155,7 +155,7 @@ $specificFiles = @(
 )
 
 foreach ($file in $specificFiles) {
-    $sourcePath = Join-Path $PSScriptRoot "PSTUDIO-CLIENT\Custom\MarketPlace\$file"
+    $sourcePath = Join-Path $PSScriptRoot "Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace\$file"
     if (Test-Path $sourcePath) {
         Copy-Item -Path $sourcePath -Destination $destinationPath -Force
         Write-Host "  Copié: $file"
@@ -176,7 +176,7 @@ $specificFolders = @(
 )
 
 foreach ($folder in $specificFolders) {
-    $folderSource = Join-Path $PSScriptRoot "PSTUDIO-CLIENT\Custom\MarketPlace\$folder"
+    $folderSource = Join-Path $PSScriptRoot "Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace\$folder"
     $folderDest = Join-Path $destinationPath $folder
     
     if (Test-Path $folderSource) {
@@ -240,7 +240,7 @@ foreach ($file in $requiredFiles) {
 if ($deploymentSuccess) {
     Write-Host "Déploiement terminé avec succès!" -ForegroundColor Green
     Write-Host "Le module Avanteam Marketplace est maintenant disponible à l'adresse:"
-    Write-Host "http://votre-serveur/Custom/MarketPlace/Default.aspx" -ForegroundColor Cyan
+    Write-Host "http://votre-serveur/app/Custom/MarketPlace/Default.aspx" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "N'oubliez pas de redémarrer l'application Process Studio pour prendre en compte les changements."
     

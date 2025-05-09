@@ -82,12 +82,18 @@ New-Item -ItemType Directory -Path $installerDir -Force | Out-Null
 New-Item -ItemType Directory -Path $scriptsDir -Force | Out-Null
 
 # Déterminer le chemin source correct du module client
-$clientSourcePath = Join-Path $SourcePath "PSTUDIO-CLIENT\app\Custom\MarketPlace"
+$clientSourcePath = Join-Path $SourcePath "Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace"
 if (!(Test-Path $clientSourcePath)) {
-    $alternativePath = Join-Path $SourcePath "PSTUDIO-CLIENT\Custom\MarketPlace"
+    $alternativePath = Join-Path $SourcePath "PSTUDIO-CLIENT\app\Custom\MarketPlace"
     if (Test-Path $alternativePath) {
         $clientSourcePath = $alternativePath
         Write-Host "Utilisation du chemin alternatif pour le module client: $clientSourcePath" -ForegroundColor Yellow
+    } else {
+        $alternativePath = Join-Path $SourcePath "PSTUDIO-CLIENT\Custom\MarketPlace"
+        if (Test-Path $alternativePath) {
+            $clientSourcePath = $alternativePath
+            Write-Host "Utilisation du chemin alternatif pour le module client: $clientSourcePath" -ForegroundColor Yellow
+        }
     }
 }
 

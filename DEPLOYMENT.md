@@ -212,7 +212,7 @@ Le module client doit être déployé sur chaque serveur Process Studio. Pour fa
 ```powershell
 # Sur le serveur de développement, générer un package de déploiement client
 New-Item -ItemType Directory -Path ".\client-package" -Force | Out-Null
-Copy-Item -Path ".\PSTUDIO-CLIENT\Custom\MarketPlace\*" -Destination ".\client-package\" -Recurse
+Copy-Item -Path ".\Avanteam Process Suite\PStudio.Net.Web\app\Custom\MarketPlace\*" -Destination ".\client-package\" -Recurse
 Copy-Item -Path ".\DeployClientModule.ps1" -Destination ".\client-package\" -Force
 Compress-Archive -Path ".\client-package\*" -DestinationPath ".\MarketplaceClient.zip" -Force
 
@@ -304,7 +304,7 @@ Après le déploiement du module client:
    ```
 
 3. **Testez l'accès au Marketplace**:
-   - Naviguez vers `http://votre-serveur-process-studio/Custom/MarketPlace/Default.aspx`
+   - Naviguez vers `http://votre-serveur-process-studio/app/Custom/MarketPlace/Default.aspx`
    - Vérifiez que la page se charge correctement et affiche les composants disponibles
    - Assurez-vous que la version de Process Studio est correctement détectée
 

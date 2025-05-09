@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Values</name>
+    </assembly>
+    <members>
+        <member name="T:Avanteam.Values.DataSets.DSValues">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListNamesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListValuesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.FormulasDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.OptionsDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.DesignCategoriesDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListNamesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListValuesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.FormulasRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.OptionsRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.DesignCategoriesRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListNamesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.ListValuesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.FormulasRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.OptionsRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValues.DesignCategoriesRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.ListNamesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.ListValuesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.FormulasTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OptionsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.DesignCategoriesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OracleListNamesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OracleListValuesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OracleFormulasTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OracleOptionsTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Values.DataSets.DSValuesTableAdapters.OracleDesignCategoriesTableAdapter">
+             <summary>
+            Represents the connection and commands used to retrieve and save data.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Values.DataSource.ValueManagerWrapper.#ctor(Avanteam.Kernel.DataSource.ApplicationProfile)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Values.DataSource.ValueManagerWrapper"/> class.
+            Constructor with an Application profile.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Values.DataSource.ValueManagerWrapper.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Avanteam.Values.DataSource.ValueManagerWrapper"/> class.
+            Default constructor for backward compatibility.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Values.DataSource.ValueManagerWrapper.GetListTextPathes(Avanteam.Values.DataSource.ValueManagerWrapper,System.String,System.String)">
+            <summary>
+            Builds and returns, for a given hierarchical list of values, a dictionary with the path of the possible "values" and their matching "texts" (for the given language)
+            This process is mandatory to consider all depth levels of hierarchical classes (for the filter management using "Field_OpenKeywordsWithFilter")
+            Ex : in a 3 levels list, considering the A/B/C/D value, the field may contain one of those combinations:
+            - A
+            - A/B
+            - A/B/C
+            - A/B/C/D
+            As well as:
+            - B/C
+            - B/C/D
+            - C/D
+            - B
+            - C
+            - D
+            But not:
+            - A/C
+            - A/D.
+            </summary>
+            <param name="datasource">The data source.</param>
+            <param name="listName">Name of the list of values.</param>
+            <param name="language">The language.</param>
+        </member>
+    </members>
+</doc>

@@ -110,7 +110,7 @@ dotnet ef database update
 - `src/AvanteamMarketplace.API` : API REST pour le marketplace
 - `src/AvanteamMarketplace.Core` : Modèles et interfaces du domaine
 - `src/AvanteamMarketplace.Infrastructure` : Implémentations des services et accès aux données
-- `AvanteamMarketplace/` : Client-side Integration pour Process Studio
+- `Avanteam Process Suite/PStudio.Net.Web/app/Custom/MarketPlace/` : Client-side Integration pour Process Studio
 
 ### Technologies utilisées
 

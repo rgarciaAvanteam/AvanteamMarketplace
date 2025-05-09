@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Directory.Authentication.Saml2</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Directory.Authentication.Saml2.AuthenticationPropertiesExtensions.ConfigureSamlAuthenticationHandlerProperties(Microsoft.AspNetCore.Authentication.AuthenticationProperties,System.String,System.String,System.String,System.String)">
+            <summary>
+            Configure additional authentication properties used by
+            <see cref="T:ComponentSpace.Saml2.Authentication.SamlAuthenticationHandler"/>.
+            </summary>
+            <remarks>
+            The list of theses properties has been found by decompiling the class.
+            This method should offer a more discoverable way, to found them.
+            </remarks>
+            <param name="properties">The properties collection to complete.</param>
+            <param name="partnerName">
+            The name of the partner in the ComponentSpace SAML configuration.
+            </param>
+            <param name="configurationName">
+            The name of the ComponentSpace SAML configuration.
+            Important in multi-tenant environment, otherwise null.
+            </param>
+            <param name="relayState">
+            The relay state.
+            </param>
+            <param name="authnContext">
+            The authentication context.
+            </param>
+        </member>
+        <member name="T:Avanteam.Directory.Authentication.Saml2.PartnerIdentityProviderConfigurationSerializer">
+            <summary>
+            Class that allow to serialize and de-serialize a
+            <see cref="T:ComponentSpace.Saml2.Configuration.PartnerIdentityProviderConfiguration"/> at a format compatible with the legacy
+            ComponentSpace XML configuration format which is defined by the schema that can be found at
+            https://www.componentspace.com/schemas/saml-config-schema-v1.0.xsd.
+            </summary>
+            <remarks>
+            Compatible do not means same. Some properties are new, like RequestedAuthnContexts and
+            RequestedAuthnContextComparison, while other properties like AuthnContextComparison have
+            disappeared.
+            It just means that in most cases you can copy a legacy configuration and it will be
+            de-serialized correctly into the current ComponentSpace configuration object.
+            </remarks>
+        </member>
+    </members>
+</doc>

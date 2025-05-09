@@ -1,0 +1,570 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Avanteam.Application</name>
+    </assembly>
+    <members>
+        <member name="M:Avanteam.Application.Components.APSDocument.SetValues(System.String,System.String[])">
+            <summary>
+            Set a value of the field on the document. If the field does not exist, create a new Field.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSDocument.SetRTValue(System.String,System.String)">
+            <summary>
+            Set a Rich Text value of the field on the document. If the field does not exist, create a new Field.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSDocument.AddField(System.String,Avanteam.Formulars.FormularField.FieldType,Avanteam.Kernel.StringPair[])">
+            <summary>
+            Add a field to the document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSDocument.op_Implicit(Avanteam.Documents.DocumentDocHelper)~Avanteam.Application.Components.APSDocument">
+            <summary>
+            Implicit conversion from DocumentDocHelper to APSDocument.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSDocument.op_Implicit(Avanteam.Application.Components.APSDocument)~Avanteam.Documents.DocumentDocHelper">
+            <summary>
+            Implicit conversion from APSDocument to DocumentDocHelper.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Components.APSFunctions.Instance">
+            <summary>
+            Instance du workflow en cours d'exécution. Ce champ de la classe sera éventuellement rempli par la classe dérivée :
+            il n'est utile que si l'une des méthodes d'APSFunctions est appelée dans le contexte d'une instance de workflow.
+            En effet, dans ce contexte, si on consulte en base la table WorkflowHistory, une partie des informations pourrait ne pas être encore
+            stockée en bdd tant que le document n'a pas été sauvegardé : tout ce qui concerne l'étape en cours d'exécution n'y est pas.
+            Si c'est le cas, le paramètre "instance" pourra être renseigné. Il est censé contenir les informations manquantes, qui seront aggrégées
+            dans les diverses méthodes à celles déjà présentes en base de donnée (cf. méthode GetWorkflowHistoryExtended).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetUserJob(System.String)">
+            <summary>
+            Get the job of one user (userName is either cn_name or dn_name) return - if not found.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowHistoryUser(System.String)">
+            <summary>
+            Get the name of the last participant of a workflow's activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.CompleteWorkflowHistory(System.Collections.Generic.List{Avanteam.Workflow.Runtime.InstanceHistory},System.String)">
+            <summary>
+            Complete les lignes d'historique de workflow avec les informations de l'instance du workflow en cours d'exécution (s'il y en a un).
+            </summary>
+            <param name="instanceHistories">les lignes de l'historique de workflow.</param>
+            <param name="activityName">(optionnel) filtre sur une activité.</param>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowHistory(System.String)">
+            <summary>
+            Get the history of the workflow for a specified activity (last occurence).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.FormatWorkflowHistory(System.String,System.String,System.String,System.String)">
+            <summary>
+            Get a formated string of the workflow history of an activity.
+            </summary>
+            <param name="activityName">name of the activity.</param>
+            <param name="format">format string with: {user} {userjob} {comment} {action} {date} {userFor}.</param>
+            <param name="dateFormat">format string for the date.</param>
+            <param name="userForFormat">ex:{0} (pour {1}).</param>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowHistoryDate(System.String)">
+            <summary>
+            Get the last date of execution of a workflow's activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowHistoryComment(System.String)">
+            <summary>
+            Get the comment made by the last participant of a workflow's activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowHistoryAction(System.String)">
+            <summary>
+            Get the decision taken by the last participant of a workflow's activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowActivity">
+            <summary>
+            Get the current activity of the active workflow of the current document.
+            </summary>
+            <returns>empty string if no workflow, - if workflow is terminated.</returns>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowRoleUsersList(System.String,System.String)">
+            <summary>
+            Get a list of formated string of the users assigned to a role.
+            </summary>
+            <param name="roleName">name of the role.</param>
+            <param name="format">format string with: {user} {userjob} (default format is {user} - {userjob}).</param>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetWorkflowRoleUsers(System.String,System.String)">
+            <summary>
+            Get a formated string of the users assigned to a role.
+            </summary>
+            <param name="roleName">name of the role.</param>
+            <param name="format">format string with: {user} {userjob} (default format is {user} - {userjob}).</param>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetDateValue(System.String,System.String)">
+            <summary>
+            Return a DateField Formated in a string.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.Components.APSFunctions.GetFormularName">
+            <summary>
+            Get the formular name.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.Components.DocumentProcess">
+            <summary>
+            This class contains informations about a document and a workflow
+            ie: names and ids, start date, current activity ...
+            properties relatives to document are prefixed DocumentXXX
+            properties relatives to process are prefixed ProcessXXX.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.Components.DocumentProcess.ProcessStatus">
+            <summary>
+            Status of the process :
+            1: Actives
+            2: Finished.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.DataSource.ApplicationDataSource">
+            <summary>
+            This is a high level class that is an entry point to Query Document/Forms and Workflows.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetDocumentsWithFormular">
+            <summary>
+            Get a DataSet that contains Documents.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetFormularProcessByIdFormular(System.String)">
+            <summary>
+            Get a FormularProcess DataTable for one Form.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetFormularIdByFormularName(System.String,System.String)">
+            <summary>
+            Get the id of a Form by its name and language.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.DeleteDocument(System.String)">
+            <summary>
+            Delete a document and all its dependancies (workflow, fields, attachments) (Hard Delete).
+            Add log and put in trash.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.DeleteDocument(Avanteam.Documents.DocumentDocHelper)">
+            <summary>
+            Delete a document and all its dependancies (workflow, fields, attachments) (Hard Delete).
+            Add log and put in trash.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.DeleteCurrentDocument">
+            <summary>
+            Delete a document and all its dependancies (workflow, fields, attachments) (Hard Delete).
+            Add log and put in trash.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.CancelNewDocument(System.String)">
+            <summary>
+            Cancel a new document and all its dependancies (workflow, fields, attachments) (Hard Delete).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.UserEmailPreference(System.String)">
+            <summary>
+            Préférence de l'utilisateur pour l'envoi des emails.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetUserEmailPreference(System.String)">
+            <summary>
+            Préférence de l'utilisateur pour l'envoi des emails.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.PushDifferedEmailList(System.String,Avanteam.Kernel.Mail.MailTemplate,System.Collections.Generic.List{System.String},Avanteam.Application.Security.EmailRecipientType,Avanteam.Kernel.Mail.EmailTemplateCategory,System.DateTime)">
+            <summary>
+            Génération de la liste des mails à différer par user.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.PushDifferedEmailList(System.String,System.String,System.String,System.Collections.Generic.List{System.String},Avanteam.Application.Security.EmailRecipientType,Avanteam.Kernel.Mail.EmailTemplateCategory,System.DateTime)">
+            <summary>
+            Génération de la liste des mails à différer par user.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.DataSource.ApplicationDataSource.UserName">
+            <summary>
+            Le DN de l'utilisateur (aka FullName).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.DataSource.ApplicationDataSource.UserDisplayName">
+            <summary>
+            Le CN de l'utilisateur (aka DisplayName).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetWorkflowHistory(System.String)">
+            <summary>
+            Load the history of the workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetWorkflowHistory(System.String,System.String)">
+            <summary>
+            Load the history of an activity (last execution).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.ResetRole(Avanteam.Documents.DataSets.DSDocumentProcess,Avanteam.Documents.DataSets.DSDocumentProcess.DocumentProcessRolesRow)">
+            <summary>
+            Reset a Role &lt;--&gt; Members list to its original value.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetDocumentProcesses(System.String)">
+            <summary>
+            Return a list of all actives processes for one document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.DataSource.ApplicationDataSource.GetProcessPicture(System.String)">
+            <summary>
+            Return the picture of a process (as a Byte[]) or null.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.FormatMailMessage.FormatBody(System.String,Avanteam.Application.DataSource.ApplicationDataSource,Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            Format the text using $title$, $reference$, etc.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.FormatMailMessage.FormatSubject(System.String,Avanteam.Application.DataSource.ApplicationDataSource,Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            Format the subject using $title$, $reference$, etc.
+            Replace by space line-breaks and carriage returns (\r \n) because they are invalid in email subject.
+            Keeps the first 998 characters.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.FormatMailMessage.GetEmailTemplateMatches(System.String)">
+             <summary>
+             La regExp constuit des groupes suivants les tags recherchés
+            
+             Recherche la clé (key) dans les settings de l'application
+             $config:key$          => appSettingKey = key
+            
+             prop correspond à la propriété de l'instance de workflow et doit contenir l'id du document vers lequel faire le lien
+             $linkdual#w:prop$     => link = linkdual,        wkProp = prop
+             $link#w:prop$         => link = link,            wkProp = prop
+            
+             fieldName est le nom d'un champ devant contenir l'id du document vers lequel faire le lien
+             $linkdual#fieldName$  => link = linkdual,        field = fieldName
+             $link#fieldName$      => link = link,            field = fieldName
+            
+             format permet d'utiliser string.format sur la valeur du champ (date, nombre ...)
+             $dateFieldName|{0:d}$ => field = dateFieldName,  format = {0:d}
+            
+             Find the place where the email signature should be inserted
+             $signature$
+            
+             Find the place where the last task comment should be inserted
+             $comment$
+            
+             Retourner la colonne cn_name de la resource contenu dans un champ
+             $fieldName.displayName$        => field = fieldName, resource: displayName
+            
+             valeur d'un champ si le champ est à valeur multiple les valeurs sont séparées par ', ' (virgule et espace)
+             $fieldName$           => field = fieldName
+            
+             Pour tester : http://regexstorm.net/tester.
+             </summary>
+        </member>
+        <member name="M:Avanteam.Application.WatermarkTools.WriteWatermark(Avanteam.Documents.DataSource.DocumentManagerWrapper,System.Byte[],System.String,Avanteam.Application.WatermarkTools.Context,System.String,System.Boolean@)">
+            <summary>
+            Writes watermark on the pdf file.
+            </summary>
+            <param name="documentDatasource">The datasource to use to retrieve the document.</param>
+            <param name="content">pdf content.</param>
+            <param name="idObj">id of the document.</param>
+            <param name="context">The context.</param>
+            <param name="userDisplayName">Le nom de l'utilisateur tel qu'il doit apparaitre dnas le watermark.</param>
+            <param name="hasWatermark">is set at true if a stamp is applied.</param>
+        </member>
+        <member name="M:Avanteam.Application.WatermarkTools.EvaluateWatermarkCondition(System.String,Avanteam.Documents.DocumentDocHelper,System.String,System.String,System.String,Avanteam.Application.WatermarkTools.Context)">
+            <summary>
+            Exécution du code C# défini dans le paramétrage du filigrane.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.WorkflowClientRuntime">
+            <summary>
+            This class Contains the client side implementation of the WorkflowRuntime
+            for the APS Web Application.
+            </summary>
+            <summary>
+            This class Contains the client side implementation of the WorkflowRuntime
+            for the APS Web Application.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.ApplicationSecurityLevel">
+            <summary>
+            Gets the Application Security Level (defined in Web.config as WorkflowSecurityLevel).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.CanEditDocument">
+            <summary>
+            Gets a value indicating whether the underlying document editable or not.
+            </summary>
+            <remarks>Default is false, the document is not editable.
+            If there is one validation activity in all actives activities, the document is editable.
+            </remarks>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.EditableFields">
+            <summary>
+            Gets the list of editable fields for the current workflow
+            * means All fields are editables
+            Empty means no fields are editables.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.MandatoryFields">
+            <summary>
+            Gets the list of Mandatory fields for the current workflow.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.DetailGridAccessLevels">
+            <summary>
+            Gets the access levels of the detail grids.
+            <remarks>
+            Beware, the detail grids which are not part of this list are considered to be in full access.
+            If the list returned is null, it means that the workflow instance is not stoppped at one step, so no access level is defined.
+            </remarks>
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.StartProcessByName(System.String)">
+            <summary>
+            Start a new Workflow by its name.
+            this method search the last known active version of the process
+            and start it.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.ProvideProperty(Avanteam.Workflow.Runtime.Instance,Avanteam.Workflow.ComponentModel.Property)">
+            <summary>
+            This method is called by the Workflow Runtime for each Property needed by the Process.
+            Return True if the required property is available.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.EvaluateActor(Avanteam.Workflow.Runtime.Instance,System.String)">
+            <summary>
+            Evaluate an actor and return result of evaluation in a Collection of string containing dn_name(s).
+            </summary>
+            <param name="instance">The workflow instance.</param>
+            <param name="id">id of the resource.</param>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.EvaluateActor(Avanteam.Workflow.Runtime.Instance,Avanteam.Directory.Shared.Actor)">
+            <summary>
+            Evaluate an actor and return result of evaluation in a Collection of string containing dn_name(s).
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.RunClientJavaScript(Avanteam.Workflow.Runtime.Instance,System.Object)">
+            <summary>
+            This method is called by the Workflow Runtime each time a javascript code has to be executed on the web browser.
+            Returning false suspend the execution of the workflow
+            Returning true continue execution of the workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.InitializePerformers(Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            This method is called by the Workflow runtime each time a user task is
+            initialized.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.CleanPerformers(Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            This method is called by the Workflow runtime each time a user task is
+            terminated.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.ActivityStart(Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            This method is called when a new Activity start.
+            Good place to track current activity.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.ProcessStop(Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            This method is called when the process stops
+            Good place to track process status.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.EmbededSubProcessStart(Avanteam.Workflow.Runtime.Instance,System.String)">
+            <summary>
+            This method is called when an embeded sub-process start.
+            It update the DocumentProcess Object to set id_process to the specified value
+            to allow workflow viewer to show the correct process.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.GetSecurityLevel(System.String,System.String)">
+            <summary>
+            Return Security Level to apply for a particular instance.
+            Promote search to ancestors and finaly to Application Level if not found.
+            </summary>
+            <returns>SecurityLevel: low, single or hight.</returns>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.OnProcessStarting(System.Object,Avanteam.Workflow.Runtime.WorkflowRuntime.ProcessStartingEventArgs)">
+            <summary>
+            Called just after the creation of the instance.
+            Good place to initialize process properties (roles, ...)
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.OnInstanceLoaded(System.Object,System.EventArgs)">
+            <summary>
+            Called after instance load, reset the CurrentIdDocument
+            (used in case of process/subprocess interaction in shared runtimes).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowClientRuntime.Email_Sender">
+            <summary>
+            Gets the name of the sender of emails.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.DifferEmailForUser(Avanteam.Workflow.ComponentModel.Shared.Mail,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Gestion de la liste des destinataires pour lesquels l'envoi d'un mail est différé.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.RunScript(Avanteam.Workflow.Runtime.Instance,System.Object)">
+            <summary>
+            This Method is called by the Runtime for each execution of a script.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowClientRuntime.ReinitializePerformers(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Recalcule les droits d'accès au document qui vient d'être réouvert après être arrivé en fin de workflow.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.WorkflowInfo">
+            <summary>
+            Lecture des informations du workflow.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.HasWorkflow">
+            <summary>
+            Il y a une instance de workflow.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.ProcessName">
+            <summary>
+            Nom du workflow.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.IdProcess">
+            <summary>
+            Id du workflow (version utilisée).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.IdInstance">
+            <summary>
+            Id de l'instance du workflow utilisé par le document.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.ProcessStatus">
+            <summary>
+            Status de l'instance :
+            - 1 => en cours
+            - 2 => terminé.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.CurrentActivity">
+            <summary>
+            Id de l'étape en cours
+            (- pour terminer).
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.CurrentActivityDisplay">
+            <summary>
+            Libellé de l'étape en cours.
+            </summary>
+        </member>
+        <member name="P:Avanteam.Application.WorkflowInfo.ProcessVersion">
+            <summary>
+            Version du workflow.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowParticipant.op_Implicit(Avanteam.Workflow.ComponentModel.Performer)~Avanteam.Application.WorkflowParticipant">
+            <summary>
+            Convert a Performer into a WorkflowParticipant.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowParticipantCollection.IsAuthor(System.String)">
+            <summary>
+            Get a boolean value that indicates if the specified id has Author Acces Right.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowParticipantCollection.IsReader(System.String)">
+            <summary>
+            Get a boolean value that indicates if the specified id has Reader Acces Right.
+            </summary>
+        </member>
+        <member name="T:Avanteam.Application.WorkflowTools">
+            <summary>
+            Outils permettant de gérer le workflow d'un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.ComputeAccessRightsForCurrentStep(System.String,System.String)">
+            <summary>
+            Recalcule des intervenants sur l'étape courrante d'un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.ChangeStep(System.String,System.String,System.String,System.String)">
+            <summary>
+            Changement d'etape pour un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.ValidateStep(System.String,System.String,System.String,System.String)">
+            <summary>
+            Validation d'etape pour un document.
+            </summary>
+            <param name="idDoc">l'id du document.</param>
+            <param name="action">si null valide la première action trouvée.</param>
+            <param name="userName">le nom de l'utilisateur qui valide.</param>
+            <param name="comment">le commentaire de validation.</param>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.StartProcessByName(System.String,System.String,System.String)">
+            <summary>
+            Lancement d'un workflow sur un doc par son idDoc.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.EvaluateActor(Avanteam.Application.DataSource.ApplicationDataSource,System.String,Avanteam.Workflow.Runtime.Instance)">
+            <summary>
+            Evaluation d'un acteur sur une etape pour un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.GetRootInstance(System.String,System.String)">
+            <summary>
+            Obtient l'instance active du procesus pour un document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.GetStatusWorkflowForCurrentDocument(Avanteam.Documents.DataSource.DocumentManagerWrapper,System.String)">
+            <summary>
+            Obtient le status du workflow pour le document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.GetInfoWorkflowForDocument(Avanteam.Documents.DataSource.DocumentManagerWrapper,System.String,System.String,System.String)">
+            <summary>
+            Obtient une info du workflow pour le document.
+            </summary>
+            <param name="documentManagerWrapper">le manager à utiliser pour éxécuter la requête.</param>
+            <param name="idDoc"> Id du document.</param>
+            <param name="column">Nom de la colonne de la table DocumentProcess.</param>
+            <param name="defaultValue">Valeur par défaut retourné.</param>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.GetWorkflowInfo(Avanteam.Documents.DataSource.DocumentManagerWrapper,System.String)">
+            <summary>
+            Obtient les infos du workflow pour le document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.StopWorkflowOnDocument(System.String,System.String,System.String)">
+            <summary>
+            Clôture le workflow pour le document.
+            </summary>
+        </member>
+        <member name="M:Avanteam.Application.WorkflowTools.GetActivityValuesForCurrentIdDoc(Avanteam.Application.WorkflowClientRuntime,Avanteam.Workflow.Runtime.Instance,System.String)">
+            <summary>
+            Récupère la concaténation de l'id de l'instance du processus et de l'id d'instance du l'activité recherchée.
+            </summary>
+        </member>
+    </members>
+</doc>

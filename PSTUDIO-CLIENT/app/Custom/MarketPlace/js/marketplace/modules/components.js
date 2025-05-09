@@ -235,9 +235,17 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                         context: options.context
                     });
                     
-                    // Utiliser le module auth pour afficher une notification si ce n'est pas déjà fait
-                    if (auth && auth.showNotification) {
-                        auth.showNotification("Problème d'authentification avec l'API Marketplace. Veuillez contacter votre administrateur.", "warning");
+                    // Si nous chargeons des composants, publier également un événement componentsLoadError
+                    // Cela garantit que notre interface élégante s'affichera
+                    if (url.includes('/components/') && options.context && options.context.startsWith('loadComponents_')) {
+                        // Récupérer le nom de l'onglet à partir du contexte (format: 'loadComponents_tabName')
+                        const tabName = options.context.replace('loadComponents_', '');
+                        
+                        MarketplaceMediator.publish('componentsLoadError', {
+                            tabName: tabName,
+                            statusCode: response.status,
+                            error: "Erreur d'authentification API - Le token du site client n'est pas valide ou a expiré"
+                        });
                     }
                     
                     // Retourner une réponse par défaut si fournie

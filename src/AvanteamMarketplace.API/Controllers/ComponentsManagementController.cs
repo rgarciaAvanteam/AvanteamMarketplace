@@ -1422,5 +1422,143 @@ namespace AvanteamMarketplace.API.Controllers
 
         #endregion
 
+        #region Client Installations Endpoints
+
+        /// <summary>
+        /// Récupère la liste des composants installés pour un client spécifique
+        /// </summary>
+        /// <param name="clientId">ID du client</param>
+        /// <returns>Liste des composants installés avec leur état</returns>
+        [HttpGet("clients/{clientId}/components")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetInstalledComponentsByClient(string clientId)
+        {
+            try
+            {
+                // Vérifier si le client existe
+                var clientInstallation = await _context.ClientInstallations
+                    .FirstOrDefaultAsync(c => c.ClientIdentifier == clientId);
+                
+                if (clientInstallation == null)
+                {
+                    return NotFound(new { error = "Client non trouvé" });
+                }
+
+                // Récupérer tous les composants installés pour ce client avec leurs informations
+                var installedComponents = await _context.InstalledComponents
+                    .Include(ic => ic.Component)
+                    .ThenInclude(c => c.Versions)
+                    .Where(ic => ic.Installation.ClientIdentifier == clientId && ic.IsActive)
+                    .ToListAsync();
+
+                // Récupérer les versions des composants installés
+                var componentStates = installedComponents.Select(ic => {
+                    // Récupérer la version actuelle du composant
+                    var latestVersion = ic.Component.Versions
+                        .FirstOrDefault(v => v.IsLatest);
+                    
+                    string status = "unknown";
+                    if (latestVersion != null)
+                    {
+                        if (ic.Version == latestVersion.Version)
+                        {
+                            status = "up-to-date"; // À jour
+                        }
+                        else
+                        {
+                            // Comparer les versions pour déterminer si une mise à jour est disponible
+                            try 
+                            {
+                                var installedVersionParts = ic.Version.Split('.').Select(int.Parse).ToArray();
+                                var latestVersionParts = latestVersion.Version.Split('.').Select(int.Parse).ToArray();
+                                
+                                bool needsUpdate = false;
+                                
+                                for (int i = 0; i < Math.Min(installedVersionParts.Length, latestVersionParts.Length); i++)
+                                {
+                                    if (latestVersionParts[i] > installedVersionParts[i])
+                                    {
+                                        needsUpdate = true;
+                                        break;
+                                    }
+                                    else if (latestVersionParts[i] < installedVersionParts[i])
+                                    {
+                                        // Version installée plus récente que la "dernière" - situation anormale
+                                        break;
+                                    }
+                                }
+                                
+                                status = needsUpdate ? "update-available" : "up-to-date";
+                            }
+                            catch 
+                            {
+                                // En cas d'erreur lors de la comparaison de versions, considérer comme à mettre à jour
+                                status = "update-available";
+                            }
+                        }
+                        
+                        // Vérifier la compatibilité avec la version de la plateforme du client
+                        if (!string.IsNullOrEmpty(clientInstallation.PlatformVersion) && 
+                            !string.IsNullOrEmpty(latestVersion.MaxPlatformVersion))
+                        {
+                            try
+                            {
+                                var clientVersionParts = clientInstallation.PlatformVersion.Split('.').Select(int.Parse).ToArray();
+                                var maxVersionParts = latestVersion.MaxPlatformVersion.Split('.').Select(int.Parse).ToArray();
+                                
+                                bool tooOld = false;
+                                
+                                for (int i = 0; i < Math.Min(clientVersionParts.Length, maxVersionParts.Length); i++)
+                                {
+                                    if (clientVersionParts[i] > maxVersionParts[i])
+                                    {
+                                        tooOld = true;
+                                        break;
+                                    }
+                                    else if (clientVersionParts[i] < maxVersionParts[i])
+                                    {
+                                        break;
+                                    }
+                                }
+                                
+                                if (tooOld)
+                                {
+                                    status = "not-supported"; // Plus supporté
+                                }
+                            }
+                            catch
+                            {
+                                // En cas d'erreur de comparaison, ne pas modifier le statut
+                            }
+                        }
+                    }
+
+                    return new
+                    {
+                        componentId = ic.ComponentId,
+                        name = ic.Component.Name,
+                        displayName = ic.Component.DisplayName,
+                        version = ic.Version,
+                        latestVersion = latestVersion?.Version ?? ic.Version,
+                        installDate = ic.InstallDate,
+                        lastUpdateDate = ic.LastUpdateDate,
+                        status = status,
+                        category = ic.Component.Category
+                    };
+                }).ToList();
+
+                return Ok(componentStates);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la récupération des composants installés pour le client {clientId}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération des composants installés", details = ex.Message });
+            }
+        }
+
+        #endregion
+
     }
 }

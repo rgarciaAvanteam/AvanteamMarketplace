@@ -109,7 +109,7 @@ function renderApiKeysTable(keysArray) {
         const baseUrl = apiKey.baseUrl || 'N/A';
         const platformVersion = apiKey.platformVersion || 'N/A';
         
-        html += `<tr>
+        html += `<tr data-client-id="${clientId}" class="selectable-row">
             <td>${id}</td>
             <td>${clientId}</td>
             <td>${baseUrl}</td>
@@ -130,6 +130,26 @@ function renderApiKeysTable(keysArray) {
         e.preventDefault();
         const apiKeyId = $(this).data("id");
         confirmDeleteApiKey(apiKeyId);
+    });
+    
+    // Ajouter un gestionnaire d'événements pour la sélection des lignes
+    $("#apiKeysTable tbody tr").click(function(e) {
+        // Ne pas déclencher sur clic des boutons d'action
+        if ($(e.target).hasClass('action-btn') || $(e.target).closest('.action-btn').length) {
+            return;
+        }
+        
+        // Désélectionner toutes les lignes
+        $("#apiKeysTable tbody tr").removeClass('selected');
+        
+        // Sélectionner cette ligne
+        $(this).addClass('selected');
+        
+        // Récupérer le client ID
+        const clientId = $(this).data('client-id');
+        if (clientId && clientId !== 'N/A') {
+            loadInstalledComponentsForClient(clientId);
+        }
     });
 }
 
@@ -299,4 +319,150 @@ function deleteApiKey(apiKeyId) {
             $("#confirmDeleteModal").css("display", "none");
         }
     });
+}
+
+// Fonction pour charger les composants installés pour un client spécifique
+function loadInstalledComponentsForClient(clientId) {
+    console.log(`Chargement des composants installés pour le client ${clientId}`);
+    
+    // Vérifier si la section existe déjà
+    if (!$("#installed-components-section").length) {
+        // Créer la section si elle n'existe pas
+        $("#apikeys-tab").append(`
+            <div id="installed-components-section" class="installed-components-section">
+                <h3>Composants installés pour ${clientId}</h3>
+                <div class="loading">Chargement des composants installés...</div>
+            </div>
+        `);
+    } else {
+        // Mettre à jour le contenu avec un indicateur de chargement
+        $("#installed-components-section").html(`
+            <h3>Composants installés pour ${clientId}</h3>
+            <div class="loading">Chargement des composants installés...</div>
+        `);
+    }
+    
+    // Appeler l'API pour récupérer les composants installés
+    $.ajax({
+        url: `${apiBaseUrl}/management/clients/${encodeURIComponent(clientId)}/components`,
+        type: "GET",
+        headers: {
+            "Authorization": `Bearer ${adminToken}`
+        },
+        success: function(response) {
+            displayInstalledComponents(clientId, response);
+        },
+        error: function(xhr, status, error) {
+            console.error(`Erreur lors du chargement des composants installés pour ${clientId}:`, error);
+            $("#installed-components-section").html(`
+                <h3>Composants installés pour ${clientId}</h3>
+                <div class="error-message">Erreur lors du chargement des composants: ${xhr.status} ${xhr.statusText}</div>
+            `);
+        }
+    });
+}
+
+// Fonction pour afficher les composants installés
+function displayInstalledComponents(clientId, components) {
+    console.log(`Affichage des composants installés pour ${clientId}:`, components);
+    
+    if (!components || components.length === 0) {
+        $("#installed-components-section").html(`
+            <h3>Composants installés pour ${clientId}</h3>
+            <div class="info-message">Aucun composant installé pour ce client</div>
+        `);
+        return;
+    }
+    
+    // Trier les composants par statut puis par nom
+    components.sort(function(a, b) {
+        // Ordre de priorité des statuts
+        const statusOrder = {
+            'not-supported': 1,
+            'update-available': 2,
+            'up-to-date': 3,
+            'unknown': 4
+        };
+        
+        // Récupérer les statuts
+        const statusA = a.status || 'unknown';
+        const statusB = b.status || 'unknown';
+        
+        // Trier d'abord par statut
+        if (statusOrder[statusA] !== statusOrder[statusB]) {
+            return statusOrder[statusA] - statusOrder[statusB];
+        }
+        
+        // Puis par nom
+        return (a.displayName || a.name).localeCompare(b.displayName || b.name);
+    });
+    
+    let html = `
+        <h3>Composants installés pour ${clientId}</h3>
+        <div class="installed-components-table-container">
+            <table class="installed-components-table admin-table">
+                <thead>
+                    <tr>
+                        <th>Composant</th>
+                        <th>Catégorie</th>
+                        <th>Version installée</th>
+                        <th>Dernière version</th>
+                        <th>Date d'installation</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    components.forEach(function(component) {
+        // Déterminer la classe et le texte pour l'état
+        let statusClass = '';
+        let statusText = '';
+        
+        switch (component.status) {
+            case 'up-to-date':
+                statusClass = 'status-ok';
+                statusText = 'À jour';
+                break;
+            case 'update-available':
+                statusClass = 'status-warning';
+                statusText = 'Mise à jour disponible';
+                break;
+            case 'not-supported':
+                statusClass = 'status-error';
+                statusText = 'Plus supporté';
+                break;
+            default:
+                statusClass = 'status-unknown';
+                statusText = 'État inconnu';
+        }
+        
+        // Formatter les dates
+        const installDate = component.installDate 
+            ? new Date(component.installDate).toLocaleDateString() 
+            : 'N/A';
+        
+        const lastUpdateDate = component.lastUpdateDate 
+            ? new Date(component.lastUpdateDate).toLocaleDateString() 
+            : 'N/A';
+        
+        html += `
+            <tr>
+                <td>${component.displayName || component.name}</td>
+                <td>${component.category || 'Non catégorisé'}</td>
+                <td>${component.version || 'N/A'}</td>
+                <td>${component.latestVersion || 'N/A'}</td>
+                <td title="Dernière mise à jour: ${lastUpdateDate}">${installDate}</td>
+                <td><span class="${statusClass}">${statusText}</span></td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    $("#installed-components-section").html(html);
 }

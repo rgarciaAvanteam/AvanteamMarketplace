@@ -72,10 +72,46 @@ try {
         exit 1
     }
     
+    # AMÉLIORATION: Journaliser plus d'informations sur les répertoires disponibles
+    Write-Log "Contenu du répertoire racine:" -Level "INFO"
+    Get-ChildItem -Path $ProcessStudioRoot | ForEach-Object {
+        Write-Log "  - $($_.FullName)" -Level "INFO"
+    }
+    
+    # Vérifier si le répertoire Custom existe
+    $customDir = [System.IO.Path]::Combine($ProcessStudioRoot, "Custom")
+    if (Test-Path -Path $customDir -PathType Container) {
+        Write-Log "Répertoire Custom trouvé: $customDir" -Level "INFO"
+        
+        # Vérifier si MarketPlace existe
+        $marketplaceDir = [System.IO.Path]::Combine($customDir, "MarketPlace")
+        if (Test-Path -Path $marketplaceDir -PathType Container) {
+            Write-Log "Répertoire MarketPlace trouvé: $marketplaceDir" -Level "INFO"
+            
+            # Vérifier si Components existe
+            $componentsDir = [System.IO.Path]::Combine($marketplaceDir, "Components")
+            if (Test-Path -Path $componentsDir -PathType Container) {
+                Write-Log "Répertoire Components trouvé: $componentsDir" -Level "INFO"
+                
+                # Lister les composants existants
+                Get-ChildItem -Path $componentsDir | ForEach-Object {
+                    Write-Log "  - Composant trouvé: $($_.Name)" -Level "INFO"
+                }
+            } else {
+                Write-Log "Répertoire Components non trouvé: $componentsDir" -Level "WARNING"
+            }
+        } else {
+            Write-Log "Répertoire MarketPlace non trouvé: $marketplaceDir" -Level "WARNING"
+        }
+    } else {
+        Write-Log "Répertoire Custom non trouvé: $customDir" -Level "WARNING"
+    }
+    
     # CORRECTION: Déterminer le dossier du composant (nouvel emplacement sous Custom\MarketPlace)
     # sans le 'app' en double, car ProcessStudioRoot contient déjà le chemin jusqu'à l'app
     $componentDir = [System.IO.Path]::Combine($ProcessStudioRoot, "Custom", "MarketPlace", "Components", $ComponentId)
     $componentInstalled = Test-Path -Path $componentDir -PathType Container
+    Write-Log "Vérification du chemin de composant: $componentDir - Existe: $componentInstalled" -Level "INFO"
     
     # Vérifier aussi l'ancien emplacement pour la compatibilité
     $oldComponentDir = [System.IO.Path]::Combine($ProcessStudioRoot, "Components", $ComponentId)

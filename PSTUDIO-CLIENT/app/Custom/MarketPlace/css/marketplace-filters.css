@@ -260,6 +260,11 @@
     color: #e65100;
 }
 
+.filter-chip.installed {
+    background-color: #e8eaf6;
+    color: #3f51b5;
+}
+
 /* Bouton pour effacer tous les filtres */
 .clear-filters-btn {
     position: absolute;

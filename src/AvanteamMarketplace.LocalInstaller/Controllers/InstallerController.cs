@@ -116,6 +116,8 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         /// <response code="400">Requête invalide</response>
         /// <response code="500">Erreur serveur lors de l'installation</response>
         [HttpPost("install")]
+        [RequestFormLimits(MultipartBodyLengthLimit = 500 * 1024 * 1024)]  // 500 MB
+        [RequestSizeLimit(500 * 1024 * 1024)]  // 500 MB
         public async Task<IActionResult> InstallComponent([FromBody] InstallRequest request)
         {
             try
@@ -265,7 +267,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                 AppendToLog(logFilePath, "INFO", $"URL du package: {request.PackageUrl}");
                 AppendToLog(logFilePath, "INFO", $"Répertoire racine: {_rootPath}");
                 
-                // Configurer le processus PowerShell
+                // Configurer le processus PowerShell avec priorité élevée
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -273,7 +275,15 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    // Ajouter des variables d'environnement qui pourraient aider
+                    EnvironmentVariables = 
+                    {
+                        ["POWERSHELL_TELEMETRY_OPTOUT"] = "1",
+                        ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
+                        ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
+                        ["PSModulePath"] = Environment.GetEnvironmentVariable("PSModulePath") ?? ""
+                    }
                 };
                 
                 var output = new List<LogEntry>();
@@ -400,9 +410,40 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     process.BeginOutputReadLine();
                     process.BeginErrorReadLine();
                     
-                    // Attendre la fin du processus (avec timeout de 10 minutes)
-                    var cancellationToken = new CancellationTokenSource(TimeSpan.FromMinutes(10)).Token;
-                    var processCompletionTask = process.WaitForExitAsync(cancellationToken);
+                    // Attendre la fin du processus (avec timeout de 60 minutes pour les gros composants)
+                    var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(60));
+                    var processCompletionTask = process.WaitForExitAsync(cancellationTokenSource.Token);
+                    
+                    // Envoyer des pings réguliers au client pour maintenir la connexion active
+                    // Cette technique est appelée "Keep-Alive Pattern"
+                    var keepAliveTask = Task.Run(async () => 
+                    {
+                        try 
+                        {
+                            while (!cancellationTokenSource.Token.IsCancellationRequested)
+                            {
+                                // Envoyer un message de log toutes les 30 secondes pour éviter les timeouts
+                                await Task.Delay(TimeSpan.FromSeconds(30), cancellationTokenSource.Token);
+                                if (!cancellationTokenSource.Token.IsCancellationRequested)
+                                {
+                                    InstallerStreamController.AddMessageToQueue(
+                                        request.InstallId ?? installId,
+                                        "INFO",
+                                        $"Installation en cours... {DateTime.Now:HH:mm:ss}"
+                                    );
+                                    _logger.LogDebug($"Keep-alive envoyé à {DateTime.Now:HH:mm:ss}");
+                                }
+                            }
+                        }
+                        catch (OperationCanceledException) 
+                        {
+                            // Ignoré - c'est normal quand la tâche principale se termine
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"Erreur dans la tâche keep-alive: {ex.Message}");
+                        }
+                    });
                     
                     try
                     {
@@ -414,7 +455,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                         try
                         {
                             process.Kill();
-                            var timeoutError = "L'installation a été annulée car elle a dépassé le délai maximal (10 minutes)";
+                            var timeoutError = "L'installation a été annulée car elle a dépassé le délai maximal (60 minutes)";
                             _logger.LogError(timeoutError);
                             AppendToLog(logFilePath, "ERROR", timeoutError);
                             output.Add(new LogEntry { level = "ERROR", message = timeoutError });
@@ -589,7 +630,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                 AppendToLog(logFilePath, "INFO", $"Lancement de la désinstallation du composant {request.ComponentId}");
                 AppendToLog(logFilePath, "INFO", $"Répertoire racine: {_rootPath}");
                 
-                // Configurer le processus PowerShell
+                // Configurer le processus PowerShell avec priorité élevée
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -597,7 +638,15 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    // Ajouter des variables d'environnement qui pourraient aider
+                    EnvironmentVariables = 
+                    {
+                        ["POWERSHELL_TELEMETRY_OPTOUT"] = "1",
+                        ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
+                        ["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1",
+                        ["PSModulePath"] = Environment.GetEnvironmentVariable("PSModulePath") ?? ""
+                    }
                 };
                 
                 var output = new List<LogEntry>();

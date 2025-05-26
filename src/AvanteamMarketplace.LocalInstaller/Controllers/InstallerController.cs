@@ -20,7 +20,7 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
     [ApiController]
     [Route("")]
     [Produces("application/json")]
-    public class InstallerController : ControllerBase
+    public partial class InstallerController : ControllerBase
     {
         private readonly ILogger<InstallerController> _logger;
         private readonly string _rootPath;
@@ -41,27 +41,8 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
                 .AddEnvironmentVariables()
                 .Build();
             
-            // Par défaut, utiliser le répertoire courant de l'API
-            _rootPath = config["ProcessStudioRoot"] ?? baseDir;
-            
-            // Si une valeur est spécifiée mais qu'elle est relative, la convertir en chemin absolu
-            if (!string.IsNullOrEmpty(_rootPath) && !Path.IsPathRooted(_rootPath))
-            {
-                if (baseDir.Contains("api-installer"))
-                {
-                    // On suppose que le chemin est relatif à la racine du site
-                    var rootDir = Directory.GetParent(baseDir)?.FullName;
-                    if (rootDir != null)
-                    {
-                        _rootPath = Path.Combine(Directory.GetParent(rootDir)?.FullName ?? rootDir, _rootPath);
-                    }
-                }
-                else
-                {
-                    // Chemin relatif au répertoire de l'API
-                    _rootPath = Path.Combine(baseDir, _rootPath);
-                }
-            }
+            // Détecter automatiquement le répertoire racine de Process Studio
+            _rootPath = config["ProcessStudioRoot"] ?? DetectProcessStudioRoot(baseDir);
             
             _logger.LogInformation($"Répertoire racine configuré: {_rootPath}");
             
@@ -977,6 +958,74 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
         {
             this.level = level;
             this.message = message;
+        }
+    }
+    
+    public partial class InstallerController
+    {
+        /// <summary>
+        /// Détecte automatiquement le répertoire racine de Process Studio
+        /// </summary>
+        private string DetectProcessStudioRoot(string baseDirectory)
+        {
+            _logger.LogInformation($"=== DÉTECTION AUTOMATIQUE DU RÉPERTOIRE PROCESS STUDIO ===");
+            _logger.LogInformation($"Répertoire de base de l'application: {baseDirectory}");
+            
+            // Cas 1: API déployée dans une installation Process Studio (ex: .../Root/api-installer/)
+            // On cherche le répertoire PS qui contient Custom/MarketPlace
+            var currentPath = new DirectoryInfo(baseDirectory);
+            
+            while (currentPath != null)
+            {
+                _logger.LogInformation($"Examen du répertoire: {currentPath.FullName}");
+                
+                // Chercher le répertoire PS dans le répertoire courant ou ses parents
+                var psDirectory = Path.Combine(currentPath.FullName, "PS");
+                _logger.LogInformation($"Test de l'existence du répertoire PS: {psDirectory}");
+                
+                if (Directory.Exists(psDirectory))
+                {
+                    _logger.LogInformation($"Répertoire PS trouvé: {psDirectory}");
+                    var marketPlaceDir = Path.Combine(psDirectory, "Custom", "MarketPlace");
+                    _logger.LogInformation($"Test de l'existence du répertoire MarketPlace: {marketPlaceDir}");
+                    
+                    if (Directory.Exists(marketPlaceDir))
+                    {
+                        _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ: {psDirectory}");
+                        return psDirectory;
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Répertoire PS trouvé mais pas de Custom/MarketPlace dedans");
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Répertoire PS non trouvé");
+                }
+                
+                // Vérifier si le répertoire courant lui-même contient Custom/MarketPlace
+                var marketPlaceInCurrent = Path.Combine(currentPath.FullName, "Custom", "MarketPlace");
+                _logger.LogInformation($"Test si le répertoire courant contient Custom/MarketPlace: {marketPlaceInCurrent}");
+                
+                if (Directory.Exists(marketPlaceInCurrent))
+                {
+                    _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ (courant): {currentPath.FullName}");
+                    return currentPath.FullName;
+                }
+                
+                currentPath = currentPath.Parent;
+                if (currentPath != null)
+                {
+                    _logger.LogInformation($"Remontée vers le répertoire parent: {currentPath.FullName}");
+                }
+            }
+            
+            // Cas 2: Fallback vers la logique précédente pour les installations standalone
+            var fallbackPath = Path.Combine(baseDirectory, "..");
+            _logger.LogWarning($"❌ IMPOSSIBLE DE DÉTECTER AUTOMATIQUEMENT LE RÉPERTOIRE PROCESS STUDIO");
+            _logger.LogWarning($"Utilisation du fallback: {fallbackPath}");
+            return fallbackPath;
         }
     }
 }

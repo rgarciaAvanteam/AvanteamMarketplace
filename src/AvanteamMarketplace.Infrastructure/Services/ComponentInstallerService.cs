@@ -34,7 +34,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
             
             // Répertoire racine de Process Studio
             _processStudioRoot = configuration["Installation:ProcessStudioRoot"] ?? 
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..");
+                DetectProcessStudioRoot();
             
             // S'assurer que les répertoires existent
             EnsureDirectoryExists(_scriptsDirectory);
@@ -367,6 +367,49 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 }
             }
             return null;
+        }
+        
+        /// <summary>
+        /// Détecte automatiquement le répertoire racine de Process Studio
+        /// </summary>
+        private string DetectProcessStudioRoot()
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            _logger.LogInformation($"Répertoire de base de l'application: {baseDirectory}");
+            
+            // Cas 1: API déployée dans une installation Process Studio (ex: .../Root/api-installer/)
+            // On cherche le répertoire PS qui contient Custom/MarketPlace
+            var currentPath = new DirectoryInfo(baseDirectory);
+            
+            while (currentPath != null)
+            {
+                // Chercher le répertoire PS dans le répertoire courant ou ses parents
+                var psDirectory = Path.Combine(currentPath.FullName, "PS");
+                if (Directory.Exists(psDirectory))
+                {
+                    var marketPlaceDir = Path.Combine(psDirectory, "Custom", "MarketPlace");
+                    if (Directory.Exists(marketPlaceDir))
+                    {
+                        _logger.LogInformation($"Répertoire Process Studio détecté: {psDirectory}");
+                        return psDirectory;
+                    }
+                }
+                
+                // Vérifier si le répertoire courant lui-même contient Custom/MarketPlace
+                var marketPlaceInCurrent = Path.Combine(currentPath.FullName, "Custom", "MarketPlace");
+                if (Directory.Exists(marketPlaceInCurrent))
+                {
+                    _logger.LogInformation($"Répertoire Process Studio détecté: {currentPath.FullName}");
+                    return currentPath.FullName;
+                }
+                
+                currentPath = currentPath.Parent;
+            }
+            
+            // Cas 2: Fallback vers la logique précédente pour les installations standalone
+            var fallbackPath = Path.Combine(baseDirectory, "..");
+            _logger.LogWarning($"Impossible de détecter automatiquement le répertoire Process Studio, utilisation du fallback: {fallbackPath}");
+            return fallbackPath;
         }
     }
 }

@@ -570,21 +570,22 @@ if ($iisConfigEnabled) {
     
     if ($iisConfigEnabled) {
         # Créer le pool d'applications pour api-installer avec des droits élevés
-        $apiInstallerAppPoolName = "api-installer"
+        # Utiliser le nom du site web pour créer un nom de pool unique
+        $apiInstallerAppPoolName = "$WebsiteName-api-installer"
         $apiInstallerAppPoolExists = Test-Path "IIS:\AppPools\$apiInstallerAppPoolName"
         
         if ($apiInstallerAppPoolExists) {
-            Write-Host "Le pool d'applications api-installer existe déjà." -ForegroundColor Yellow
+            Write-Host "Le pool d'applications $apiInstallerAppPoolName existe déjà." -ForegroundColor Yellow
             if (Confirm-Continue "Voulez-vous reconfigurer le pool d'applications existant?") {
                 Stop-WebAppPool -Name $apiInstallerAppPoolName
             }
         } else {
-            Write-Host "Création du pool d'applications api-installer..."
+            Write-Host "Création du pool d'applications $apiInstallerAppPoolName..."
             New-WebAppPool -Name $apiInstallerAppPoolName
         }
         
         # Configurer le pool d'applications api-installer
-        Write-Host "Configuration du pool d'applications api-installer avec des privilèges élevés..."
+        Write-Host "Configuration du pool d'applications $apiInstallerAppPoolName avec des privilèges élevés..."
         Set-ItemProperty -Path "IIS:\AppPools\$apiInstallerAppPoolName" -Name "managedRuntimeVersion" -Value ""
         Set-ItemProperty -Path "IIS:\AppPools\$apiInstallerAppPoolName" -Name "managedPipelineMode" -Value "Integrated"
         Set-ItemProperty -Path "IIS:\AppPools\$apiInstallerAppPoolName" -Name "enable32BitAppOnWin64" -Value $false
@@ -1040,7 +1041,7 @@ L'installation suit une structure spécifique:
 
 Le script:
 - Crée/configure UNIQUEMENT l'application "api-installer" dans IIS
-- Configure le pool d'applications "api-installer" avec des privilèges élevés
+- Configure le pool d'applications "[NOMDUSITEWEB]-api-installer" avec des privilèges élevés
 - Ne crée PAS d'applications IIS pour app/Custom ou app/Custom/MarketPlace
 - Dépose simplement les fichiers du module client dans le répertoire app/Custom/MarketPlace
 

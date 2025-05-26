@@ -436,6 +436,33 @@ try {
             exit 1
         }
     }
+    
+    # 3.1 Copier le répertoire screenshots, s'il existe, vers le répertoire d'installation et d'enregistrement
+    $screenshotsDir = [System.IO.Path]::Combine($componentRoot, "screenshots")
+    if (Test-Path -Path $screenshotsDir -PathType Container) {
+        Write-Log "Copie du répertoire 'screenshots' vers le répertoire d'installation et d'enregistrement" -Level "INFO"
+        try {
+            # Créer le répertoire screenshots dans le répertoire d'installation
+            $destScreenshotsDir = [System.IO.Path]::Combine($componentInstallDir, "screenshots")
+            Ensure-Directory -Path $destScreenshotsDir
+            # Copier tous les fichiers du répertoire screenshots vers le répertoire d'installation
+            Copy-Item -Path "$screenshotsDir\*" -Destination $destScreenshotsDir -Recurse -Force
+            
+            # Créer le répertoire screenshots dans le répertoire d'enregistrement si différent de l'installation
+            if ($componentInstallDir -ne $componentRegistryDir) {
+                $registryScreenshotsDir = [System.IO.Path]::Combine($componentRegistryDir, "screenshots")
+                Ensure-Directory -Path $registryScreenshotsDir
+                # Copier tous les fichiers du répertoire screenshots vers le répertoire d'enregistrement
+                Copy-Item -Path "$screenshotsDir\*" -Destination $registryScreenshotsDir -Recurse -Force
+            }
+            
+            Write-Log "Copie du répertoire 'screenshots' réussie" -Level "SUCCESS"
+        }
+        catch {
+            Write-Log "Erreur lors de la copie du répertoire 'screenshots': $(Get-SafeErrorMessage $_)" -Level "WARNING"
+            # Ne pas faire échouer l'installation si la copie des screenshots échoue
+        }
+    }
     else {
         # Si pas de dossier src, chercher d'autres structures possibles
         Write-Log "Aucun répertoire 'src' trouvé dans la racine du composant. Recherche d'autres structures..." -Level "INFO"
@@ -482,6 +509,33 @@ try {
                     }
                 }
                 Write-Log "Copie du contenu racine réussie" -Level "SUCCESS"
+                
+                # Vérifier s'il y a un répertoire screenshots ailleurs dans le package
+                $screenshotsDir = Get-ChildItem -Path $extractDir -Include "screenshots" -Directory -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($screenshotsDir) {
+                    Write-Log "Répertoire 'screenshots' trouvé à un emplacement non standard: $($screenshotsDir.FullName)" -Level "INFO"
+                    try {
+                        # Créer le répertoire screenshots dans le répertoire d'installation
+                        $destScreenshotsDir = [System.IO.Path]::Combine($componentInstallDir, "screenshots")
+                        Ensure-Directory -Path $destScreenshotsDir
+                        # Copier tous les fichiers du répertoire screenshots vers le répertoire d'installation
+                        Copy-Item -Path "$($screenshotsDir.FullName)\*" -Destination $destScreenshotsDir -Recurse -Force
+                        
+                        # Créer le répertoire screenshots dans le répertoire d'enregistrement si différent de l'installation
+                        if ($componentInstallDir -ne $componentRegistryDir) {
+                            $registryScreenshotsDir = [System.IO.Path]::Combine($componentRegistryDir, "screenshots")
+                            Ensure-Directory -Path $registryScreenshotsDir
+                            # Copier tous les fichiers du répertoire screenshots vers le répertoire d'enregistrement
+                            Copy-Item -Path "$($screenshotsDir.FullName)\*" -Destination $registryScreenshotsDir -Recurse -Force
+                        }
+                        
+                        Write-Log "Copie du répertoire 'screenshots' réussie" -Level "SUCCESS"
+                    }
+                    catch {
+                        Write-Log "Erreur lors de la copie du répertoire 'screenshots': $(Get-SafeErrorMessage $_)" -Level "WARNING"
+                        # Ne pas faire échouer l'installation si la copie des screenshots échoue
+                    }
+                }
             }
             catch {
                 Write-Log "Erreur lors de la copie du contenu racine: $(Get-SafeErrorMessage $_)" -Level "ERROR"

@@ -83,15 +83,17 @@ public partial class Custom_Marketplace_Default : System.Web.UI.Page
     }
     
     /// <summary>
-    /// Génère un identifiant unique pour ce client basé sur le nom de la machine
+    /// Génère un identifiant unique pour ce client basé sur le nom de la machine et le chemin de l'application
     /// </summary>
     private void GenerateClientId()
     {
         string machineName = Environment.MachineName;
         string domainName = Environment.UserDomainName;
+        string applicationPath = HttpContext.Current.Request.ApplicationPath ?? "/";
+        string physicalPath = Server.MapPath("~");
         
-        // Combiner le nom de machine et le domaine pour l'unicité
-        string baseString = $"{machineName}.{domainName}.ProcessStudio";
+        // Combiner le nom de machine, le domaine et le chemin physique pour l'unicité par site
+        string baseString = $"{machineName}.{domainName}.{physicalPath}.ProcessStudio";
         
         // Créer un hash SHA-256 pour l'identifiant client
         using (var sha = SHA256.Create())

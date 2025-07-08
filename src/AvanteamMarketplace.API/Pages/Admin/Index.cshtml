@@ -132,9 +132,7 @@
                                 <th>URL de base</th>
                                 <th>Version PS</th>
                                 <th>Clé API</th>
-                                <th>Administrateur</th>
-                                <th>Accès Admin</th>
-                                <th>Lecture Admin</th>
+                                <th>Type d'accès</th>
                                 <th>Date de création</th>
                                 <th>Actions</th>
                             </tr>
@@ -324,26 +322,17 @@ component-name.zip
                     </div>
                     
                     <div class="form-group">
-                        <label for="chkIsAdmin">
-                            <input type="checkbox" id="chkIsAdmin" />
-                            Droits administrateur
-                        </label>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="chkCanAccessAdminInterface">
-                            <input type="checkbox" id="chkCanAccessAdminInterface" />
-                            Peut accéder à l'interface admin
-                        </label>
-                        <small>Permet à cette clé de se connecter à l'interface d'administration</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="chkCanReadAdminInterface">
-                            <input type="checkbox" id="chkCanReadAdminInterface" />
-                            Accès en lecture seule à l'interface admin
-                        </label>
-                        <small>Permet la consultation des données admin sans modification</small>
+                        <label for="selectAccessLevel">Type d'accès de la clé API:</label>
+                        <select id="selectAccessLevel" class="form-control">
+                            <option value="0">Application Web (standard)</option>
+                            <option value="1">Utilisateur Admin (accès complet)</option>
+                            <option value="2">Utilisateur Lecture (consultation seule)</option>
+                        </select>
+                        <small>
+                            <strong>Application Web:</strong> Accès aux endpoints publics du marketplace uniquement<br/>
+                            <strong>Utilisateur Admin:</strong> Accès complet à l'interface d'administration<br/>
+                            <strong>Utilisateur Lecture:</strong> Consultation des données et téléchargement des packages
+                        </small>
                     </div>
                     
                     <div class="form-actions">

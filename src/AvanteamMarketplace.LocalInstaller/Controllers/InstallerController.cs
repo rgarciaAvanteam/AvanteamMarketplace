@@ -971,57 +971,90 @@ namespace AvanteamMarketplace.LocalInstaller.Controllers
             _logger.LogInformation($"=== DÉTECTION AUTOMATIQUE DU RÉPERTOIRE PROCESS STUDIO ===");
             _logger.LogInformation($"Répertoire de base de l'application: {baseDirectory}");
             
-            // Cas 1: API déployée dans une installation Process Studio (ex: .../Root/api-installer/)
-            // On cherche le répertoire PS qui contient Custom/MarketPlace
+            // Cas 1: Structure standard - API dans Root/api-installer, application dans répertoire frère
+            // Exemple: .../PStudio.Net.Web/Root/api-installer -> .../PStudio.Net.Web/[APP_DIR]/
+            if (baseDirectory.Contains("Root" + Path.DirectorySeparatorChar + "api-installer") || 
+                baseDirectory.Contains("Root/api-installer"))
+            {
+                _logger.LogInformation("Détection de la structure standard Root/api-installer");
+                
+                // Remonter vers PStudio.Net.Web
+                var webDir = baseDirectory;
+                while (!webDir.EndsWith("PStudio.Net.Web") && Path.GetDirectoryName(webDir) != null)
+                {
+                    webDir = Path.GetDirectoryName(webDir);
+                }
+                
+                if (webDir.EndsWith("PStudio.Net.Web"))
+                {
+                    _logger.LogInformation($"Répertoire PStudio.Net.Web détecté: {webDir}");
+                    
+                    // Chercher tous les sous-répertoires qui contiennent Custom/MarketPlace
+                    try
+                    {
+                        var subdirectories = Directory.GetDirectories(webDir);
+                        foreach (var subDir in subdirectories)
+                        {
+                            var subdirName = Path.GetFileName(subDir);
+                            // Ignorer le répertoire Root
+                            if (subdirName.Equals("Root", StringComparison.OrdinalIgnoreCase))
+                                continue;
+                                
+                            _logger.LogInformation($"Test du répertoire d'application: {subdirName} ({subDir})");
+                            
+                            var marketPlaceDir = Path.Combine(subDir, "Custom", "MarketPlace");
+                            if (Directory.Exists(marketPlaceDir))
+                            {
+                                _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ: {subDir}");
+                                return subDir;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Erreur lors de l'examen des sous-répertoires de {webDir}: {ex.Message}");
+                    }
+                }
+            }
+            
+            // Cas 2: Méthode générique - remonter dans l'arborescence pour trouver Custom/MarketPlace
             var currentPath = new DirectoryInfo(baseDirectory);
             
             while (currentPath != null)
             {
                 _logger.LogInformation($"Examen du répertoire: {currentPath.FullName}");
                 
-                // Chercher le répertoire PS dans le répertoire courant ou ses parents
-                var psDirectory = Path.Combine(currentPath.FullName, "PS");
-                _logger.LogInformation($"Test de l'existence du répertoire PS: {psDirectory}");
-                
-                if (Directory.Exists(psDirectory))
-                {
-                    _logger.LogInformation($"Répertoire PS trouvé: {psDirectory}");
-                    var marketPlaceDir = Path.Combine(psDirectory, "Custom", "MarketPlace");
-                    _logger.LogInformation($"Test de l'existence du répertoire MarketPlace: {marketPlaceDir}");
-                    
-                    if (Directory.Exists(marketPlaceDir))
-                    {
-                        _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ: {psDirectory}");
-                        return psDirectory;
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"Répertoire PS trouvé mais pas de Custom/MarketPlace dedans");
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation($"Répertoire PS non trouvé");
-                }
-                
-                // Vérifier si le répertoire courant lui-même contient Custom/MarketPlace
+                // Vérifier si le répertoire courant contient Custom/MarketPlace
                 var marketPlaceInCurrent = Path.Combine(currentPath.FullName, "Custom", "MarketPlace");
-                _logger.LogInformation($"Test si le répertoire courant contient Custom/MarketPlace: {marketPlaceInCurrent}");
-                
                 if (Directory.Exists(marketPlaceInCurrent))
                 {
                     _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ (courant): {currentPath.FullName}");
                     return currentPath.FullName;
                 }
                 
-                currentPath = currentPath.Parent;
-                if (currentPath != null)
+                // Chercher dans les sous-répertoires
+                try
                 {
-                    _logger.LogInformation($"Remontée vers le répertoire parent: {currentPath.FullName}");
+                    var subdirectories = Directory.GetDirectories(currentPath.FullName);
+                    foreach (var subDir in subdirectories)
+                    {
+                        var marketPlaceDir = Path.Combine(subDir, "Custom", "MarketPlace");
+                        if (Directory.Exists(marketPlaceDir))
+                        {
+                            _logger.LogInformation($"✅ RÉPERTOIRE PROCESS STUDIO DÉTECTÉ: {subDir}");
+                            return subDir;
+                        }
+                    }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Erreur lors de l'examen des sous-répertoires de {currentPath.FullName}: {ex.Message}");
+                }
+                
+                currentPath = currentPath.Parent;
             }
             
-            // Cas 2: Fallback vers la logique précédente pour les installations standalone
+            // Cas 3: Fallback
             var fallbackPath = Path.Combine(baseDirectory, "..");
             _logger.LogWarning($"❌ IMPOSSIBLE DE DÉTECTER AUTOMATIQUEMENT LE RÉPERTOIRE PROCESS STUDIO");
             _logger.LogWarning($"Utilisation du fallback: {fallbackPath}");

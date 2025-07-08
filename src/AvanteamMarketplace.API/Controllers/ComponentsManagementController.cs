@@ -40,6 +40,38 @@ namespace AvanteamMarketplace.API.Controllers
         private readonly ILogger<ComponentsManagementController> _logger;
         private readonly MarketplaceDbContext _context;
         
+        /// <summary>
+        /// Vérifie si l'utilisateur actuel a les permissions pour effectuer des modifications
+        /// </summary>
+        /// <returns>True si l'utilisateur peut modifier, False pour les utilisateurs en lecture seule</returns>
+        private async Task<bool> CanUserModifyAsync()
+        {
+            try
+            {
+                // Récupérer la clé API depuis l'en-tête Authorization
+                var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                    return false;
+                
+                var apiKey = authHeader.Substring("Bearer ".Length).Trim();
+                
+                // Vérifier les permissions de la clé API
+                var keyEntity = await _context.ApiKeys
+                    .FirstOrDefaultAsync(k => k.Key == apiKey && k.IsActive);
+                
+                if (keyEntity == null)
+                    return false;
+                
+                // Seuls les utilisateurs admin peuvent modifier
+                return keyEntity.AccessLevel == Core.Models.ApiKeyAccessLevel.UtilisateurAdmin;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la vérification des permissions");
+                return false;
+            }
+        }
+        
         // Méthode utilitaire pour extraire les tags d'un manifest
         private string[] GetTagsFromManifest(JsonElement manifest)
         {
@@ -1379,12 +1411,20 @@ namespace AvanteamMarketplace.API.Controllers
         {
             try
             {
+                // Log de débogage complet pour diagnostiquer le problème
+                _logger.LogInformation($"[CONTROLLER] Création clé API - ClientId: {model.ClientId}");
+                _logger.LogInformation($"[CONTROLLER] BaseUrl: {model.BaseUrl}");
+                _logger.LogInformation($"[CONTROLLER] AccessLevel reçu: {model.AccessLevel} ({(int)model.AccessLevel})");
+                _logger.LogInformation($"[CONTROLLER] Type AccessLevel: {model.AccessLevel.GetType().Name}");
+                
                 if (!ModelState.IsValid)
                 {
+                    _logger.LogWarning($"Modèle invalide pour création clé API: {string.Join(", ", ModelState.SelectMany(x => x.Value.Errors.Select(e => e.ErrorMessage)))}");
                     return BadRequest(ModelState);
                 }
 
                 var apiKey = await _marketplaceService.CreateApiKeyAsync(model);
+                _logger.LogInformation($"Clé API créée - ID: {apiKey.ApiKeyId}, AccessLevel final: {apiKey.AccessLevel} ({(int)apiKey.AccessLevel})");
                 return CreatedAtAction(nameof(GetApiKeys), null, apiKey);
             }
             catch (Exception ex)

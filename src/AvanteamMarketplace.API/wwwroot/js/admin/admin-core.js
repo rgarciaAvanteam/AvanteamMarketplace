@@ -63,6 +63,9 @@ $(document).ready(function() {
     loadComponents();
     loadApiKeys();
     
+    // Appliquer les restrictions d'accès au démarrage
+    applyGlobalAccessRestrictions();
+    
     // Gestionnaire modal de confirmation de suppression
     // Fermer le modal de confirmation
     $(".close, #btnCancelDelete").click(function() {
@@ -80,3 +83,40 @@ $(document).ready(function() {
         }
     });
 });
+
+// ========== Gestion globale des restrictions d'accès ==========
+
+// Fonction pour appliquer les restrictions globales selon le niveau d'accès
+function applyGlobalAccessRestrictions() {
+    // Vérifier le niveau d'accès de l'utilisateur connecté
+    if (typeof adminAccessLevel === 'undefined') {
+        console.warn('adminAccessLevel non défini, accès complet par défaut');
+        return; // Accès complet par défaut
+    }
+    
+    console.log('Application des restrictions globales pour le niveau:', adminAccessLevel);
+    
+    // Si l'utilisateur a un accès en lecture seule
+    if (adminAccessLevel === 'read') {
+        
+        // Masquer tous les boutons d'actions de modification/suppression
+        $(".action-btn-edit, .action-btn-delete, .action-btn-upload").hide();
+        
+        // Masquer les boutons principaux d'ajout
+        $("#btnAddComponent, #btnAddApiKey, #btnAddVersion").hide();
+        
+        // Désactiver tous les formulaires de modification
+        $("input[type='text'], input[type='url'], textarea, select").prop('readonly', true);
+        $("input[type='checkbox']").prop('disabled', true);
+        
+        // Cacher les boutons de sauvegarde dans les modals
+        $("#btnSaveComponent, #btnSaveApiKey, #btnSaveVersion, #btnUploadPackage").hide();
+        
+        // Modifier le titre de la page pour indiquer le mode lecture seule
+        $("h1").append(' <small style="color: #6c757d;">(Mode lecture seule)</small>');
+        
+    } else if (adminAccessLevel === 'full') {
+        // Tous les boutons restent visibles pour l'accès complet
+        console.log('Accès complet - toutes les fonctionnalités globales disponibles');
+    }
+}

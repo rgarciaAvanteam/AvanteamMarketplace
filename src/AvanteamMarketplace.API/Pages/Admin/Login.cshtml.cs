@@ -66,27 +66,21 @@ namespace AvanteamMarketplace.API.Pages.Admin
                 else
                 {
                     // Deuxième vérification : clé API depuis la base de données
+                    Console.WriteLine($"[LOGIN DEBUG] Tentative de validation de la clé API: {(string.IsNullOrEmpty(AdminKey) ? "null" : AdminKey.Substring(0, Math.Min(8, AdminKey.Length)))}...");
                     var apiKeyEntity = await _marketplaceService.ValidateApiKeyForAdminAccessAsync(AdminKey);
+                    Console.WriteLine($"[LOGIN DEBUG] Résultat validation: {(apiKeyEntity != null ? $"Succès - AccessLevel: {apiKeyEntity.AccessLevel}" : "Échec - clé non trouvée")}");
+                    
                     if (apiKeyEntity != null)
                     {
                         isValidKey = true;
-                        // Déterminer le niveau d'accès
-                        if (apiKeyEntity.IsAdmin)
+                        // Déterminer le niveau d'accès selon le nouvel enum
+                        accessLevel = apiKeyEntity.AccessLevel switch
                         {
-                            accessLevel = "full";
-                        }
-                        else if (apiKeyEntity.CanAccessAdminInterface && !apiKeyEntity.CanReadAdminInterface)
-                        {
-                            accessLevel = "write";
-                        }
-                        else if (apiKeyEntity.CanReadAdminInterface)
-                        {
-                            accessLevel = "read";
-                        }
-                        else
-                        {
-                            accessLevel = "write"; // Par défaut si CanAccessAdminInterface est true
-                        }
+                            AvanteamMarketplace.Core.Models.ApiKeyAccessLevel.UtilisateurAdmin => "full",
+                            AvanteamMarketplace.Core.Models.ApiKeyAccessLevel.UtilisateurLecture => "read",
+                            _ => "none" // ApplicationWeb ne devrait pas arriver ici
+                        };
+                        Console.WriteLine($"[LOGIN DEBUG] Niveau d'accès déterminé: {accessLevel}");
                     }
                 }
                 

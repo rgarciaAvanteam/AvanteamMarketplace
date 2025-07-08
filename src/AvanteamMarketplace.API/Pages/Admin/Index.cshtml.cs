@@ -169,12 +169,14 @@ namespace AvanteamMarketplace.API.Pages.Admin
         {
             try
             {
-                // Effacer le cookie et la session
+                // Effacer les cookies et la session
                 Response.Cookies.Delete("AdminToken");
+                Response.Cookies.Delete("AdminAccessLevel");
                 
                 try
                 {
                     HttpContext.Session.Remove("AdminToken");
+                    HttpContext.Session.Remove("AdminAccessLevel");
                 }
                 catch
                 {
@@ -188,6 +190,7 @@ namespace AvanteamMarketplace.API.Pages.Admin
             
             IsAuthenticated = false;
             AdminToken = string.Empty;
+            AdminAccessLevel = "full";
             
             return RedirectToPage();
         }

@@ -35,7 +35,7 @@ namespace AvanteamMarketplace.Infrastructure.Data
         private static void CreateDefaultAdminApiKey(MarketplaceDbContext context)
         {
             // Vérifier si une clé admin existe déjà (vérification supplémentaire)
-            if (context.ApiKeys.Any(k => k.ClientId == "admin" && k.IsAdmin))
+            if (context.ApiKeys.Any(k => k.ClientId == "admin" && k.AccessLevel == ApiKeyAccessLevel.UtilisateurAdmin))
             {
                 Console.WriteLine("Une clé API admin existe déjà.");
                 return;
@@ -69,7 +69,7 @@ namespace AvanteamMarketplace.Infrastructure.Data
                 {
                     Key = key,
                     ClientId = "admin",
-                    IsAdmin = true,
+                    AccessLevel = ApiKeyAccessLevel.UtilisateurAdmin,
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow
                 };

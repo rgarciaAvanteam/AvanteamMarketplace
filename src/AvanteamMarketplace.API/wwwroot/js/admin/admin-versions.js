@@ -95,11 +95,45 @@ function showVersionPanel(componentId, componentName) {
     loadComponentVersions(componentId);
     loadComponentUsage(componentId);
     $("#versionManagementPanel").addClass("active");
+    
+    // Appliquer les restrictions d'accès pour les utilisateurs en lecture seule
+    applyVersionAccessRestrictions();
 }
 
 function hideVersionPanel() {
     $("#versionManagementPanel").removeClass("active");
     currentComponentId = null;
+}
+
+// Fonction pour appliquer les restrictions d'accès aux versions selon le niveau d'utilisateur
+function applyVersionAccessRestrictions() {
+    // Vérifier le niveau d'accès de l'utilisateur connecté
+    if (typeof adminAccessLevel === 'undefined') {
+        console.warn('adminAccessLevel non défini pour les versions, accès complet par défaut');
+        return; // Accès complet par défaut
+    }
+    
+    console.log('Niveau d\'accès utilisateur pour les versions:', adminAccessLevel);
+    
+    // Si l'utilisateur a un accès en lecture seule
+    if (adminAccessLevel === 'read') {
+        // Masquer le bouton d'ajout de version
+        $("#btnAddVersion").hide();
+        
+        // Masquer les boutons de modification/suppression dans le tableau des versions
+        // Utiliser un délai pour s'assurer que le tableau est chargé
+        const applyTableRestrictions = () => {
+            $(".action-btn-edit-version, .action-btn-set-latest, .action-btn-delete-version").hide();
+            // Les boutons de téléchargement (.action-btn-download-version) restent visibles
+        };
+        
+        // Appliquer immédiatement
+        applyTableRestrictions();
+        
+        // Réappliquer après un délai pour les éléments générés dynamiquement
+        setTimeout(applyTableRestrictions, 500);
+        setTimeout(applyTableRestrictions, 1000); // Double délai pour s'assurer
+    }
 }
 
 function loadComponentVersions(componentId) {
@@ -320,6 +354,9 @@ function loadComponentVersions(componentId) {
                 downloadVersionPackage(componentId, versionId);
             });
         });
+        
+        // Appliquer les restrictions d'accès après avoir généré le tableau
+        applyVersionAccessRestrictions();
     })
     .catch(error => {
         console.error('Erreur lors du chargement des versions:', error);

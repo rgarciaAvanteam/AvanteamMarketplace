@@ -49,7 +49,8 @@ namespace AvanteamMarketplace.API.Authentication
 
             // Vérifier si la clé dans la base de données a des droits d'administration
             var keyEntity = await _dbContext.ApiKeys.FirstOrDefaultAsync(k => k.Key == apiKey && k.IsActive);
-            return keyEntity?.IsAdmin ?? false;
+            return keyEntity?.AccessLevel == ApiKeyAccessLevel.UtilisateurAdmin || 
+                   keyEntity?.AccessLevel == ApiKeyAccessLevel.UtilisateurLecture;
         }
 
         public async Task RegisterApiKeyAsync(string apiKey, string clientId, string baseUrl, string platformVersion = null)
@@ -64,7 +65,7 @@ namespace AvanteamMarketplace.API.Authentication
                     BaseUrl = baseUrl,
                     PlatformVersion = platformVersion,
                     IsActive = true,
-                    IsAdmin = false,
+                    AccessLevel = ApiKeyAccessLevel.ApplicationWeb,
                     CreatedDate = System.DateTime.UtcNow
                 });
                 await _dbContext.SaveChangesAsync();

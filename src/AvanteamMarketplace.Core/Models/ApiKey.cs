@@ -12,10 +12,13 @@ namespace AvanteamMarketplace.Core.Models
         public string ClientId { get; set; } = string.Empty;
         public string BaseUrl { get; set; } = string.Empty;
         public string PlatformVersion { get; set; } = string.Empty;
-        public bool IsAdmin { get; set; }
+        
+        /// <summary>
+        /// Niveau d'accès de la clé API
+        /// </summary>
+        public ApiKeyAccessLevel AccessLevel { get; set; } = ApiKeyAccessLevel.ApplicationWeb;
+        
         public bool IsActive { get; set; }
-        public bool CanAccessAdminInterface { get; set; }
-        public bool CanReadAdminInterface { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? LastAccessDate { get; set; }
     }

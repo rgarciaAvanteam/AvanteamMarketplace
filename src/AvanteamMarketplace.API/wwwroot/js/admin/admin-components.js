@@ -15,6 +15,8 @@ function loadComponents() {
         },
         success: function(response) {
             displayComponents(response.components);
+            // Appliquer les restrictions d'accès après le chargement
+            applyComponentAccessRestrictions();
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors du chargement des composants:", error);
@@ -1087,4 +1089,57 @@ function deleteComponent(componentId) {
             showNotification(errorMessage, "error");
         }
     });
+}
+
+// ========== Gestion des restrictions d'accès pour les composants ==========
+
+// Fonction pour appliquer les restrictions selon le niveau d'accès
+function applyComponentAccessRestrictions() {
+    // Vérifier le niveau d'accès de l'utilisateur connecté
+    if (typeof adminAccessLevel === 'undefined') {
+        console.warn('adminAccessLevel non défini, accès complet par défaut');
+        return; // Accès complet par défaut
+    }
+    
+    console.log('Niveau d\'accès utilisateur pour composants:', adminAccessLevel);
+    
+    // Si l'utilisateur a un accès en lecture seule
+    if (adminAccessLevel === 'read') {
+        // Masquer tous les boutons de création/modification/suppression pour les composants
+        
+        // Onglet Composants - masquer le bouton d'ajout
+        $("#btnAddComponent").hide();
+        
+        // Masquer les boutons de modification/suppression/icône/package mais garder les versions
+        $(".action-btn-edit, .action-btn-delete, .action-btn-upload, .action-btn-icon, .action-btn-package").hide();
+        
+        // Masquer le bouton d'ajout de version mais permettre la consultation
+        $("#btnAddVersion").hide();
+        
+        // Dans le tableau des versions, masquer les boutons de modification mais garder le téléchargement
+        setTimeout(() => {
+            $(".action-btn-edit-version, .action-btn-set-latest, .action-btn-delete-version").hide();
+            // Les boutons de téléchargement (.action-btn-download-version) restent visibles
+        }, 500); // Délai pour s'assurer que le tableau est généré
+        
+        // Désactiver les modals de création/modification
+        $("#componentModal, #packageModal, #versionModal").remove();
+        
+        // Ajouter un message d'information pour l'onglet composants
+        if (!$("#components-read-only-message").length) {
+            const readOnlyMessage = `
+                <div id="components-read-only-message" class="alert alert-info" style="margin: 10px 0; padding: 10px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; color: #0c5460;">
+                    <i class="fas fa-info-circle"></i> <strong>Mode lecture seule :</strong> Vous pouvez consulter les composants, leurs versions et télécharger les packages, mais pas les créer ou les modifier.
+                </div>
+            `;
+            $("#components-tab .admin-actions").first().after(readOnlyMessage);
+        }
+        
+        // Permettre seulement les téléchargements (boutons de téléchargement restent visibles)
+        $(".action-btn-download").show();
+        
+    } else if (adminAccessLevel === 'full') {
+        // Tous les boutons restent visibles pour l'accès complet
+        console.log('Accès complet - toutes les fonctionnalités de composants disponibles');
+    }
 }

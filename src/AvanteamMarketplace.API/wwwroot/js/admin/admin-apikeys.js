@@ -5,7 +5,7 @@
 
 // Charger la liste des clés API
 function loadApiKeys() {
-    $("#apiKeysTable tbody").html('<tr><td colspan="10" class="loading">Chargement des clés API...</td></tr>');
+    $("#apiKeysTable tbody").html('<tr><td colspan="8" class="loading">Chargement des clés API...</td></tr>');
     
     $.ajax({
         url: `${apiBaseUrl}/management/apikeys`,
@@ -15,16 +15,33 @@ function loadApiKeys() {
         },
         success: function(response) {
             displayApiKeys(response);
+            // Appliquer les restrictions d'accès après le chargement
+            applyAccessRestrictions();
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors du chargement des clés API:", error);
-            $("#apiKeysTable tbody").html(`<tr><td colspan="10" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
+            $("#apiKeysTable tbody").html(`<tr><td colspan="8" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
         }
     });
 }
 
 // Variable pour stocker toutes les clés API
 let allApiKeys = [];
+
+// Fonction utilitaire pour obtenir le nom d'affichage du niveau d'accès
+function getAccessLevelDisplayName(accessLevel) {
+    if (typeof accessLevel === 'number') {
+        switch(accessLevel) {
+            case 0: return 'Application Web';
+            case 1: return 'Utilisateur Admin';
+            case 2: return 'Utilisateur Lecture';
+            default: return 'Inconnu';
+        }
+    } else if (typeof accessLevel === 'string') {
+        return accessLevel;
+    }
+    return 'Application Web'; // Valeur par défaut
+}
 
 // Fonction pour filtrer les clés API
 function filterApiKeys() {
@@ -40,10 +57,14 @@ function filterApiKeys() {
         const baseUrl = apiKey.baseUrl || '';
         const platformVersion = apiKey.platformVersion || '';
         
+        // Obtenir le nom du type d'accès pour la recherche
+        const accessLevelName = getAccessLevelDisplayName(apiKey.accessLevel).toLowerCase();
+        
         return id.toString().toLowerCase().includes(searchTerm) || 
                clientId.toString().toLowerCase().includes(searchTerm) || 
                baseUrl.toLowerCase().includes(searchTerm) || 
-               platformVersion.toLowerCase().includes(searchTerm);
+               platformVersion.toLowerCase().includes(searchTerm) ||
+               accessLevelName.includes(searchTerm);
     });
     
     renderApiKeysTable(filteredKeys);
@@ -55,7 +76,7 @@ $(document).on('input', '#searchApiKeys', filterApiKeys);
 // Afficher les clés API dans le tableau
 function displayApiKeys(apiKeys) {
     if (!apiKeys) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -73,7 +94,7 @@ function displayApiKeys(apiKeys) {
             keysArray = apiKeys.data;
         } else {
             console.error("Format de réponse inattendu pour les clés API:", apiKeys);
-            $("#apiKeysTable tbody").html('<tr><td colspan="10">Erreur: format de données non reconnu</td></tr>');
+            $("#apiKeysTable tbody").html('<tr><td colspan="8">Erreur: format de données non reconnu</td></tr>');
             return;
         }
     }
@@ -82,7 +103,7 @@ function displayApiKeys(apiKeys) {
     allApiKeys = keysArray;
     
     if (keysArray.length === 0) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -93,7 +114,7 @@ function displayApiKeys(apiKeys) {
 // Fonction pour afficher les clés API dans le tableau
 function renderApiKeysTable(keysArray) {
     if (!keysArray || keysArray.length === 0) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -103,13 +124,24 @@ function renderApiKeysTable(keysArray) {
         const id = apiKey.apiKeyId || apiKey.id || 'N/A';
         const clientId = apiKey.clientId || 'N/A';
         const keyValue = apiKey.key || 'N/A';
-        const isAdmin = apiKey.isAdmin === true;
-        const canAccessAdmin = apiKey.canAccessAdminInterface === true;
-        const canReadAdmin = apiKey.canReadAdminInterface === true;
+        const accessLevel = apiKey.accessLevel !== undefined ? apiKey.accessLevel : (apiKey.accessLevelDisplay || 'Application Web');
         const createdDate = apiKey.createdDate ? new Date(apiKey.createdDate).toLocaleDateString() : 'N/A';
         
         const baseUrl = apiKey.baseUrl || 'N/A';
         const platformVersion = apiKey.platformVersion || 'N/A';
+        
+        // Convertir le niveau d'accès en texte lisible
+        let accessLevelText = 'Application Web';
+        if (typeof accessLevel === 'number') {
+            switch(accessLevel) {
+                case 0: accessLevelText = 'Application Web'; break;
+                case 1: accessLevelText = 'Utilisateur Admin'; break;
+                case 2: accessLevelText = 'Utilisateur Lecture'; break;
+                default: accessLevelText = 'Inconnu'; break;
+            }
+        } else if (typeof accessLevel === 'string') {
+            accessLevelText = accessLevel;
+        }
         
         html += `<tr data-client-id="${clientId}" class="selectable-row">
             <td>${id}</td>
@@ -117,9 +149,7 @@ function renderApiKeysTable(keysArray) {
             <td>${baseUrl}</td>
             <td>${platformVersion}</td>
             <td>${keyValue !== 'N/A' ? keyValue.substring(0, 10) + '...' : 'N/A'}</td>
-            <td>${isAdmin ? 'Oui' : 'Non'}</td>
-            <td>${canAccessAdmin ? 'Oui' : 'Non'}</td>
-            <td>${canReadAdmin ? 'Oui' : 'Non'}</td>
+            <td><span class="access-level-${accessLevel}">${accessLevelText}</span></td>
             <td>${createdDate}</td>
             <td class="action-buttons">
                 <a href="#" class="action-btn action-btn-delete" data-id="${id}">Supprimer</a>
@@ -163,9 +193,7 @@ $("#btnAddApiKey").click(function(e) {
     $("#txtClientId").val("");
     $("#txtBaseUrl").val("");
     $("#txtPlatformVersion").val("");
-    $("#chkIsAdmin").prop("checked", false);
-    $("#chkCanAccessAdminInterface").prop("checked", false);
-    $("#chkCanReadAdminInterface").prop("checked", false);
+    $("#selectAccessLevel").val("0"); // Application Web par défaut
     $("#apiKeyModal").css("display", "block");
 });
 
@@ -184,14 +212,18 @@ function resetApiKeyFilter() {
 
 // Créer une nouvelle clé API
 $("#btnSaveApiKey").click(function() {
+    const accessLevelValue = $("#selectAccessLevel").val();
+    console.log("[DEBUG CREATION] Valeur AccessLevel sélectionnée:", accessLevelValue);
+    console.log("[DEBUG CREATION] Valeur AccessLevel après parseInt:", parseInt(accessLevelValue));
+    
     const apiKey = {
         clientId: $("#txtClientId").val(),
         baseUrl: $("#txtBaseUrl").val(),
         platformVersion: $("#txtPlatformVersion").val(),
-        isAdmin: $("#chkIsAdmin").is(":checked"),
-        canAccessAdminInterface: $("#chkCanAccessAdminInterface").is(":checked"),
-        canReadAdminInterface: $("#chkCanReadAdminInterface").is(":checked")
+        accessLevel: parseInt(accessLevelValue)
     };
+    
+    console.log("[DEBUG CREATION] Objet apiKey complet:", JSON.stringify(apiKey, null, 2));
     
     // Validation basique
     if (!apiKey.clientId) {
@@ -473,4 +505,47 @@ function displayInstalledComponents(clientId, components) {
     `;
     
     $("#installed-components-section").html(html);
+}
+
+// ========== Gestion des restrictions d'accès ==========
+
+// Fonction pour appliquer les restrictions selon le niveau d'accès
+function applyAccessRestrictions() {
+    // Vérifier le niveau d'accès de l'utilisateur connecté
+    if (typeof adminAccessLevel === 'undefined') {
+        console.warn('adminAccessLevel non défini, accès complet par défaut');
+        return; // Accès complet par défaut
+    }
+    
+    console.log('Niveau d\'accès utilisateur:', adminAccessLevel);
+    
+    // Si l'utilisateur a un accès en lecture seule
+    if (adminAccessLevel === 'read') {
+        // Masquer tous les boutons de création/modification/suppression
+        
+        // Onglet Clés API - masquer le bouton d'ajout et les actions de suppression
+        $("#btnAddApiKey").hide();
+        $(".action-btn-delete").hide();
+        
+        // Ajouter un message d'information
+        if (!$("#read-only-message").length) {
+            const readOnlyMessage = `
+                <div id="read-only-message" class="alert alert-info" style="margin: 10px 0; padding: 10px; background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 4px; color: #0c5460;">
+                    <i class="fas fa-info-circle"></i> <strong>Mode lecture seule :</strong> Vous pouvez consulter les données et télécharger les packages, mais pas les modifier.
+                </div>
+            `;
+            $(".admin-actions").first().after(readOnlyMessage);
+        }
+    }
+    
+    // Si l'utilisateur a un accès complet
+    else if (adminAccessLevel === 'full') {
+        // Tous les boutons restent visibles
+        console.log('Accès complet - toutes les fonctionnalités disponibles');
+    }
+    
+    // Accès inconnu ou limité
+    else {
+        console.warn('Niveau d\'accès inconnu:', adminAccessLevel);
+    }
 }

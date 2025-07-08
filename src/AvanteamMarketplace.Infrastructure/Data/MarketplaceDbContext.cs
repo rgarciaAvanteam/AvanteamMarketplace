@@ -136,6 +136,7 @@ namespace AvanteamMarketplace.Infrastructure.Data
                 entity.Property(e => e.Key).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.ClientId).HasMaxLength(100);
                 entity.Property(e => e.BaseUrl).HasMaxLength(255);
+                entity.Property(e => e.AccessLevel).IsRequired();
                 
                 // Index pour validation de clé
                 entity.HasIndex(e => e.Key).IsUnique();

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using AvanteamMarketplace.Core.Models;
 
 namespace AvanteamMarketplace.Core.ViewModels
 {
@@ -13,12 +14,19 @@ namespace AvanteamMarketplace.Core.ViewModels
         public string ClientId { get; set; } = string.Empty;
         public string BaseUrl { get; set; } = string.Empty;
         public string PlatformVersion { get; set; } = string.Empty;
-        public bool IsAdmin { get; set; }
+        public ApiKeyAccessLevel AccessLevel { get; set; }
         public bool IsActive { get; set; }
-        public bool CanAccessAdminInterface { get; set; }
-        public bool CanReadAdminInterface { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? LastAccessDate { get; set; }
+        
+        // Propriétés calculées pour l'affichage
+        public string AccessLevelDisplay => AccessLevel switch
+        {
+            ApiKeyAccessLevel.ApplicationWeb => "Application Web",
+            ApiKeyAccessLevel.UtilisateurAdmin => "Utilisateur Admin",
+            ApiKeyAccessLevel.UtilisateurLecture => "Utilisateur Lecture",
+            _ => "Inconnu"
+        };
     }
     
     /// <summary>
@@ -35,8 +43,7 @@ namespace AvanteamMarketplace.Core.ViewModels
         [Url(ErrorMessage = "L'URL de base doit être une URL valide")]
         public string BaseUrl { get; set; } = string.Empty;
         
-        public bool IsAdmin { get; set; }
-        public bool CanAccessAdminInterface { get; set; }
-        public bool CanReadAdminInterface { get; set; }
+        [Required(ErrorMessage = "Le niveau d'accès est requis")]
+        public ApiKeyAccessLevel AccessLevel { get; set; } = ApiKeyAccessLevel.ApplicationWeb;
     }
 }

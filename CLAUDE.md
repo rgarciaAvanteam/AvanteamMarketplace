@@ -100,3 +100,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - RESTful API patterns
   - Clear and concise commit messages
   - One class per file, named after the primary class
+
+## Component Installation Guidelines
+- Component install.ps1 scripts must:
+  - Configure IIS application with compatible pool detection (Runtime=v4.0 only)
+  - Execute SQL scripts using cascade connection methods (SqlServer module → Microsoft.Data.SqlClient → System.Data.SqlClient)
+  - Configure Web.config with OpenDocument.UrlBase from programs.ini
+  - Update programs.ini with ApplicationProfileName from Applications.xml
+  - Recycle all application pools except those containing "api-installer"
+  - Handle GO statements in SQL scripts by cleaning them before .NET execution
+  - Use non-accented characters to avoid PowerShell encoding issues
+
+## Script Guidelines
+- PowerShell Scripts:
+  - Avoid using accents or special characters to prevent encoding issues
+  - Use cascade SQL connection methods for maximum compatibility
+  - IIS pool detection should only check Runtime=v4.0, ignore pipeline mode
+  - Always preserve existing pools (never delete during uninstall)

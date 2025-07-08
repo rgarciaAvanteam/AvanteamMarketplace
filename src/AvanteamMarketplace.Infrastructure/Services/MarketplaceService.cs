@@ -1533,7 +1533,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 ClientId = k.ClientId,
                 BaseUrl = k.BaseUrl,
                 PlatformVersion = k.PlatformVersion,
-                IsAdmin = k.IsAdmin,
+                AccessLevel = k.AccessLevel,
                 IsActive = k.IsActive,
                 CreatedDate = k.CreatedDate,
                 LastAccessDate = k.LastAccessDate
@@ -1553,6 +1553,9 @@ namespace AvanteamMarketplace.Infrastructure.Services
     {
         try
         {
+            // Log de débogage
+            _logger.LogInformation($"[CreateApiKeyAsync] AccessLevel reçu du modèle: {model.AccessLevel} ({(int)model.AccessLevel})");
+            
             // Générer une nouvelle clé API
             string key = GenerateApiKey();
             
@@ -1561,13 +1564,21 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 Key = key,
                 ClientId = model.ClientId,
                 BaseUrl = model.BaseUrl,
-                IsAdmin = model.IsAdmin,
+                AccessLevel = model.AccessLevel,
                 IsActive = true,
                 CreatedDate = DateTime.UtcNow
             };
             
+            // Note: Les propriétés obsolètes IsAdmin, CanAccessAdminInterface, CanReadAdminInterface 
+            // sont maintenant calculées automatiquement à partir de AccessLevel
+            // Pas besoin de les définir manuellement car elles sont ignorées par Entity Framework
+            
+            _logger.LogInformation($"[CreateApiKeyAsync] AccessLevel assigné à l'entité: {apiKey.AccessLevel} ({(int)apiKey.AccessLevel})");
+            
             _context.ApiKeys.Add(apiKey);
             await _context.SaveChangesAsync();
+            
+            _logger.LogInformation($"[CreateApiKeyAsync] AccessLevel après sauvegarde (ID: {apiKey.ApiKeyId}): {apiKey.AccessLevel} ({(int)apiKey.AccessLevel})");
             
             return new ApiKeyViewModel
             {
@@ -1576,7 +1587,7 @@ namespace AvanteamMarketplace.Infrastructure.Services
                 ClientId = apiKey.ClientId,
                 BaseUrl = apiKey.BaseUrl,
                 PlatformVersion = apiKey.PlatformVersion,
-                IsAdmin = apiKey.IsAdmin,
+                AccessLevel = apiKey.AccessLevel,
                 IsActive = apiKey.IsActive,
                 CreatedDate = apiKey.CreatedDate
             };
@@ -1653,7 +1664,8 @@ namespace AvanteamMarketplace.Infrastructure.Services
             await _context.SaveChangesAsync();
                 
             // Vérifier si la clé a les permissions d'accès admin
-            if (keyEntity.CanAccessAdminInterface || keyEntity.IsAdmin)
+            if (keyEntity.AccessLevel == Core.Models.ApiKeyAccessLevel.UtilisateurAdmin || 
+                keyEntity.AccessLevel == Core.Models.ApiKeyAccessLevel.UtilisateurLecture)
             {
                 return keyEntity;
             }

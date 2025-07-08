@@ -19,6 +19,15 @@ function initTabs() {
         } else if (tabId === "apikeys" && $("#apiKeysTable tbody").is(":empty")) {
             loadApiKeys();
         }
+        
+        // Appliquer les restrictions d'accès pour l'onglet actuel
+        setTimeout(() => {
+            if (tabId === "components") {
+                applyComponentAccessRestrictions();
+            } else if (tabId === "apikeys") {
+                applyAccessRestrictions();
+            }
+        }, 100); // Petit délai pour s'assurer que les éléments sont chargés
     });
 }
 

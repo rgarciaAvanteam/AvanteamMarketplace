@@ -1632,6 +1632,42 @@ namespace AvanteamMarketplace.Infrastructure.Services
     }
     
     /// <summary>
+    /// Vérifie une clé API et ses permissions d'accès admin
+    /// </summary>
+    public async Task<ApiKey> ValidateApiKeyForAdminAccessAsync(string apiKey)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+                return null;
+            
+            // Rechercher la clé API dans la base de données
+            var keyEntity = await _context.ApiKeys
+                .FirstOrDefaultAsync(k => k.Key == apiKey && k.IsActive);
+                
+            if (keyEntity == null)
+                return null;
+                
+            // Mettre à jour la date d'accès
+            keyEntity.LastAccessDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+                
+            // Vérifier si la clé a les permissions d'accès admin
+            if (keyEntity.CanAccessAdminInterface || keyEntity.IsAdmin)
+            {
+                return keyEntity;
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Erreur lors de la validation de la clé API pour l'accès admin: {ex.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
     /// Vérifie si un composant existe avec l'URL de dépôt GitHub spécifiée
     /// </summary>
     public async Task<Component> GetComponentByRepositoryUrlAsync(string repositoryUrl)

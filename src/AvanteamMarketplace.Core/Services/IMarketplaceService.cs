@@ -141,6 +141,13 @@ namespace AvanteamMarketplace.Core.Services
         Task<bool> DeleteApiKeyAsync(int apiKeyId);
         
         /// <summary>
+        /// Vérifie une clé API et ses permissions d'accès admin
+        /// </summary>
+        /// <param name="apiKey">La clé API à vérifier</param>
+        /// <returns>Les informations de la clé API si valide, null sinon</returns>
+        Task<ApiKey> ValidateApiKeyForAdminAccessAsync(string apiKey);
+        
+        /// <summary>
         /// Vérifie si un composant existe avec l'URL de dépôt GitHub spécifiée
         /// </summary>
         /// <param name="repositoryUrl">URL du dépôt GitHub à vérifier</param>

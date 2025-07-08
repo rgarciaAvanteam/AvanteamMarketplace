@@ -14,6 +14,8 @@ namespace AvanteamMarketplace.Core.Models
         public string PlatformVersion { get; set; } = string.Empty;
         public bool IsAdmin { get; set; }
         public bool IsActive { get; set; }
+        public bool CanAccessAdminInterface { get; set; }
+        public bool CanReadAdminInterface { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? LastAccessDate { get; set; }
     }

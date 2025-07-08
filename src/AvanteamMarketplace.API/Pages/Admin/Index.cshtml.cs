@@ -21,6 +21,8 @@ namespace AvanteamMarketplace.API.Pages.Admin
         
         public string AdminToken { get; private set; } = string.Empty;
         
+        public string AdminAccessLevel { get; private set; } = "full";
+        
         public IndexModel(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -35,6 +37,12 @@ namespace AvanteamMarketplace.API.Pages.Admin
                 {
                     IsAuthenticated = true;
                     AdminToken = adminToken;
+                    
+                    // Récupérer le niveau d'accès
+                    if (Request.Cookies.TryGetValue("AdminAccessLevel", out string? accessLevel))
+                    {
+                        AdminAccessLevel = accessLevel;
+                    }
                     
                     // Récupérer l'URL de base de l'API
                     ApiBaseUrl = _configuration["ApiBaseUrl"] ?? 
@@ -52,6 +60,13 @@ namespace AvanteamMarketplace.API.Pages.Admin
                         {
                             IsAuthenticated = true;
                             AdminToken = sessionToken;
+                            
+                            // Récupérer le niveau d'accès depuis la session
+                            var sessionAccessLevel = HttpContext.Session.GetString("AdminAccessLevel");
+                            if (!string.IsNullOrEmpty(sessionAccessLevel))
+                            {
+                                AdminAccessLevel = sessionAccessLevel;
+                            }
                             
                             // Récupérer l'URL de base de l'API
                             ApiBaseUrl = _configuration["ApiBaseUrl"] ?? 

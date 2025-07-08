@@ -1,22 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+using AvanteamMarketplace.Core.Services;
 using System;
+using System.Threading.Tasks;
 
 namespace AvanteamMarketplace.API.Pages.Admin
 {
     public class LoginModel : PageModel
     {
         private readonly IConfiguration _configuration;
+        private readonly IMarketplaceService _marketplaceService;
         
         [BindProperty]
         public string? AdminKey { get; set; }
         
         public string ErrorMessage { get; set; } = string.Empty;
         
-        public LoginModel(IConfiguration configuration)
+        public LoginModel(IConfiguration configuration, IMarketplaceService marketplaceService)
         {
             _configuration = configuration;
+            _marketplaceService = marketplaceService;
         }
         
         public void OnGet()
@@ -29,7 +33,7 @@ namespace AvanteamMarketplace.API.Pages.Admin
             }
         }
         
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             try
             {
@@ -39,7 +43,10 @@ namespace AvanteamMarketplace.API.Pages.Admin
                     return Page();
                 }
                 
-                // Récupérer la clé depuis toutes les sources possibles
+                bool isValidKey = false;
+                string? accessLevel = null;
+                
+                // Première vérification : clé admin statique (existante)
                 var configuredKey = _configuration["ApiKeys:AdminKey"] ?? 
                                   _configuration["AdminKey"] ?? 
                                   Environment.GetEnvironmentVariable("MARKETPLACE_ADMIN_KEY") ??
@@ -51,15 +58,55 @@ namespace AvanteamMarketplace.API.Pages.Admin
                     configuredKey = "admin";
                 }
                 
-                // Valider la clé d'administration
-                if (AdminKey != configuredKey)
+                if (AdminKey == configuredKey)
                 {
-                    ErrorMessage = "Clé d'administration invalide.";
+                    isValidKey = true;
+                    accessLevel = "full";
+                }
+                else
+                {
+                    // Deuxième vérification : clé API depuis la base de données
+                    var apiKeyEntity = await _marketplaceService.ValidateApiKeyForAdminAccessAsync(AdminKey);
+                    if (apiKeyEntity != null)
+                    {
+                        isValidKey = true;
+                        // Déterminer le niveau d'accès
+                        if (apiKeyEntity.IsAdmin)
+                        {
+                            accessLevel = "full";
+                        }
+                        else if (apiKeyEntity.CanAccessAdminInterface && !apiKeyEntity.CanReadAdminInterface)
+                        {
+                            accessLevel = "write";
+                        }
+                        else if (apiKeyEntity.CanReadAdminInterface)
+                        {
+                            accessLevel = "read";
+                        }
+                        else
+                        {
+                            accessLevel = "write"; // Par défaut si CanAccessAdminInterface est true
+                        }
+                    }
+                }
+                
+                if (!isValidKey)
+                {
+                    ErrorMessage = "Clé d'administration ou clé API invalide.";
                     return Page();
                 }
                 
-                // Stocker la clé d'administration en cookie et session
+                // Stocker la clé d'administration et le niveau d'accès en cookie et session
                 Response.Cookies.Append("AdminToken", AdminKey, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = Request.IsHttps,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.Now.AddHours(1)
+                });
+                
+                // Stocker également le niveau d'accès
+                Response.Cookies.Append("AdminAccessLevel", accessLevel ?? "full", new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = Request.IsHttps,
@@ -70,6 +117,7 @@ namespace AvanteamMarketplace.API.Pages.Admin
                 try
                 {
                     HttpContext.Session.SetString("AdminToken", AdminKey);
+                    HttpContext.Session.SetString("AdminAccessLevel", accessLevel ?? "full");
                 }
                 catch
                 {

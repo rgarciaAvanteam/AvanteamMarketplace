@@ -5,7 +5,7 @@
 
 // Charger la liste des clés API
 function loadApiKeys() {
-    $("#apiKeysTable tbody").html('<tr><td colspan="8" class="loading">Chargement des clés API...</td></tr>');
+    $("#apiKeysTable tbody").html('<tr><td colspan="10" class="loading">Chargement des clés API...</td></tr>');
     
     $.ajax({
         url: `${apiBaseUrl}/management/apikeys`,
@@ -18,7 +18,7 @@ function loadApiKeys() {
         },
         error: function(xhr, status, error) {
             console.error("Erreur lors du chargement des clés API:", error);
-            $("#apiKeysTable tbody").html(`<tr><td colspan="8" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
+            $("#apiKeysTable tbody").html(`<tr><td colspan="10" class="error">Erreur lors du chargement des clés API: ${xhr.status} ${xhr.statusText}</td></tr>`);
         }
     });
 }
@@ -55,7 +55,7 @@ $(document).on('input', '#searchApiKeys', filterApiKeys);
 // Afficher les clés API dans le tableau
 function displayApiKeys(apiKeys) {
     if (!apiKeys) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -73,7 +73,7 @@ function displayApiKeys(apiKeys) {
             keysArray = apiKeys.data;
         } else {
             console.error("Format de réponse inattendu pour les clés API:", apiKeys);
-            $("#apiKeysTable tbody").html('<tr><td colspan="8">Erreur: format de données non reconnu</td></tr>');
+            $("#apiKeysTable tbody").html('<tr><td colspan="10">Erreur: format de données non reconnu</td></tr>');
             return;
         }
     }
@@ -82,7 +82,7 @@ function displayApiKeys(apiKeys) {
     allApiKeys = keysArray;
     
     if (keysArray.length === 0) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -93,7 +93,7 @@ function displayApiKeys(apiKeys) {
 // Fonction pour afficher les clés API dans le tableau
 function renderApiKeysTable(keysArray) {
     if (!keysArray || keysArray.length === 0) {
-        $("#apiKeysTable tbody").html('<tr><td colspan="8">Aucune clé API trouvée</td></tr>');
+        $("#apiKeysTable tbody").html('<tr><td colspan="10">Aucune clé API trouvée</td></tr>');
         return;
     }
     
@@ -104,6 +104,8 @@ function renderApiKeysTable(keysArray) {
         const clientId = apiKey.clientId || 'N/A';
         const keyValue = apiKey.key || 'N/A';
         const isAdmin = apiKey.isAdmin === true;
+        const canAccessAdmin = apiKey.canAccessAdminInterface === true;
+        const canReadAdmin = apiKey.canReadAdminInterface === true;
         const createdDate = apiKey.createdDate ? new Date(apiKey.createdDate).toLocaleDateString() : 'N/A';
         
         const baseUrl = apiKey.baseUrl || 'N/A';
@@ -116,6 +118,8 @@ function renderApiKeysTable(keysArray) {
             <td>${platformVersion}</td>
             <td>${keyValue !== 'N/A' ? keyValue.substring(0, 10) + '...' : 'N/A'}</td>
             <td>${isAdmin ? 'Oui' : 'Non'}</td>
+            <td>${canAccessAdmin ? 'Oui' : 'Non'}</td>
+            <td>${canReadAdmin ? 'Oui' : 'Non'}</td>
             <td>${createdDate}</td>
             <td class="action-buttons">
                 <a href="#" class="action-btn action-btn-delete" data-id="${id}">Supprimer</a>
@@ -160,6 +164,8 @@ $("#btnAddApiKey").click(function(e) {
     $("#txtBaseUrl").val("");
     $("#txtPlatformVersion").val("");
     $("#chkIsAdmin").prop("checked", false);
+    $("#chkCanAccessAdminInterface").prop("checked", false);
+    $("#chkCanReadAdminInterface").prop("checked", false);
     $("#apiKeyModal").css("display", "block");
 });
 
@@ -182,7 +188,9 @@ $("#btnSaveApiKey").click(function() {
         clientId: $("#txtClientId").val(),
         baseUrl: $("#txtBaseUrl").val(),
         platformVersion: $("#txtPlatformVersion").val(),
-        isAdmin: $("#chkIsAdmin").is(":checked")
+        isAdmin: $("#chkIsAdmin").is(":checked"),
+        canAccessAdminInterface: $("#chkCanAccessAdminInterface").is(":checked"),
+        canReadAdminInterface: $("#chkCanReadAdminInterface").is(":checked")
     };
     
     // Validation basique

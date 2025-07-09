@@ -68,6 +68,14 @@ namespace AvanteamMarketplace.Core.Services
         /// <returns>Informations sur la mise à jour disponible ou null si aucune mise à jour</returns>
         Task<ComponentUpdateInfo> CheckForUpdateAsync(int componentId, string clientId, string installedVersion, string platformVersion);
         
+        /// <summary>
+        /// Récupère les composants avec des versions désactivées installées par un client
+        /// </summary>
+        /// <param name="clientId">Identifiant du client</param>
+        /// <param name="platformVersion">Version de Process Studio</param>
+        /// <returns>Liste des composants avec des versions désactivées et leurs recommandations</returns>
+        Task<List<DeactivatedVersionAlert>> GetDeactivatedVersionAlertsAsync(string clientId, string platformVersion);
+        
         // Méthodes d'administration
         
         /// <summary>
@@ -124,6 +132,17 @@ namespace AvanteamMarketplace.Core.Services
         /// Définit une version comme étant la dernière version du composant
         /// </summary>
         Task<bool> SetLatestVersionAsync(int componentId, int versionId);
+        
+        /// <summary>
+        /// Supprime définitivement une version d'un composant
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="versionId">ID de la version à supprimer</param>
+        /// <returns>True si la suppression a réussi, sinon False</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Lancée si la version ne peut pas être supprimée (utilisée par des clients, seule version, version actuelle)
+        /// </exception>
+        Task<bool> DeleteComponentVersionAsync(int componentId, int versionId);
         
         /// <summary>
         /// Récupère la liste des clés API
@@ -212,5 +231,61 @@ namespace AvanteamMarketplace.Core.Services
         /// Indique si la mise à jour est compatible avec la version actuelle de Process Studio
         /// </summary>
         public bool IsCompatibleWithCurrentPlatform { get; set; }
+    }
+    
+    /// <summary>
+    /// Alerte pour une version désactivée installée
+    /// </summary>
+    public class DeactivatedVersionAlert
+    {
+        /// <summary>
+        /// ID du composant
+        /// </summary>
+        public int ComponentId { get; set; }
+        
+        /// <summary>
+        /// Nom du composant
+        /// </summary>
+        public string ComponentName { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Nom d'affichage du composant
+        /// </summary>
+        public string DisplayName { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Version désactivée actuellement installée
+        /// </summary>
+        public string DeactivatedVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Version recommandée pour remplacer la version désactivée
+        /// </summary>
+        public string RecommendedVersion { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Indique si la version recommandée est compatible avec la version actuelle de Process Studio
+        /// </summary>
+        public bool IsRecommendedVersionCompatible { get; set; }
+        
+        /// <summary>
+        /// Version minimale de Process Studio requise pour la version recommandée
+        /// </summary>
+        public string MinPlatformVersionRequired { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Message d'alerte à afficher à l'utilisateur
+        /// </summary>
+        public string AlertMessage { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Type d'alerte (Warning, Error, etc.)
+        /// </summary>
+        public string AlertType { get; set; } = "Warning";
+        
+        /// <summary>
+        /// Indique si une action automatique peut être proposée
+        /// </summary>
+        public bool CanAutoUpdate { get; set; }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using AvanteamMarketplace.API.Authentication;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace AvanteamMarketplace.API.Controllers
 {
@@ -192,6 +193,53 @@ namespace AvanteamMarketplace.API.Controllers
             {
                 _logger.LogError(ex, $"Erreur lors de la récupération des composants futurs pour le client {clientId}");
                 return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération des composants" });
+            }
+        }
+
+        /// <summary>
+        /// Récupère les alertes concernant les versions désactivées installées par un client
+        /// </summary>
+        /// <param name="clientId">Identifiant unique du client Process Studio</param>
+        /// <param name="version">Version de la plateforme Process Studio du client</param>
+        /// <returns>Liste des alertes pour les versions désactivées</returns>
+        /// <response code="200">Retourne la liste des alertes</response>
+        /// <response code="400">Si les paramètres requis ne sont pas spécifiés</response>
+        /// <response code="401">Si l'authentification a échoué</response>
+        /// <response code="500">Si une erreur serveur s'est produite</response>
+        /// <remarks>
+        /// Cette méthode permet de détecter les composants installés avec des versions désactivées
+        /// et propose des versions alternatives compatibles avec la version actuelle de Process Studio.
+        /// </remarks>
+        [HttpGet("components/deactivated-alerts")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<DeactivatedVersionAlert>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<DeactivatedVersionAlert>>> GetDeactivatedVersionAlerts(
+            [FromQuery] string clientId,
+            [FromQuery] string version)
+        {
+            try
+            {
+                _logger.LogInformation($"Récupération des alertes de versions désactivées pour le client {clientId} avec la version {version}");
+                
+                if (string.IsNullOrEmpty(clientId))
+                {
+                    return BadRequest("L'identifiant du client est requis");
+                }
+                
+                if (string.IsNullOrEmpty(version))
+                {
+                    return BadRequest("La version de la plateforme est requise");
+                }
+                
+                var result = await _marketplaceService.GetDeactivatedVersionAlertsAsync(clientId, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la récupération des alertes de versions désactivées pour le client {clientId}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la récupération des alertes" });
             }
         }
 

@@ -289,6 +289,19 @@ MarketplaceMediator.defineModule('ui', ['config', 'utils', 'components', 'filter
                         showInstalledOnly: showInstalledOnlyCheckbox.checked 
                     });
                 }
+                
+                // Charger les alertes de versions désactivées si on est sur l'onglet compatible
+                if (tabName === 'compatible') {
+                    components.loadDeactivatedVersionAlerts()
+                        .then(alerts => {
+                            if (alerts && alerts.length > 0) {
+                                components.displayDeactivatedVersionAlerts(alerts);
+                            }
+                        })
+                        .catch(error => {
+                            console.warn("Erreur lors du chargement des alertes de versions désactivées:", error);
+                        });
+                }
             })
             .catch(error => {
                 console.error(`Erreur lors du chargement des composants pour ${tabName}:`, error);

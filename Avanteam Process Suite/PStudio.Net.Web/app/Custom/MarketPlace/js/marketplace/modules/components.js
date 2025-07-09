@@ -627,10 +627,14 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     function getDisplayVersion(component, tabName) {
         switch (tabName) {
             case 'compatible':
-                // Dans l'onglet "Disponible", afficher la version installée ou disponible
-                return component.isInstalled && component.installedVersion 
-                    ? component.installedVersion 
-                    : component.version;
+                // Dans l'onglet "Disponible" :
+                // - Si le composant est installé : afficher la version installée
+                // - Si le composant n'est pas installé : afficher la version active compatible avec Process Studio
+                if (component.isInstalled && component.installedVersion) {
+                    return component.installedVersion;
+                } else {
+                    return component.version;
+                }
                 
             case 'updates':
                 // Dans l'onglet "Mises à jour", afficher la version vers laquelle on peut faire la mise à jour
@@ -644,6 +648,51 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                 // Par défaut, afficher la version du composant
                 return component.version;
         }
+    }
+    
+    /**
+     * Vérifie si un composant a une version installée désactivée
+     * @param {Object} component - Composant à vérifier
+     * @returns {boolean} - True si la version installée est désactivée
+     */
+    function hasDeactivatedInstalledVersion(component) {
+        return component.isInstalled && 
+               component.installedVersion && 
+               component.installedVersion.startsWith('Désactivé_');
+    }
+    
+    /**
+     * Génère le HTML pour la pastille de version avec gestion des versions désactivées
+     * @param {Object} component - Composant
+     * @param {string} tabName - Onglet actif
+     * @returns {string} - HTML de la pastille de version
+     */
+    function getVersionBadgeHtml(component, tabName) {
+        const displayVersion = getDisplayVersion(component, tabName);
+        
+        // Vérifier si la version installée est désactivée
+        if (hasDeactivatedInstalledVersion(component)) {
+            const cleanVersion = component.installedVersion.replace('Désactivé_', '');
+            return `
+                <div class="component-version-container">
+                    <span class="component-version deactivated" title="Version désactivée">
+                        v${cleanVersion} <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                    <div class="deactivated-version-tooltip">
+                        <div class="tooltip-content">
+                            <strong>Version désactivée</strong><br>
+                            Cette version n'est plus supportée.<br>
+                            <button class="btn btn-sm btn-primary reinstall-btn" onclick="reinstallActiveVersion(${component.componentId}, '${component.version}')">
+                                Réinstaller v${component.version}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Affichage normal
+        return `<span class="component-version">v${displayVersion}</span>`;
     }
     
     /**
@@ -930,7 +979,7 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
                     </div>
                     <p class="component-description">${component.description}</p>
                     <div class="component-meta">
-                        <span class="component-version">v${getDisplayVersion(component, tabName)}</span>
+                        ${getVersionBadgeHtml(component, tabName)}
                         <span class="component-category">${component.category || 'Non catégorisé'}</span>
                         ${component.isInstalled && component.hasUpdate ? '<span class="component-update-badge">Mise à jour disponible</span>' : ''}
                         ${tabName === 'future' && component.minPlatformVersion ? `<span class="component-future-badge">Nécessite PS ${component.minPlatformVersion}+</span>` : ''}
@@ -1292,6 +1341,193 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
     }
     
     // API publique
+    /**
+     * Charge les alertes de versions désactivées pour le client actuel
+     * @returns {Promise<Array>} - Promesse résolue avec les alertes
+     */
+    function loadDeactivatedVersionAlerts() {
+        console.log("Chargement des alertes de versions désactivées");
+        
+        // S'assurer que platformVersion est bien défini
+        if (!platformVersion || platformVersion.trim() === '') {
+            console.warn("Version de plateforme non définie, tentative de récupération...");
+            platformVersion = config.getPlatformVersion();
+            
+            if (!platformVersion || platformVersion.trim() === '') {
+                console.warn("Impossible de récupérer la version de plateforme, utilisation de la valeur par défaut");
+                platformVersion = "23.10.0"; // Valeur par défaut
+            }
+        }
+        
+        const clientId = config.getClientId() || '';
+        if (!clientId) {
+            console.warn("Aucun identifiant client disponible, impossible de vérifier les versions désactivées");
+            return Promise.resolve([]);
+        }
+        
+        // Nettoyer la version pour éviter les espaces ou caractères problématiques
+        const cleanVersion = platformVersion.trim().replace(/\s+/g, '');
+        console.log(`Chargement des alertes de versions désactivées avec platformVersion=${cleanVersion} et clientId=${clientId}`);
+        
+        // Construire l'endpoint
+        const endpoint = `/components/deactivated-alerts?version=${encodeURIComponent(cleanVersion)}&clientId=${encodeURIComponent(clientId)}`;
+        
+        // Publier un événement pour indiquer le début du chargement
+        MarketplaceMediator.publish('deactivatedAlertsLoading', {
+            endpoint: endpoint
+        });
+        
+        // Utiliser apiRequest pour effectuer la requête
+        return apiRequest(endpoint, {
+            method: 'GET',
+            timeout: 15000, // 15 secondes timeout
+            context: 'loadDeactivatedVersionAlerts',
+            defaultErrorResponse: []
+        })
+        .then(data => {
+            console.log("Réponse API pour les alertes de versions désactivées:", data);
+            
+            // Normaliser les données (data est déjà un tableau)
+            const alerts = Array.isArray(data) ? data : [];
+            
+            // Notifier que les alertes sont chargées
+            MarketplaceMediator.publish('deactivatedAlertsLoaded', {
+                alerts: alerts,
+                count: alerts.length
+            });
+            
+            return alerts;
+        })
+        .catch(error => {
+            console.error("Erreur lors du chargement des alertes de versions désactivées:", error);
+            
+            // Publier un événement d'erreur
+            MarketplaceMediator.publish('deactivatedAlertsLoadError', {
+                error: error.message,
+                statusCode: error.statusCode || 'network'
+            });
+            
+            // Retourner un tableau vide plutôt que de propager l'erreur
+            return [];
+        });
+    }
+    
+    /**
+     * Affiche les alertes de versions désactivées dans l'interface utilisateur
+     * @param {Array} alerts - Tableau des alertes à afficher
+     */
+    function displayDeactivatedVersionAlerts(alerts) {
+        if (!alerts || alerts.length === 0) {
+            return;
+        }
+        
+        console.log(`Affichage de ${alerts.length} alerte(s) de versions désactivées`);
+        
+        // Chercher ou créer le conteneur des alertes
+        let alertContainer = document.getElementById('deactivated-alerts-container');
+        if (!alertContainer) {
+            // Créer le conteneur des alertes
+            alertContainer = document.createElement('div');
+            alertContainer.id = 'deactivated-alerts-container';
+            alertContainer.className = 'deactivated-alerts-container';
+            
+            // Insérer le conteneur au début de la zone de contenu principal
+            const contentArea = document.querySelector('.marketplace-content') || document.querySelector('.tab-content');
+            if (contentArea) {
+                contentArea.insertBefore(alertContainer, contentArea.firstChild);
+            } else {
+                document.body.appendChild(alertContainer);
+            }
+        }
+        
+        // Générer le HTML pour les alertes
+        const alertsHtml = alerts.map(alert => {
+            const alertClass = alert.alertType.toLowerCase() === 'error' ? 'alert-error' : 'alert-warning';
+            const actionButton = alert.canAutoUpdate && alert.isRecommendedVersionCompatible 
+                ? `<button class="btn btn-sm btn-primary" onclick="MarketplaceMediator.publish('updateDeactivatedComponent', {componentId: ${alert.componentId}, recommendedVersion: '${alert.recommendedVersion}'})" title="Mettre à jour vers la version recommandée">
+                     Mettre à jour
+                   </button>`
+                : alert.isRecommendedVersionCompatible 
+                    ? `<button class="btn btn-sm btn-secondary" onclick="MarketplaceMediator.publish('viewComponent', {componentId: ${alert.componentId}})" title="Voir les détails du composant">
+                         Voir les détails
+                       </button>`
+                    : `<span class="text-muted small">Nécessite PS ${alert.minPlatformVersionRequired}+</span>`;
+            
+            return `
+                <div class="alert ${alertClass} deactivated-version-alert" data-component-id="${alert.componentId}">
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <strong>${alert.displayName}</strong>
+                        <p class="alert-message">${alert.alertMessage}</p>
+                        <div class="alert-actions">
+                            ${actionButton}
+                            <button class="btn btn-sm btn-link" onclick="this.closest('.deactivated-version-alert').style.display='none'" title="Masquer cette alerte">
+                                Masquer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Mettre à jour le contenu du conteneur
+        alertContainer.innerHTML = `
+            <div class="deactivated-alerts-header">
+                <h4><i class="fas fa-exclamation-triangle"></i> Versions désactivées détectées</h4>
+                <button class="btn btn-sm btn-link" onclick="document.getElementById('deactivated-alerts-container').style.display='none'" title="Masquer toutes les alertes">
+                    Masquer tout
+                </button>
+            </div>
+            <div class="deactivated-alerts-list">
+                ${alertsHtml}
+            </div>
+        `;
+        
+        // S'assurer que le conteneur est visible
+        alertContainer.style.display = 'block';
+        
+        // Publier un événement pour notifier l'affichage des alertes
+        MarketplaceMediator.publish('deactivatedAlertsDisplayed', {
+            alerts: alerts,
+            count: alerts.length
+        });
+    }
+    
+    /**
+     * Fonction globale pour réinstaller une version active d'un composant
+     * @param {number} componentId - ID du composant à réinstaller
+     * @param {string} activeVersion - Version active à installer
+     */
+    function reinstallActiveVersion(componentId, activeVersion) {
+        console.log(`Réinstallation de la version active ${activeVersion} pour le composant ${componentId}`);
+        
+        // Créer un événement personnalisé pour déclencher l'installation
+        const installEvent = new CustomEvent('component-install', {
+            detail: {
+                componentId: componentId,
+                version: activeVersion,
+                isReinstall: true
+            }
+        });
+        
+        // Déclencher l'événement sur le document
+        document.dispatchEvent(installEvent);
+        
+        // Également publier via le mediator pour les modules qui l'écoutent
+        MarketplaceMediator.publish('componentInstallRequested', {
+            componentId: componentId,
+            version: activeVersion,
+            isReinstall: true
+        });
+    }
+    
+    // Exposer la fonction globalement pour l'utilisation dans les boutons onclick
+    if (typeof window !== 'undefined') {
+        window.reinstallActiveVersion = reinstallActiveVersion;
+    }
+    
     return {
         init,
         loadComponents,
@@ -1308,6 +1544,11 @@ MarketplaceMediator.defineModule('components', ['config', 'utils', 'auth'], func
         getVisibleComponentsCount,
         prepareAuthHeaders,  // Exposer la fonction d'aide
         apiRequest,  // Exposer la fonction de requête API centralisée
-        cacheManager  // Exposer le gestionnaire de cache
+        cacheManager,  // Exposer le gestionnaire de cache
+        loadDeactivatedVersionAlerts,  // Nouvelle fonction pour charger les alertes
+        displayDeactivatedVersionAlerts,  // Nouvelle fonction pour afficher les alertes
+        hasDeactivatedInstalledVersion,  // Fonction pour vérifier les versions désactivées
+        getVersionBadgeHtml,  // Fonction pour générer le HTML de la pastille de version
+        reinstallActiveVersion  // Fonction pour réinstaller une version active
     };
 });

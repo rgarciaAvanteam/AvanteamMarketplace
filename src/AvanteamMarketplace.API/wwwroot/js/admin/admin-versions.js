@@ -11,11 +11,88 @@ function confirmDeleteVersion(componentId, versionId) {
     $("#confirmDeleteModal").css("display", "block");
 }
 
-function deleteVersion(componentId, versionId) {
-    console.log(`Suppression de la version ${versionId} du composant ${componentId}`);
+function showDeleteConfirmation(componentId, versionId) {
+    console.log(`Affichage de la confirmation pour la version ${versionId} du composant ${componentId}`);
+    
+    // Préparer les données pour la modal
+    window.componentIdToDelete = componentId;
+    window.versionIdToDelete = versionId;
+    
+    // D'abord, vérifier si la version est utilisée par des clients
+    checkVersionUsage(componentId, versionId).then(clients => {
+        let confirmationMessage = `Êtes-vous sûr de vouloir supprimer définitivement la version <strong>${versionId}</strong> ?<br>`;
+        confirmationMessage += `Cette action est irréversible et supprimera également le package associé.<br><br>`;
+        
+        if (clients && clients.length > 0) {
+            confirmationMessage += `<div class="alert alert-danger">`;
+            confirmationMessage += `<strong>⚠️ Attention :</strong> Cette version est actuellement utilisée par <strong>${clients.length}</strong> client(s) :<br>`;
+            confirmationMessage += `<ul>`;
+            clients.forEach(client => {
+                confirmationMessage += `<li>${client.clientIdentifier} (installé le ${new Date(client.installDate).toLocaleDateString()})</li>`;
+            });
+            confirmationMessage += `</ul>`;
+            confirmationMessage += `La suppression sera bloquée par le système.`;
+            confirmationMessage += `</div>`;
+        } else {
+            confirmationMessage += `<div class="alert alert-info">`;
+            confirmationMessage += `<strong>✓ Information :</strong> Cette version n'est actuellement utilisée par aucun client.`;
+            confirmationMessage += `</div>`;
+        }
+        
+        // Mettre à jour le message de confirmation
+        $("#confirmDeleteMessage").html(confirmationMessage);
+        $("#confirmDeleteModal").css("display", "block");
+    }).catch(error => {
+        console.warn("Erreur lors de la vérification de l'utilisation de la version:", error);
+        
+        // Afficher la modal avec un message d'avertissement
+        let confirmationMessage = `Êtes-vous sûr de vouloir supprimer définitivement la version <strong>${versionId}</strong> ?<br>`;
+        confirmationMessage += `Cette action est irréversible et supprimera également le package associé.<br><br>`;
+        confirmationMessage += `<div class="alert alert-warning">`;
+        confirmationMessage += `<strong>⚠️ Avertissement :</strong> Impossible de vérifier l'utilisation de cette version par les clients.`;
+        confirmationMessage += `</div>`;
+        
+        $("#confirmDeleteMessage").html(confirmationMessage);
+        $("#confirmDeleteModal").css("display", "block");
+    });
+}
+
+function checkVersionUsage(componentId, versionId) {
+    // D'abord, récupérer les détails de la version pour obtenir le numéro de version
+    return fetch(`${apiBaseUrl}/management/components/${componentId}/versions/${versionId}`, {
+        headers: {
+            'Authorization': `Bearer ${adminToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Erreur lors de la récupération des détails de la version: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(versionDetails => {
+        const versionNumber = versionDetails.version || versionDetails.Version;
+        
+        // Maintenant, vérifier quels clients utilisent cette version
+        return fetch(`${apiBaseUrl}/management/components/${componentId}/versions/${encodeURIComponent(versionNumber)}/clients`, {
+            headers: {
+                'Authorization': `Bearer ${adminToken}`
+            }
+        });
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Erreur lors de la récupération des clients: ${response.status}`);
+        }
+        return response.json();
+    });
+}
+
+function deactivateVersion(componentId, versionId) {
+    console.log(`Désactivation de la version ${versionId} du composant ${componentId}`);
     
     // Désactiver le bouton de confirmation pour éviter les clics multiples
-    $("#btnConfirmDelete").prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Suppression...');
+    $("#btnConfirmDeactivate").prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Désactivation...');
     
     // Récupérer d'abord les détails de la version pour les préserver
     fetch(`${apiBaseUrl}/management/components/${componentId}/versions/${versionId}`, {
@@ -52,7 +129,64 @@ function deleteVersion(componentId, versionId) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`Erreur lors de la suppression de la version: ${response.status}`);
+            throw new Error(`Erreur lors de la désactivation de la version: ${response.status}`);
+        }
+        
+        $("#confirmDeactivateModal").css("display", "none");
+        $("#btnConfirmDeactivate").prop('disabled', false).html('Confirmer');
+        
+        // Afficher une notification de succès
+        const successNotif = $(`<div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Version désactivée avec succès
+        </div>`);
+        $(".admin-header").after(successNotif);
+        setTimeout(() => successNotif.fadeOut(500, function() { $(this).remove(); }), 5000);
+        
+        // Recharger la liste des versions
+        loadComponentVersions(componentId);
+    })
+    .catch(error => {
+        console.error("Erreur:", error);
+        
+        // Réinitialiser le bouton
+        $("#btnConfirmDeactivate").prop('disabled', false).html('Confirmer');
+        
+        // Fermer la modal de confirmation
+        $("#confirmDeactivateModal").css("display", "none");
+        
+        // Tenter d'extraire un message d'erreur plus utile
+        let errorMessage = error.message;
+        
+        // Afficher une notification d'erreur
+        const errorNotif = $(`<div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> Erreur lors de la désactivation de la version: ${errorMessage}
+        </div>`);
+        $(".admin-header").after(errorNotif);
+        setTimeout(() => errorNotif.fadeOut(2000, function() { $(this).remove(); }), 8000);
+    });
+}
+
+function deleteVersion(componentId, versionId) {
+    console.log(`Suppression de la version ${versionId} du composant ${componentId}`);
+    
+    // Désactiver le bouton de confirmation pour éviter les clics multiples
+    $("#btnConfirmDelete").prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Suppression...');
+    
+    // Utiliser le nouvel endpoint DELETE pour une suppression définitive
+    fetch(`${apiBaseUrl}/management/components/${componentId}/versions/${versionId}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${adminToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Récupérer le message d'erreur détaillé si disponible
+            return response.json().then(errorData => {
+                throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+            }).catch(() => {
+                throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+            });
         }
         
         $("#confirmDeleteModal").css("display", "none");
@@ -60,7 +194,7 @@ function deleteVersion(componentId, versionId) {
         
         // Afficher une notification de succès
         const successNotif = $(`<div class="alert alert-success">
-            <i class="fas fa-check-circle"></i> Version supprimée avec succès
+            <i class="fas fa-check-circle"></i> Version supprimée définitivement avec succès
         </div>`);
         $(".admin-header").after(successNotif);
         setTimeout(() => successNotif.fadeOut(500, function() { $(this).remove(); }), 5000);
@@ -77,12 +211,18 @@ function deleteVersion(componentId, versionId) {
         // Fermer la modal de confirmation
         $("#confirmDeleteModal").css("display", "none");
         
-        // Tenter d'extraire un message d'erreur plus utile
+        // Déterminer le type d'erreur et afficher un message approprié
         let errorMessage = error.message;
+        let alertClass = "alert-danger";
+        
+        // Vérifier si c'est une erreur de validation métier (400)
+        if (errorMessage.includes("utilisée par") || errorMessage.includes("seule version") || errorMessage.includes("version actuelle")) {
+            alertClass = "alert-warning";
+        }
         
         // Afficher une notification d'erreur
-        const errorNotif = $(`<div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i> Erreur lors de la suppression de la version: ${errorMessage}
+        const errorNotif = $(`<div class="alert ${alertClass}">
+            <i class="fas fa-exclamation-circle"></i> ${errorMessage}
         </div>`);
         $(".admin-header").after(errorNotif);
         setTimeout(() => errorNotif.fadeOut(2000, function() { $(this).remove(); }), 8000);

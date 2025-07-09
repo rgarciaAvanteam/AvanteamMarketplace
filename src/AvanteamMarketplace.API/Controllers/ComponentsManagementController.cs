@@ -1345,6 +1345,61 @@ namespace AvanteamMarketplace.API.Controllers
         }
 
         /// <summary>
+        /// Supprime définitivement une version d'un composant
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="versionId">ID de la version à supprimer</param>
+        /// <returns>Statut de la suppression</returns>
+        /// <remarks>
+        /// Cette action supprime définitivement la version de la base de données.
+        /// La suppression est interdite si :
+        /// - La version est actuellement utilisée par des clients
+        /// - La version est la seule version du composant
+        /// - La version est marquée comme version actuelle (IsLatest = true)
+        /// </remarks>
+        [HttpDelete("components/{componentId}/versions/{versionId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> DeleteComponentVersion(int componentId, int versionId)
+        {
+            try
+            {
+                _logger.LogInformation($"Demande de suppression définitive de la version {versionId} du composant {componentId}");
+
+                // Vérifier que le composant existe
+                var component = await _marketplaceService.GetComponentAdminDetailAsync(componentId);
+                if (component == null)
+                    return NotFound(new { error = "Composant non trouvé" });
+
+                // Vérifier que la version existe
+                var version = await _marketplaceService.GetComponentVersionAsync(versionId);
+                if (version == null)
+                    return NotFound(new { error = "Version non trouvée" });
+
+                // Appeler la méthode de suppression qui contient toutes les vérifications
+                var success = await _marketplaceService.DeleteComponentVersionAsync(componentId, versionId);
+                if (!success)
+                    return NotFound(new { error = "Version non trouvée ou impossible à supprimer" });
+
+                _logger.LogInformation($"Version {versionId} du composant {componentId} supprimée avec succès");
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Gestion des erreurs métier (version utilisée, version actuelle, etc.)
+                _logger.LogWarning(ex, $"Impossible de supprimer la version {versionId} du composant {componentId}: {ex.Message}");
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la suppression de la version {versionId} du composant {componentId}");
+                return StatusCode(500, new { error = "Une erreur est survenue lors de la suppression de la version", details = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Récupère la liste des clients qui utilisent une version spécifique d'un composant
         /// </summary>
         /// <param name="componentId">ID du composant</param>

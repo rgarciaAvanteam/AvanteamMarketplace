@@ -40,10 +40,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
         {
             try
             {
-                // Récupérer tous les composants avec leurs versions
+                // Récupérer tous les composants avec leurs versions (exclure les versions désactivées)
                 var components = await _context.Components
                     .Include(c => c.Tags)
-                    .Include(c => c.Versions)
+                    .Include(c => c.Versions.Where(v => !v.Version.StartsWith("Désactivé_")))
                     .AsNoTracking()
                     .ToListAsync();
                 
@@ -69,11 +69,14 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     string installedVersion = isInstalled ? installInfo?.Version : null;
                     
                     // Trouver la meilleure version compatible avec la version de plateforme
+                    // Exclure les versions désactivées
                     var compatibleVersions = component.Versions
                         .Where(v => 
+                            !v.Version.StartsWith("Désactivé_") &&
                             _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion) && 
                             _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion ?? component.MaxPlatformVersion, platformVersion))
-                        .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                        .OrderByDescending(v => v.IsLatest)  // Prioriser la version marquée comme dernière
+                        .ThenByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)  // Puis par numéro de version
                         .ToList();
                     
                     // Si aucune version compatible n'est trouvée, vérifier le composant principal
@@ -248,10 +251,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     };
                 }
                 
-                // Récupérer tous les composants avec leurs versions
+                // Récupérer tous les composants avec leurs versions (exclure les versions désactivées)
                 var components = await _context.Components
                     .Include(c => c.Tags)
-                    .Include(c => c.Versions)
+                    .Include(c => c.Versions.Where(v => !v.Version.StartsWith("Désactivé_")))
                     .AsNoTracking()
                     .ToListAsync();
                 
@@ -286,11 +289,14 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     }
                     
                     // Trouver toutes les versions plus récentes que celle installée et compatibles avec la version de plateforme actuelle
+                    // Exclure les versions désactivées
                     var newerCompatibleVersions = component.Versions
-                        .Where(v => _versionDetector.CompareVersions(v.Version, installInfo.Version) > 0 && 
+                        .Where(v => !v.Version.StartsWith("Désactivé_") &&
+                               _versionDetector.CompareVersions(v.Version, installInfo.Version) > 0 && 
                                _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion) &&
                                _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion ?? component.MaxPlatformVersion, platformVersion))
-                        .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                        .OrderByDescending(v => v.IsLatest)  // Prioriser la version marquée comme dernière
+                        .ThenByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)  // Puis par numéro de version
                         .ToList();
                     
                     // Si aucune version compatible n'est trouvée dans les versions spécifiques,
@@ -384,10 +390,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
         {
             try
             {
-                // Récupérer tous les composants avec leurs versions
+                // Récupérer tous les composants avec leurs versions (exclure les versions désactivées)
                 var components = await _context.Components
                     .Include(c => c.Tags)
-                    .Include(c => c.Versions)
+                    .Include(c => c.Versions.Where(v => !v.Version.StartsWith("Désactivé_")))
                     .AsNoTracking()
                     .ToListAsync();
                 
@@ -416,8 +422,10 @@ namespace AvanteamMarketplace.Infrastructure.Services
                     bool componentRequiresFutureVersion = !_versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion);
                     
                     // Trouver toutes les versions futures (qui nécessitent une version plus récente de la plateforme)
+                    // Exclure les versions désactivées
                     var futureVersions = component.Versions
-                        .Where(v => !_versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion))
+                        .Where(v => !v.Version.StartsWith("Désactivé_") &&
+                               !_versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion))
                         .OrderBy(v => v.MinPlatformVersion ?? component.MinPlatformVersion) // Ordre croissant des versions requises
                         .ToList();
                     
@@ -2193,9 +2201,185 @@ namespace AvanteamMarketplace.Infrastructure.Services
             _logger.LogError(ex, $"Erreur lors de la définition de la version {versionId} comme dernière version du composant {componentId}: {ex.Message}");
             throw;
         }
-
-        /// <summary>\n        /// Supprime une version spécifique d'un composant\n        /// </summary>\n        /// <param name="componentId">ID du composant</param>\n        /// <param name="versionId">ID de la version à supprimer</param>\n        /// <returns>True si la suppression a réussi, sinon False</returns>\n        public async Task<bool> DeleteComponentVersionAsync(int componentId, int versionId)\n        {\n            try\n            {\n                _logger.LogInformation($"Suppression de la version {versionId} pour le composant {componentId}");\n                \n                // Récupérer le composant avec ses versions\n                var component = await _context.Components\n                    .Include(c => c.Versions)\n                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);\n                    \n                if (component == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version pour un composant inexistant: {componentId}");\n                    return false;\n                }\n                \n                // Récupérer la version à supprimer\n                var version = component.Versions.FirstOrDefault(v => v.VersionId == versionId);\n                if (version == null)\n                {\n                    _logger.LogWarning($"Tentative de suppression d'une version inexistante: {versionId} pour le composant {componentId}");\n                    return false;\n                }\n                \n                // Vérifier si c'est la seule version ou la version actuelle du composant\n                if (component.Versions.Count == 1)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la seule version d'un composant: {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la seule version d'un composant");\n                }\n                \n                // Vérifier si c'est la version actuelle/latest\n                if (version.IsLatest)\n                {\n                    _logger.LogWarning($"Impossible de supprimer la version actuelle d'un composant: {versionId} pour le composant {componentId}");\n                    throw new InvalidOperationException("Impossible de supprimer la version actuelle d'un composant. Veuillez définir une autre version comme actuelle avant de supprimer celle-ci.");\n                }\n                \n                // Vérifier si cette version est installée chez des clients\n                var clientsUsingVersion = await _context.InstalledComponents\n                    .Include(ic => ic.Installation)\n                    .Where(ic => ic.ComponentId == componentId && ic.Version == version.Version && ic.IsActive)\n                    .ToListAsync();\n                    \n                if (clientsUsingVersion.Any())\n                {\n                    var clientsList = string.Join(", ", clientsUsingVersion.Select(ic => ic.Installation.ClientIdentifier));\n                    _logger.LogWarning($"Impossible de supprimer une version utilisée par des clients: {version.Version} pour le composant {componentId}. Clients: {clientsList}");\n                    throw new InvalidOperationException(\n                        $"Impossible de supprimer cette version car elle est actuellement utilisée par {clientsUsingVersion.Count} client(s): {clientsList}");\n                }\n                \n                // Supprimer les téléchargements associés à cette version\n                var downloads = await _context.ComponentDownloads\n                    .Where(cd => cd.ComponentId == componentId && cd.Version == version.Version)\n                    .ToListAsync();\n                    \n                _context.ComponentDownloads.RemoveRange(downloads);\n                \n                // Supprimer la version\n                _context.ComponentVersions.Remove(version);\n                await _context.SaveChangesAsync();\n                \n                _logger.LogInformation($"Version {versionId} ({version.Version}) du composant {componentId} supprimée avec succès");\n                return true;\n            }\n            catch (Exception ex)\n            {\n                _logger.LogError(ex, $"Erreur lors de la suppression de la version {versionId} du composant {componentId}: {ex.Message}");\n                throw;\n            }\n        }
     }
+        
+    /// <summary>
+    /// Récupère les composants avec des versions désactivées installées par un client
+    /// </summary>
+    /// <param name="clientId">Identifiant du client</param>
+    /// <param name="platformVersion">Version de Process Studio</param>
+    /// <returns>Liste des composants avec des versions désactivées et leurs recommandations</returns>
+    public async Task<List<DeactivatedVersionAlert>> GetDeactivatedVersionAlertsAsync(string clientId, string platformVersion)
+        {
+            var alerts = new List<DeactivatedVersionAlert>();
+            
+            if (string.IsNullOrEmpty(clientId))
+                return alerts;
+                
+            try
+            {
+                // Récupérer les composants installés par ce client
+                var installedComponents = await _context.InstalledComponents
+                    .Include(ic => ic.Installation)
+                    .Include(ic => ic.Component)
+                    .ThenInclude(c => c.Versions)
+                    .Where(ic => ic.Installation.ClientIdentifier == clientId && ic.IsActive)
+                    .AsNoTracking()
+                    .ToListAsync();
+                
+                // Identifier les versions désactivées installées
+                foreach (var installedComponent in installedComponents)
+                {
+                    if (installedComponent.Version.StartsWith("Désactivé_"))
+                    {
+                        var component = installedComponent.Component;
+                        
+                        // Trouver la meilleure version active compatible
+                        var activeVersions = component.Versions
+                            .Where(v => !v.Version.StartsWith("Désactivé_"))
+                            .Where(v => _versionDetector.IsPlatformVersionSufficient(v.MinPlatformVersion ?? component.MinPlatformVersion, platformVersion) &&
+                                       _versionDetector.IsPlatformVersionNotExceeded(v.MaxPlatformVersion ?? component.MaxPlatformVersion, platformVersion))
+                            .OrderByDescending(v => v.Version, StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+                        
+                        string recommendedVersion = "";
+                        bool isCompatible = false;
+                        string minPlatformRequired = "";
+                        
+                        if (activeVersions.Any())
+                        {
+                            var bestVersion = activeVersions.First();
+                            recommendedVersion = bestVersion.Version;
+                            isCompatible = true;
+                            minPlatformRequired = bestVersion.MinPlatformVersion ?? component.MinPlatformVersion;
+                        }
+                        else
+                        {
+                            // Si aucune version active n'est compatible, prendre la version principale du composant
+                            recommendedVersion = component.Version;
+                            isCompatible = _versionDetector.IsPlatformVersionSufficient(component.MinPlatformVersion, platformVersion) &&
+                                           _versionDetector.IsPlatformVersionNotExceeded(component.MaxPlatformVersion, platformVersion);
+                            minPlatformRequired = component.MinPlatformVersion;
+                        }
+                        
+                        // Créer l'alerte
+                        var alert = new DeactivatedVersionAlert
+                        {
+                            ComponentId = component.ComponentId,
+                            ComponentName = component.Name,
+                            DisplayName = component.DisplayName,
+                            DeactivatedVersion = installedComponent.Version,
+                            RecommendedVersion = recommendedVersion,
+                            IsRecommendedVersionCompatible = isCompatible,
+                            MinPlatformVersionRequired = minPlatformRequired,
+                            CanAutoUpdate = isCompatible && !string.IsNullOrEmpty(recommendedVersion),
+                            AlertType = isCompatible ? "Warning" : "Error"
+                        };
+                        
+                        // Générer le message d'alerte
+                        if (isCompatible)
+                        {
+                            alert.AlertMessage = $"La version {installedComponent.Version} du composant '{component.DisplayName}' a été désactivée. " +
+                                               $"Nous recommandons de passer à la version {recommendedVersion}.";
+                        }
+                        else
+                        {
+                            alert.AlertMessage = $"La version {installedComponent.Version} du composant '{component.DisplayName}' a été désactivée. " +
+                                               $"La version recommandée {recommendedVersion} nécessite Process Studio {minPlatformRequired} ou supérieur.";
+                        }
+                        
+                        alerts.Add(alert);
+                    }
+                }
+                
+                return alerts;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la récupération des alertes de versions désactivées pour le client {clientId}: {ex.Message}");
+                return alerts;
+            }
+        }
+
+        /// <summary>
+        /// Supprime une version spécifique d'un composant
+        /// </summary>
+        /// <param name="componentId">ID du composant</param>
+        /// <param name="versionId">ID de la version à supprimer</param>
+        /// <returns>True si la suppression a réussi, sinon False</returns>
+        public async Task<bool> DeleteComponentVersionAsync(int componentId, int versionId)
+        {
+            try
+            {
+                _logger.LogInformation($"Suppression de la version {versionId} pour le composant {componentId}");
+                
+                // Récupérer le composant avec ses versions
+                var component = await _context.Components
+                    .Include(c => c.Versions)
+                    .FirstOrDefaultAsync(c => c.ComponentId == componentId);
+                    
+                if (component == null)
+                {
+                    _logger.LogWarning($"Tentative de suppression d'une version pour un composant inexistant: {componentId}");
+                    return false;
+                }
+                
+                // Récupérer la version à supprimer
+                var version = component.Versions.FirstOrDefault(v => v.VersionId == versionId);
+                if (version == null)
+                {
+                    _logger.LogWarning($"Tentative de suppression d'une version inexistante: {versionId} pour le composant {componentId}");
+                    return false;
+                }
+                
+                // Vérifier si c'est la seule version ou la version actuelle du composant
+                if (component.Versions.Count == 1)
+                {
+                    _logger.LogWarning($"Impossible de supprimer la seule version d'un composant: {componentId}");
+                    throw new InvalidOperationException("Impossible de supprimer la seule version d'un composant");
+                }
+                
+                // Vérifier si c'est la version actuelle/latest
+                if (version.IsLatest)
+                {
+                    _logger.LogWarning($"Impossible de supprimer la version actuelle d'un composant: {versionId} pour le composant {componentId}");
+                    throw new InvalidOperationException("Impossible de supprimer la version actuelle d'un composant. Veuillez définir une autre version comme actuelle avant de supprimer celle-ci.");
+                }
+                
+                // Vérifier si cette version est installée chez des clients
+                var clientsUsingVersion = await _context.InstalledComponents
+                    .Include(ic => ic.Installation)
+                    .Where(ic => ic.ComponentId == componentId && ic.Version == version.Version && ic.IsActive)
+                    .ToListAsync();
+                    
+                if (clientsUsingVersion.Any())
+                {
+                    var clientsList = string.Join(", ", clientsUsingVersion.Select(ic => ic.Installation.ClientIdentifier));
+                    _logger.LogWarning($"Impossible de supprimer une version utilisée par des clients: {version.Version} pour le composant {componentId}. Clients: {clientsList}");
+                    throw new InvalidOperationException(
+                        $"Impossible de supprimer cette version car elle est actuellement utilisée par {clientsUsingVersion.Count} client(s): {clientsList}");
+                }
+                
+                // Supprimer les téléchargements associés à cette version
+                var downloads = await _context.ComponentDownloads
+                    .Where(cd => cd.ComponentId == componentId && cd.Version == version.Version)
+                    .ToListAsync();
+                    
+                _context.ComponentDownloads.RemoveRange(downloads);
+                
+                // Supprimer la version
+                _context.ComponentVersions.Remove(version);
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Version {versionId} ({version.Version}) du composant {componentId} supprimée avec succès");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Erreur lors de la suppression de la version {versionId} du composant {componentId}: {ex.Message}");
+                throw;
+            }
+        }
     
     /// <summary>
     /// Vérifie si une URL est accessible
